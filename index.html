@@ -273,8 +273,8 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
 .thread-unread-dot { background: #ef4444; border-radius: 999px; box-shadow: 0 0 0 3px rgba(239,68,68,.14); flex: 0 0 auto; height: 10px; width: 10px; }
 .thread-meta-row { align-items: center; display: flex; gap: 8px; justify-content: space-between; margin-top: 3px; }
 .thread-meta-row span { margin-top: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.thread-delete, .chat-delete-msg { align-items: center; background: #fff; border: 1px solid #fecaca; border-radius: 999px; color: #dc2626; cursor: pointer; display: inline-flex; font-size: 11px; font-weight: 950; justify-content: center; min-height: 26px; padding: 4px 9px; }
-.thread-delete:hover, .chat-delete-msg:hover { background: #fef2f2; }
+.thread-delete { align-items: center; background: #fff; border: 1px solid #fecaca; border-radius: 999px; color: #dc2626; cursor: pointer; display: inline-flex; font-size: 11px; font-weight: 950; justify-content: center; min-height: 26px; padding: 4px 9px; }
+.thread-delete:hover { background: #fef2f2; }
 .chat-panel { display: flex; flex-direction: column; min-height: 560px; }
 .messages-shell .chat-panel { display: none; }
 .messages-shell.chat-open { grid-template-columns: 1fr; }
@@ -291,7 +291,6 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
 .chat-message-row.mine { align-self: flex-end; flex-direction: row-reverse; }
 .chat-message-row.theirs { align-self: flex-start; }
 .chat-message-row .chat-bubble { max-width: min(82%, 620px); }
-.chat-message-row:not(:hover) .chat-delete-msg { opacity: 0; pointer-events: none; }
 .chat-compose { align-items: end; background: #fff; border-top: 2px solid var(--line); display: grid; gap: 8px; grid-template-columns: 1fr auto; padding: 10px; }
 .chat-compose textarea { border-radius: 16px; box-sizing: border-box; line-height: 1.45; max-height: 140px; min-height: 52px; overflow-y: auto; padding: 13px 14px; resize: none; }
 .chat-send { align-items: center; aspect-ratio: 1; border-radius: 50%; display: grid; font-size: 18px; height: 46px; justify-content: center; padding: 0 !important; }
@@ -303,7 +302,6 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
   .messages-shell.chat-open .chat-panel { height: calc(100dvh - 170px); min-height: 520px; }
   .messages-shell.chat-open .chat-body { min-height: 0; }
 }
-@media (hover: none), (max-width: 760px) { .chat-message-row:not(:hover) .chat-delete-msg { opacity: 1; pointer-events: auto; } }
 .page-head { align-items: center; display: flex; gap: 12px; justify-content: space-between; }
 .page-head .search-wrap { flex: 1; }
 /* ── SPLASH / REFRESH SCREEN ── */
@@ -6601,42 +6599,6 @@ function deleteChatForMe(chatId) {
     toast('Conversation deleted from your messages.');
   }, 'Delete');
 }
-function confirmDeleteChatMessage(chatId, messageId) {
-  if (!chatId || !messageId) return;
-  showConfirm('Are you sure you want to delete this message?', () => deleteChatMessage(chatId, messageId), 'Delete');
-}
-async function deleteChatMessage(chatId, messageId) {
-  const me = _myChatUid();
-  const chats = _getLocalChats();
-  const idx = chats.findIndex(c => c.id === chatId);
-  if (idx < 0 || !messageId) return;
-  const messages = Array.isArray(chats[idx].messages) ? chats[idx].messages : [];
-  const msg = messages.find(m => String(m.id) === String(messageId));
-  if (!msg) return;
-  if (String(msg.senderUid || msg.senderId || '') !== me) {
-    toast('You can delete only your own message.');
-    return;
-  }
-  chats[idx].messages = messages.filter(m => String(m.id) !== String(messageId));
-  const last = chats[idx].messages.length ? chats[idx].messages[chats[idx].messages.length - 1] : null;
-  chats[idx].lastMessage = last ? (last.text || '') : '';
-  chats[idx].lastMessageAt = last ? (last.createdAt || '') : '';
-  chats[idx].updatedAt = last ? (last.createdAt || chats[idx].updatedAt || '') : (chats[idx].updatedAt || new Date().toISOString());
-  chats[idx].updatedAtMs = last ? (Number(last.createdAtMs || Date.parse(last.createdAt || '')) || Date.now()) : Date.now();
-  _saveLocalChats(chats);
-  if (_db) {
-    try {
-      await _db.collection('chats').doc(chatId).collection('messages').doc(messageId).delete();
-      await _db.collection('chats').doc(chatId).set(_chatMetaForWrite(chats[idx]), { merge: true });
-    } catch(e) {
-      console.warn('[PKITAAP] Message delete sync failed:', e);
-      toast('Deleted locally. Publish the updated Firebase rules to sync message deletion online.');
-    }
-  }
-  renderMessages(true);
-  if (_activeChatId === chatId) openChat(chatId, true);
-  _updateMessagesMenuBadge();
-}
 async function renderMessages(skipFetch) {
   if (!window._isLoggedIn) { requireLogin(); return; }
   if (!skipFetch) _loadMyChatsFromFirestore().then(() => renderMessages(true));
@@ -6704,15 +6666,8 @@ function openChat(chatId, skipRemote) {
           _acEsc(m.text || '') +
           '<span class="chat-time">' + _acEsc(String(m.createdAt || '').slice(0,16).replace('T',' ')) + '</span>' +
         '</div>' +
-        (mine ? '<button type="button" class="chat-delete-msg" data-delete-message="' + _acEsc(m.id || '') + '">Delete</button>' : '') +
       '</div>';
     }).join('') : '<p style="color:#64748b;font-size:13px;font-weight:800;padding:8px 0;">Start the conversation below.</p>';
-    body.querySelectorAll('[data-delete-message]').forEach(btn => {
-      btn.onclick = e => {
-        e.stopPropagation();
-        confirmDeleteChatMessage(chatId, btn.getAttribute('data-delete-message'));
-      };
-    });
     body.scrollTop = body.scrollHeight;
   }
   if (!skipRemote) {
