@@ -5160,18 +5160,25 @@ async function loadRemoteAppData() {
 
 function normalizeState(input) {
   const next = input || structuredClone(seed);
-  if(!next.appName || next.appName === 'PKITAAP') next.appName = 'PKiTAAP';
+  // App name / tagline — always reflect latest admin export
+  next.appName    = seed.appName    || next.appName    || 'PKiTAAP';
+  next.appTagline = seed.appTagline || next.appTagline || '';
+  // Settings: seed is the base; any user-level overrides sit on top
   next.settings    = { ...seed.settings,   ...(next.settings    || {}) };
   next.adMob       = { ...(seed.adMob || {}), ...(next.adMob || {}) };
   next.classThumbs = { ...seed.classThumbs, ...(next.classThumbs || {}) };
-  next.categories  = next.categories || seed.categories;
-  next.locations     = next.locations     || seed.locations;
-  next.listings      = next.listings      || seed.listings;
-  next.classes       = next.classes       || seed.classes  || ["Class 9","Class 10","Class 11","Class 12"];
-  next.streams       = next.streams       || seed.streams  || ["Science","Commerce","Arts"];
-  next.boardsByState  = next.boardsByState  || seed.boardsByState  || {};
-  next.mediumsByState = next.mediumsByState || seed.mediumsByState || {};
-  next.books = (next.books || seed.books).map(item => {
+  // ── Admin-controlled config: ALWAYS use the freshly-exported seed so that
+  //    new boards / mediums / subjects / classes / locations / categories that
+  //    were added in the admin panel are visible in every new export, even
+  //    when the user's browser already has an older pkitaap-simple in
+  //    localStorage (the old || operator was keeping stale cached values). ──
+  next.classes        = seed.classes        || ["Class 9","Class 10","Class 11","Class 12"];
+  next.streams        = seed.streams        || ["Science","Commerce","Arts"];
+  next.boardsByState  = seed.boardsByState  || {};
+  next.mediumsByState = seed.mediumsByState || {};
+  next.categories     = seed.categories     || [];
+  next.locations      = seed.locations      || [];
+  next.books = (seed.books || []).map(item => {
     const normalized = { image:"", author:"", ...item, board: item.board || "" };
     if (normalized.type === "school" && !normalized.state && normalized.board) {
       const wanted = _normStateBoard(normalized.board);
@@ -5182,6 +5189,8 @@ function normalizeState(input) {
     }
     return normalized;
   });
+  // User-generated listings are preserved from localStorage
+  next.listings = next.listings || seed.listings || [];
   return next;
 }
 function save() { localStorage.setItem("pkitaap-simple", JSON.stringify(state)); }
