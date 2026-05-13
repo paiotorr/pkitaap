@@ -188,6 +188,14 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
 .auth-field.is-locked .dob-picker, .auth-field.is-locked .dob-summary { background: #f3f4f6; border-color: #e5e7eb; }
 #toast { background: #222; border-radius: 12px; bottom: 24px; color: white; font-weight: 900; opacity: 0; padding: 12px 18px; pointer-events: none; position: fixed; right: 24px; transform: translateY(12px); transition: 0.2s; z-index: 50; }
 #toast.show { opacity: 1; transform: translateY(0); }
+.confirm-overlay { align-items: center; background: rgba(15,23,42,.48); display: none; inset: 0; justify-content: center; padding: 18px; position: fixed; z-index: 120; }
+.confirm-overlay.open { display: flex; }
+.confirm-dialog { background: #fff; border-radius: 18px; box-shadow: 0 22px 55px rgba(15,23,42,.24); overflow: hidden; width: min(92vw, 360px); }
+.confirm-dialog-head { border-bottom: 2px solid #fee2e2; color: #dc2626; font-size: 18px; font-weight: 950; padding: 16px 18px 10px; }
+.confirm-dialog-body { color: var(--text); font-size: 14px; font-weight: 800; line-height: 1.55; padding: 16px 18px; }
+.confirm-dialog-actions { border-top: 2px solid var(--line); display: flex; gap: 10px; justify-content: flex-end; padding: 12px 18px 16px; }
+.confirm-dialog-actions .btn { min-height: 40px; padding: 0 16px; }
+.confirm-danger { background: #dc2626; color: #fff; }
 .otp-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 5px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .google-btn { align-items: center; background: white; border: 2px solid #dadce0; border-radius: 12px; color: #3c4043; cursor: pointer; display: flex; font-size: 15px; font-weight: 900; gap: 10px; justify-content: center; min-height: 52px; padding: 0 16px; transition: background 0.15s, box-shadow 0.15s; width: 100%; margin-top: 4px; }
@@ -251,10 +259,10 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
 .home-link { color: var(--red) !important; font-weight: 900 !important; }
 .messages-shell { display: grid; gap: 12px; grid-template-columns: minmax(220px, 0.9fr) minmax(280px, 1.4fr); min-height: 560px; }
 .thread-list-panel, .chat-panel { background: #fff; border: 2px solid var(--line); border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,.05); overflow: hidden; }
-.thread-list-panel { display: flex; flex-direction: column; }
+.thread-list-panel { display: flex; flex-direction: column; min-height: 0; }
 .thread-head, .chat-head { align-items: center; background: var(--red); color: #fff; display: flex; justify-content: space-between; min-height: 58px; padding: 12px 14px; }
 .thread-head strong, .chat-head strong { font-size: 16px; font-weight: 950; }
-.thread-list { background: #f8fafc; display: flex; flex: 1; flex-direction: column; gap: 8px; max-height: 620px; overflow-y: auto; padding: 10px; }
+.thread-list { -webkit-overflow-scrolling: touch; background: #f8fafc; display: flex; flex: 1; flex-direction: column; gap: 8px; max-height: 620px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 10px; }
 .thread-item { background: #fff; border: 2px solid transparent; border-radius: 14px; cursor: pointer; padding: 11px 12px; transition: background .15s, border .15s, transform .15s; }
 .thread-item:hover, .thread-item.active { background: var(--red-light); border-color: var(--line); transform: translateY(-1px); }
 .thread-item.unread { border-color: #f59e0b; box-shadow: 0 0 0 1px rgba(245,158,11,.14); }
@@ -274,7 +282,7 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
 .messages-shell.chat-open .chat-panel { display: flex; }
 .chat-back { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.35); border-radius: 999px; color: #fff; cursor: pointer; font-size: 12px; font-weight: 950; padding: 7px 10px; }
 .chat-sub { color: rgba(255,255,255,.85); display: block; font-size: 11px; font-weight: 800; margin-top: 2px; }
-.chat-body { background: linear-gradient(180deg,#f0fdf4 0%,#ecfdf5 100%); display: flex; flex: 1; flex-direction: column; gap: 8px; min-height: 380px; overflow-y: auto; padding: 14px; }
+.chat-body { -webkit-overflow-scrolling: touch; background: linear-gradient(180deg,#f0fdf4 0%,#ecfdf5 100%); display: flex; flex: 1; flex-direction: column; gap: 8px; min-height: 380px; overflow-y: auto; overscroll-behavior: contain; padding: 14px; }
 .chat-bubble { border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,.06); font-size: 13px; font-weight: 800; line-height: 1.4; max-width: 82%; padding: 9px 11px; word-break: break-word; }
 .chat-bubble.mine { align-self: flex-end; background: var(--red); border-bottom-right-radius: 5px; color: #fff; }
 .chat-bubble.theirs { align-self: flex-start; background: #fff; border-bottom-left-radius: 5px; color: var(--text); }
@@ -287,7 +295,15 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
 .chat-compose { align-items: end; background: #fff; border-top: 2px solid var(--line); display: grid; gap: 8px; grid-template-columns: 1fr auto; padding: 10px; }
 .chat-compose textarea { border-radius: 16px; box-sizing: border-box; line-height: 1.45; max-height: 140px; min-height: 52px; overflow-y: auto; padding: 13px 14px; resize: none; }
 .chat-send { align-items: center; aspect-ratio: 1; border-radius: 50%; display: grid; font-size: 18px; height: 46px; justify-content: center; padding: 0 !important; }
-@media (max-width: 760px) { .messages-shell { grid-template-columns: 1fr; } .chat-panel { min-height: 520px; } .thread-list { max-height: 240px; } }
+@media (max-width: 760px) {
+  .messages-shell { grid-template-columns: 1fr; min-height: 0; }
+  .thread-list-panel { min-height: calc(100dvh - 210px); }
+  .thread-list { max-height: none; overflow-y: visible; padding-bottom: 18px; }
+  .messages-shell.chat-open { min-height: calc(100dvh - 170px); }
+  .messages-shell.chat-open .chat-panel { height: calc(100dvh - 170px); min-height: 520px; }
+  .messages-shell.chat-open .chat-body { min-height: 0; }
+}
+@media (hover: none), (max-width: 760px) { .chat-message-row:not(:hover) .chat-delete-msg { opacity: 1; pointer-events: auto; } }
 .page-head { align-items: center; display: flex; gap: 12px; justify-content: space-between; }
 .page-head .search-wrap { flex: 1; }
 /* ── SPLASH / REFRESH SCREEN ── */
@@ -738,6 +754,16 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
     </div>
   </div>
 </dialog>
+<div class="confirm-overlay" id="userConfirmModal" aria-hidden="true">
+  <div class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="userConfirmTitle">
+    <div class="confirm-dialog-head" id="userConfirmTitle">Confirm Delete</div>
+    <div class="confirm-dialog-body" id="userConfirmMsg">Are you sure?</div>
+    <div class="confirm-dialog-actions">
+      <button class="btn btn-ghost" id="userConfirmCancel" type="button">Cancel</button>
+      <button class="btn confirm-danger" id="userConfirmOk" type="button">Delete</button>
+    </div>
+  </div>
+</div>
 <div id="toast"></div>
 <script>
 // ═══════════════════════════════════════════════════════════════
@@ -5222,6 +5248,40 @@ function normalizeState(input) {
 }
 function save() { localStorage.setItem("pkitaap-simple", JSON.stringify(state)); }
 function toast(text) { const el = document.querySelector("#toast"); el.textContent = text; el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 1800); }
+function closeConfirm() {
+  const modal = document.getElementById('userConfirmModal');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+}
+function showConfirm(msg, cb, btnLabel) {
+  const modal = document.getElementById('userConfirmModal');
+  const text = document.getElementById('userConfirmMsg');
+  const ok = document.getElementById('userConfirmOk');
+  const cancel = document.getElementById('userConfirmCancel');
+  if (!modal || !text || !ok || !cancel) {
+    if (window.confirm(msg || 'Are you sure?') && typeof cb === 'function') cb();
+    return;
+  }
+  text.textContent = msg || 'Are you sure?';
+  ok.textContent = btnLabel || 'Delete';
+  ok.onclick = async () => {
+    const action = cb;
+    closeConfirm();
+    if (typeof action === 'function') {
+      try { await action(); }
+      catch(e) {
+        console.warn('[PKITAAP] Confirm action failed:', e);
+        toast('Could not delete. Please try again.');
+      }
+    }
+  };
+  cancel.onclick = closeConfirm;
+  modal.onclick = e => { if (e.target === modal) closeConfirm(); };
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+}
 function book() { return state.books.find(item => item.id === selectedBookId) || null; }
 let selectedState = "";
 const classes = state.classes || ["Class 9","Class 10","Class 11","Class 12"];
@@ -6526,7 +6586,7 @@ async function startListingChat(listingId) {
 }
 function deleteChatForMe(chatId) {
   if (!chatId) return;
-  showConfirm('Delete this conversation from your messages?', () => {
+  showConfirm('Are you sure you want to delete this conversation from your messages?', () => {
     const hidden = _getHiddenChatMap();
     const chat = _getLocalChats().find(c => c.id === chatId);
     hidden[chatId] = Math.max(Date.now(), _chatLastMs(chat));
@@ -6539,7 +6599,11 @@ function deleteChatForMe(chatId) {
     renderMessages(true);
     _updateMessagesMenuBadge();
     toast('Conversation deleted from your messages.');
-  });
+  }, 'Delete');
+}
+function confirmDeleteChatMessage(chatId, messageId) {
+  if (!chatId || !messageId) return;
+  showConfirm('Are you sure you want to delete this message?', () => deleteChatMessage(chatId, messageId), 'Delete');
 }
 async function deleteChatMessage(chatId, messageId) {
   const me = _myChatUid();
@@ -6644,7 +6708,10 @@ function openChat(chatId, skipRemote) {
       '</div>';
     }).join('') : '<p style="color:#64748b;font-size:13px;font-weight:800;padding:8px 0;">Start the conversation below.</p>';
     body.querySelectorAll('[data-delete-message]').forEach(btn => {
-      btn.onclick = () => deleteChatMessage(chatId, btn.getAttribute('data-delete-message'));
+      btn.onclick = e => {
+        e.stopPropagation();
+        confirmDeleteChatMessage(chatId, btn.getAttribute('data-delete-message'));
+      };
     });
     body.scrollTop = body.scrollHeight;
   }
