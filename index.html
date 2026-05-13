@@ -5153,8 +5153,12 @@ async function loadRemoteAppData() {
     _remoteDataLoaded = true;
     save();
     render();
+    // ── Data is ready — now dismiss the splash screen ──
+    if (window._hideSplash) window._hideSplash();
   } catch(e) {
     console.warn('[PKITAAP] Remote app data load failed:', e);
+    // Dismiss splash even on failure so user isn't stuck
+    if (window._hideSplash) window._hideSplash();
   }
 }
 
@@ -8349,16 +8353,19 @@ init();
       // to avoid double-handling the login popup flow.
       if (_authStateHandled) return;
       _authStateHandled = true;
-      // ── Firebase has connected — dismiss the splash screen ──
-      if (window._hideSplash) window._hideSplash();
 
-      if (!firebaseUser) return; // Not logged in — show normal UI
+      if (!firebaseUser) {
+        // Not logged in — no remote data to wait for, dismiss splash now
+        if (window._hideSplash) window._hideSplash();
+        return;
+      }
 
       // Firebase says user is signed in — check if they have a profile
       const existingData = await _getUserFromFirestore(firebaseUser.uid);
 
       if (existingData) {
-        // Returning user with complete profile — restore session silently
+        // Returning user with complete profile — restore session silently.
+        // Splash is dismissed inside onAuthSuccess after remote data loads.
         await onAuthSuccess(existingData, firebaseUser);
       } else {
         // Firebase session exists but no Firestore profile yet
@@ -8369,11 +8376,13 @@ init();
         document.getElementById('signupTagline').textContent  = 'Complete your profile';
         _prefillNameFromGoogle();
         signupDialog.showModal();
+        // Dismiss splash now — user needs to see the signup form
+        if (window._hideSplash) window._hideSplash();
       }
     });
   } else {
     // No Firebase auth — dismiss splash when page finishes loading
-    window.addEventListener('load', function(){ setTimeout(function(){ if(window._hideSplash) window._hideSplash(); }, 500); });
+    window.addEventListener('load', function(){ setTimeout(function(){ if(window._hideSplash) window._hideSplash(); }, 2000); });
   }
 
 })();
@@ -8392,8 +8401,8 @@ init();
     overlay.classList.add('fade-out');
     setTimeout(function(){ if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 600);
   };
-  // Fallback: if Firebase never calls onAuthStateChanged within 8 seconds, dismiss anyway
-  setTimeout(function(){ if (window._hideSplash) window._hideSplash(); }, 8000);
+  // Fallback: if Firebase never calls onAuthStateChanged within 12 seconds, dismiss anyway
+  setTimeout(function(){ if (window._hideSplash) window._hideSplash(); }, 12000);
 })();
 </script>
 </body>
