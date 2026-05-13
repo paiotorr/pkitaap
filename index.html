@@ -2765,19 +2765,31 @@ function renderMatches(bookId) {
   if (_db) {
     _db.collection('listings').get().then(async snap => {
       let changed = false;
+      const remoteListings = snap.docs.map(doc => Object.assign({id:doc.id}, doc.data()));
+      const remoteIds = new Set(remoteListings.map(l => String(l.id || '').trim()).filter(Boolean));
+      let previousRemoteIds = [];
+      try { previousRemoteIds = JSON.parse(localStorage.getItem('pkitaap_remote_listing_ids_v1') || '[]'); } catch(e) { previousRemoteIds = []; }
+      const previousRemoteSet = new Set((previousRemoteIds || []).map(String));
+      const beforePrune = (state.listings || []).length;
+      state.listings = (state.listings || []).filter(l => {
+        const id = String(l.id || '').trim();
+        return !id || !previousRemoteSet.has(id) || remoteIds.has(id);
+      });
+      if (state.listings.length !== beforePrune) changed = true;
       snap.docs.forEach(doc => {
         const data = Object.assign({id:doc.id}, doc.data());
         const idx = (state.listings || []).findIndex(x => String(x.id) === String(data.id));
         if (idx >= 0) state.listings[idx] = Object.assign({}, state.listings[idx], data);
         else { state.listings.push(data); changed = true; }
       });
+      try { localStorage.setItem('pkitaap_remote_listing_ids_v1', JSON.stringify(Array.from(remoteIds))); } catch(e) {}
       if (changed) save();
       // FIX: fetch each seller's CURRENT name live from /users so any
       // profile name change is reflected immediately without re-listing
       const sellerNameMap = {};
       const removedSellerUids = {};
       try {
-        const matchedListings = (state.listings || []).filter(l => _selectedBookMatchesListing(l, bId));
+        const matchedListings = remoteListings.filter(l => _selectedBookMatchesListing(l, bId));
         const uniqueUids = [...new Set(
           matchedListings
             .map(l => String(l.userId || l.sellerUserId || '').trim())
@@ -2793,7 +2805,7 @@ function renderMatches(bookId) {
           }));
         }
       } catch(e) {}
-      _renderMatchList(bId, query, sellerNameMap, removedSellerUids);
+      _renderMatchList(bId, query, sellerNameMap, removedSellerUids, remoteListings);
     }).catch(e=>{
       console.warn('[PKITAAP] Could not load listings:', e);
       _renderMatchList(bId, query);
@@ -2823,10 +2835,10 @@ function _selectedBookMatchesListing(l, bId) {
   const sameStream = !selected.stream || !l.stream || _sameText(l.stream, selected.stream);
   return sameTitle && sameClass && sameBoard && sameStream;
 }
-function _renderMatchList(bId, query, sellerNameMap, removedSellerUids) {
+function _renderMatchList(bId, query, sellerNameMap, removedSellerUids, sourceListings) {
   const list = document.querySelector("#matchList");
   if (!list) return;
-  const matches = (state.listings || [])
+  const matches = (sourceListings || state.listings || [])
     .filter(l => _selectedBookMatchesListing(l, bId))
     .filter(l => {
       const uid = String(l.userId || l.sellerUserId || '').trim();
