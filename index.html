@@ -5111,6 +5111,27 @@ window.pkitaapAndroidBack = function() {
   return false;
 };
 
+// ── MOBILE BROWSER BACK BUTTON SUPPORT ──────────────────────────
+// On mobile browsers the hardware/gesture back button normally closes
+// the tab or leaves the page. We intercept it with the History API:
+// keep one "sentinel" entry on top of the stack so the back gesture
+// always fires a popstate event (which we can catch) instead of
+// navigating away from the app entirely.
+(function() {
+  // Push the sentinel entry — this means there is always something to
+  // pop back to before the browser would actually leave the page.
+  history.pushState({ pkitaap: 1 }, '');
+
+  window.addEventListener('popstate', function() {
+    // Route the back press through our in-app handler.
+    window.pkitaapAndroidBack && window.pkitaapAndroidBack();
+    // Re-push the sentinel so the NEXT back press is also caught.
+    // (Without this the second back press would leave the page.)
+    history.pushState({ pkitaap: 1 }, '');
+  });
+})();
+// ────────────────────────────────────────────────────────────────
+
 function updateAccessControls() {
   const locked = !window._isLoggedIn;
   ['searchInput','stateFilter','buyState','buyDistrict','buySubDistrict','buyPlace','buySchool','buyMedium','sellMedium'].forEach(id => {
