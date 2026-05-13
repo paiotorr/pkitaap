@@ -137,6 +137,9 @@ label { color: #444; display: grid; font-size: 13px; font-weight: 900; gap: 5px;
 .result-card strong { display: block; }
 .result-card span { color: var(--muted); display: block; font-size: 12px; font-weight: 900; margin-top: 4px; }
 .contact-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.brand-footer { border-top: 1px solid var(--line); color: var(--muted); display: flex; flex-wrap: wrap; font-size: 13px; font-weight: 900; gap: 8px 14px; justify-content: center; line-height: 1.5; margin: 8px auto 28px; max-width: 980px; padding: 18px 14px 0; text-align: center; }
+.brand-footer a { color: var(--red); font-weight: 950; }
+.brand-footer span { white-space: nowrap; }
 .toggle { align-items: center; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; padding: 12px 0; }
 .bottom-nav { display: none; }
 .bottom-item { text-align: center; }
@@ -569,6 +572,10 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
     </section>
   </main>
 </div>
+<footer class="brand-footer">
+  <span>Contact: <a href="mailto:pulinoffice@gmail.com">pulinoffice@gmail.com</a></span>
+  <span>Copyright by PAIOTORR</span>
+</footer>
 <dialog id="loginDialog">
   <div class="auth-modal">
     <button class="auth-close" id="loginClose">&#10005;</button>
