@@ -112,6 +112,8 @@ label { color: #444; display: grid; font-size: 13px; font-weight: 900; gap: 5px;
 .class-card img, .book-card img { aspect-ratio: 1.25; background: var(--red-light); border-radius: 12px 12px 0 0; display: block; object-fit: cover; width: 100%; }
 .class-card.active, .stream-card.active { border-color: var(--red); color: var(--text); }
 .book-card.active { border-color: var(--red); }
+.book-grid.focused { grid-template-columns: minmax(0,1fr); }
+.book-grid.focused .book-card { cursor: default; }
 .card-info { background: white; display: grid; gap: 7px; min-height: 82px; padding: 12px; align-content: center; }
 .book-card .card-info { place-items: center; text-align: center; }
 .class-card strong, .book-card strong { display: block; font-size: 18px; line-height: 1.1; overflow-wrap: anywhere; }
@@ -5285,6 +5287,10 @@ function imageForClass(name) { return state.classThumbs?.[name] || placeholder(n
 function imageForBook(item)  { return item.image || placeholder(item.title); }
 function bookMeta(item)      { return [item.className,item.board,item.stream].filter(Boolean).join(" / "); }
 function priceText(item)     { return '&#8377;' + item.price; }
+function bookCardHtml(item) {
+  const active = item.id === selectedBookId;
+  return '<button class="book-card ' + (active ? "active" : "") + '" type="button" data-id="' + item.id + '"' + (active ? ' aria-current="true"' : '') + '><img src="' + imageForBook(item) + '" alt="' + item.title + '"/><div class="card-info"><strong>' + item.title + '</strong><small>' + bookMeta(item) + '</small><span class="price">' + priceText(item) + '</span></div></button>';
+}
 function renderClasses() {
   const all = state.settings.general ? [...classes,"General"] : classes;
   const grid = document.querySelector("#classGrid");
@@ -5345,10 +5351,15 @@ function renderStreams() {
 function renderBooks() {
   const items = shownBooks();
   const grid  = document.querySelector("#bookGrid");
+  const selected = selectedBookId ? book() : null;
+  const visibleItems = selected ? [selected] : items;
+  const isFocused = !!selected;
   grid.style.display = catalogStep === "books" ? "grid" : "none";
-  grid.innerHTML = items.length ? items.map(item => '<button class="book-card ' + (item.id===selectedBookId?"active":"") + '" data-id="' + item.id + '"><img src="' + imageForBook(item) + '" alt="' + item.title + '"/><div class="card-info"><strong>' + item.title + '</strong><small>' + bookMeta(item) + '</small><span class="price">' + priceText(item) + '</span></div></button>').join("") : '<div>No books found</div>';
-  document.querySelectorAll(".book-card").forEach(card => {
+  grid.classList.toggle("focused", catalogStep === "books" && isFocused);
+  grid.innerHTML = visibleItems.length ? visibleItems.map(bookCardHtml).join("") : '<div>No books found</div>';
+  grid.querySelectorAll(".book-card").forEach(card => {
     card.onclick = () => {
+      if (card.dataset.id === selectedBookId) return;
       triggerAdMob("subjectClick");
       selectedBookId = card.dataset.id;
       const _ml = document.querySelector("#matchList");
@@ -7464,7 +7475,8 @@ async function _saveCommunityLocation(state, district, subDistrict, place, schoo
 }
 function render() {
   updateAccessControls();
-  document.querySelector("#catalogTitle").textContent = catalogStep==="classes"?"Classes":catalogStep==="boards"?"Boards":catalogStep==="streams"?"Streams":"Subjects";
+  const selected = selectedBookId && catalogStep === "books" ? book() : null;
+  document.querySelector("#catalogTitle").textContent = selected ? selected.title : catalogStep==="classes"?"Classes":catalogStep==="boards"?"Boards":catalogStep==="streams"?"Streams":"Subjects";
   document.querySelector("#backBtn").style.display = catalogStep==="classes" ? "none" : "inline-block";
   document.querySelector("#matchCard").style.display = (selectedBookId && catalogStep === "books") ? "block" : "none";
   renderClasses(); renderCategories(); renderBoards(); renderStreams(); renderBooks(); renderSelected();
