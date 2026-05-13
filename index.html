@@ -59,6 +59,8 @@ button, input, select { font: inherit; }
 .menu-panel > button { align-items: center; background: #f9fafb; border: 2px solid transparent; border-radius: 12px; color: var(--text); cursor: pointer; display: flex; font-size: 14px; font-weight: 900; justify-content: flex-start; min-height: 46px; padding: 0 14px; text-align: left; width: 100%; }
 .menu-title { color: var(--muted); font-size: 12px; font-weight: 900; margin: 2px 4px 4px; text-transform: uppercase; }
 .menu-panel > button:hover { background: var(--red-light); border-color: var(--line); color: var(--red); }
+#menuMessages { position: relative; }
+#menuMessages.has-unread::after { background: #ef4444; border: 2px solid #fff; border-radius: 999px; box-shadow: 0 0 0 3px rgba(239,68,68,.14); content: ''; height: 10px; position: absolute; right: 14px; top: 10px; width: 10px; }
 #menuLogout { background: #fef2f2 !important; color: #dc2626 !important; }
 .menu-login-card {
   background: linear-gradient(135deg, var(--red-light) 0%, #dcfce7 100%);
@@ -253,8 +255,16 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
 .thread-list { background: #f8fafc; display: flex; flex: 1; flex-direction: column; gap: 8px; max-height: 620px; overflow-y: auto; padding: 10px; }
 .thread-item { background: #fff; border: 2px solid transparent; border-radius: 14px; cursor: pointer; padding: 11px 12px; transition: background .15s, border .15s, transform .15s; }
 .thread-item:hover, .thread-item.active { background: var(--red-light); border-color: var(--line); transform: translateY(-1px); }
+.thread-item.unread { border-color: #f59e0b; box-shadow: 0 0 0 1px rgba(245,158,11,.14); }
 .thread-item strong { color: var(--text); display: block; font-size: 14px; font-weight: 950; }
 .thread-item span { color: var(--muted); display: block; font-size: 12px; font-weight: 800; line-height: 1.35; margin-top: 3px; }
+.thread-title-row { align-items: center; display: flex; gap: 8px; justify-content: space-between; }
+.thread-title-row strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thread-unread-dot { background: #ef4444; border-radius: 999px; box-shadow: 0 0 0 3px rgba(239,68,68,.14); flex: 0 0 auto; height: 10px; width: 10px; }
+.thread-meta-row { align-items: center; display: flex; gap: 8px; justify-content: space-between; margin-top: 3px; }
+.thread-meta-row span { margin-top: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thread-delete, .chat-delete-msg { align-items: center; background: #fff; border: 1px solid #fecaca; border-radius: 999px; color: #dc2626; cursor: pointer; display: inline-flex; font-size: 11px; font-weight: 950; justify-content: center; min-height: 26px; padding: 4px 9px; }
+.thread-delete:hover, .chat-delete-msg:hover { background: #fef2f2; }
 .chat-panel { display: flex; flex-direction: column; min-height: 560px; }
 .messages-shell .chat-panel { display: none; }
 .messages-shell.chat-open { grid-template-columns: 1fr; }
@@ -267,6 +277,11 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
 .chat-bubble.mine { align-self: flex-end; background: var(--red); border-bottom-right-radius: 5px; color: #fff; }
 .chat-bubble.theirs { align-self: flex-start; background: #fff; border-bottom-left-radius: 5px; color: var(--text); }
 .chat-time { display: block; font-size: 10px; font-weight: 800; margin-top: 4px; opacity: .72; text-align: right; }
+.chat-message-row { align-items: flex-end; display: flex; gap: 7px; max-width: 100%; }
+.chat-message-row.mine { align-self: flex-end; flex-direction: row-reverse; }
+.chat-message-row.theirs { align-self: flex-start; }
+.chat-message-row .chat-bubble { max-width: min(82%, 620px); }
+.chat-message-row:not(:hover) .chat-delete-msg { opacity: 0; pointer-events: none; }
 .chat-compose { align-items: end; background: #fff; border-top: 2px solid var(--line); display: grid; gap: 8px; grid-template-columns: 1fr auto; padding: 10px; }
 .chat-compose textarea { border-radius: 16px; box-sizing: border-box; line-height: 1.45; max-height: 140px; min-height: 52px; overflow-y: auto; padding: 13px 14px; resize: none; }
 .chat-send { align-items: center; aspect-ratio: 1; border-radius: 50%; display: grid; font-size: 18px; height: 46px; justify-content: center; padding: 0 !important; }
@@ -2942,9 +2957,13 @@ async function removeMyListing(id) {
 }
 // ── Location helpers (State → District → Place → School) ──────────────────
 const CHAT_STORE_KEY = 'pkitaap_chats_v1';
+const CHAT_READ_STORE_KEY = 'pkitaap_chat_read_v1';
+const CHAT_HIDDEN_STORE_KEY = 'pkitaap_chat_hidden_v1';
 let _activeChatId = '';
 let _activeChatListenId = '';
 let _activeChatUnsub = null;
+let _myChatsListenUid = '';
+let _myChatsUnsub = null;
 function _myChatUid() {
   const u = window._currentUser || {};
   return String((_auth && _auth.currentUser && _auth.currentUser.uid) || u.uid || u.id || u.mobile || u.email || '').trim();
@@ -2958,6 +2977,52 @@ function _getLocalChats() {
 }
 function _saveLocalChats(chats) {
   try { localStorage.setItem(CHAT_STORE_KEY, JSON.stringify(chats || [])); } catch(e) {}
+}
+function _chatLastMs(chat) {
+  chat = chat || {};
+  const msgs = Array.isArray(chat.messages) ? chat.messages : [];
+  const last = msgs.length ? msgs[msgs.length - 1] : null;
+  return Number((last && last.createdAtMs) || chat.updatedAtMs || Date.parse(chat.updatedAt || chat.lastMessageAt || '') || 0) || 0;
+}
+function _chatReadKey() {
+  return CHAT_READ_STORE_KEY + '_' + (_myChatUid() || 'guest');
+}
+function _getChatReadMap() {
+  try { return JSON.parse(localStorage.getItem(_chatReadKey()) || '{}') || {}; } catch(e) { return {}; }
+}
+function _saveChatReadMap(map) {
+  try { localStorage.setItem(_chatReadKey(), JSON.stringify(map || {})); } catch(e) {}
+}
+function _getHiddenChatMap() {
+  try { return JSON.parse(localStorage.getItem(CHAT_HIDDEN_STORE_KEY) || '{}') || {}; } catch(e) { return {}; }
+}
+function _saveHiddenChatMap(map) {
+  try { localStorage.setItem(CHAT_HIDDEN_STORE_KEY, JSON.stringify(map || {})); } catch(e) {}
+}
+function _markChatRead(chatId) {
+  if (!chatId) return;
+  const chat = _getLocalChats().find(c => c.id === chatId);
+  const map = _getChatReadMap();
+  map[chatId] = Math.max(Date.now(), _chatLastMs(chat));
+  _saveChatReadMap(map);
+  _updateMessagesMenuBadge();
+}
+function _chatUnreadCount(chat, me) {
+  if (!chat || !me) return 0;
+  const readAt = Number(_getChatReadMap()[chat.id] || 0) || 0;
+  return (Array.isArray(chat.messages) ? chat.messages : []).filter(m => {
+    const sender = String(m.senderUid || m.senderId || '').trim();
+    const ms = Number(m.createdAtMs || Date.parse(m.createdAt || '')) || 0;
+    return sender && sender !== me && ms > readAt;
+  }).length;
+}
+function _updateMessagesMenuBadge() {
+  const btn = document.getElementById('menuMessages');
+  if (!btn) return;
+  const me = _myChatUid();
+  const hasUnread = _myChats().some(chat => _chatUnreadCount(chat, me) > 0);
+  btn.classList.toggle('has-unread', !!hasUnread);
+  btn.title = hasUnread ? 'Messages - new message' : 'Messages';
 }
 function _upsertLocalChat(chat) {
   const chats = _getLocalChats();
@@ -3015,14 +3080,16 @@ function _normalizeChatMessage(msg) {
     createdAtMs: msg.createdAtMs || Date.parse(createdAt) || Date.now()
   });
 }
-function _mergeChatMessages(chatId, messages) {
+function _mergeChatMessages(chatId, messages, replaceExisting) {
   const chats = _getLocalChats();
   const idx = chats.findIndex(c => c.id === chatId);
   if (idx < 0) return null;
   const byId = new Map();
-  (Array.isArray(chats[idx].messages) ? chats[idx].messages : []).forEach(m => {
-    if (m && m.id) byId.set(String(m.id), m);
-  });
+  if (!replaceExisting) {
+    (Array.isArray(chats[idx].messages) ? chats[idx].messages : []).forEach(m => {
+      if (m && m.id) byId.set(String(m.id), m);
+    });
+  }
   (Array.isArray(messages) ? messages : []).forEach(m => {
     m = _normalizeChatMessage(m);
     if (m && m.id) byId.set(String(m.id), m);
@@ -3034,8 +3101,15 @@ function _mergeChatMessages(chatId, messages) {
     chats[idx].lastMessage = last.text || '';
     chats[idx].lastMessageAt = last.createdAt || '';
     chats[idx].updatedAt = last.createdAt || chats[idx].updatedAt || '';
+    chats[idx].updatedAtMs = Number(last.createdAtMs || Date.parse(last.createdAt || '')) || chats[idx].updatedAtMs || Date.now();
+  } else if (replaceExisting) {
+    chats[idx].lastMessage = '';
+    chats[idx].lastMessageAt = '';
+    chats[idx].updatedAt = chats[idx].updatedAt || new Date().toISOString();
+    chats[idx].updatedAtMs = chats[idx].updatedAtMs || Date.now();
   }
   _saveLocalChats(chats);
+  _updateMessagesMenuBadge();
   return chats[idx];
 }
 function _chatIdFor(listing, buyerUid, sellerUidOverride) {
@@ -3142,6 +3216,44 @@ function _stopActiveChatListener() {
   _activeChatUnsub = null;
   _activeChatListenId = '';
 }
+function _stopMyChatsWatcher() {
+  if (_myChatsUnsub) {
+    try { _myChatsUnsub(); } catch(e) {}
+  }
+  _myChatsUnsub = null;
+  _myChatsListenUid = '';
+}
+function _watchMyChatsForUnread() {
+  const me = _myChatUid();
+  if (!_db || !me || _myChatsListenUid === me) return;
+  _stopMyChatsWatcher();
+  _myChatsListenUid = me;
+  try {
+    _myChatsUnsub = _db.collection('chats').where('participants','array-contains',me).onSnapshot(async snap => {
+      const hidden = _getHiddenChatMap();
+      let hiddenChanged = false;
+      const remoteChats = [];
+      snap.docs.forEach(doc => {
+        const chat = Object.assign({ id: doc.id, messages: [] }, doc.data());
+        const hiddenAt = Number(hidden[chat.id] || 0) || 0;
+        const remoteMs = _chatLastMs(chat);
+        if (hiddenAt && remoteMs <= hiddenAt) return;
+        if (hiddenAt && remoteMs > hiddenAt) {
+          delete hidden[chat.id];
+          hiddenChanged = true;
+        }
+        remoteChats.push(_upsertLocalChat(chat));
+      });
+      if (hiddenChanged) _saveHiddenChatMap(hidden);
+      await Promise.all(remoteChats.map(_loadChatMessagesFromFirestore));
+      _updateMessagesMenuBadge();
+      if (document.getElementById('messagesPage')?.classList.contains('active')) renderMessages(true);
+    }, err => console.warn('[PKITAAP] Chat list listener failed:', err));
+  } catch(e) {
+    console.warn('[PKITAAP] Chat list listener setup failed:', e);
+    _stopMyChatsWatcher();
+  }
+}
 function _watchChatMessages(chatId) {
   if (!_db || !chatId || _activeChatListenId === chatId) return;
   _stopActiveChatListener();
@@ -3149,7 +3261,7 @@ function _watchChatMessages(chatId) {
   try {
     _activeChatUnsub = _db.collection('chats').doc(chatId).collection('messages').orderBy('createdAt','asc').onSnapshot(snap => {
       const messages = snap.docs.map(doc => _normalizeChatMessage(Object.assign({ id: doc.id }, doc.data())));
-      _mergeChatMessages(chatId, messages);
+      _mergeChatMessages(chatId, messages, true);
       if (_activeChatId === chatId) openChat(chatId, true);
       renderMessages(true);
     }, err => console.warn('[PKITAAP] Chat listener failed:', err));
@@ -3164,20 +3276,33 @@ async function _loadMyChatsFromFirestore() {
   try {
     const snap = await _db.collection('chats').where('participants','array-contains',me).get();
     const remoteChats = [];
+    const hidden = _getHiddenChatMap();
+    let hiddenChanged = false;
     snap.docs.forEach(doc => {
       const chat = Object.assign({ id: doc.id, messages: [] }, doc.data());
+      const hiddenAt = Number(hidden[chat.id] || 0) || 0;
+      const remoteMs = _chatLastMs(chat);
+      if (hiddenAt && remoteMs <= hiddenAt) return;
+      if (hiddenAt && remoteMs > hiddenAt) {
+        delete hidden[chat.id];
+        hiddenChanged = true;
+      }
       remoteChats.push(_upsertLocalChat(chat));
     });
+    if (hiddenChanged) _saveHiddenChatMap(hidden);
     await _refreshChatParticipantNames(remoteChats);
     await Promise.all(remoteChats.map(_loadChatMessagesFromFirestore));
   } catch(e) { console.warn('[PKITAAP] Chats load failed:', e); }
+  _updateMessagesMenuBadge();
   return _getLocalChats();
 }
 function _myChats() {
   const me = _myChatUid();
+  const hidden = _getHiddenChatMap();
   return _getLocalChats()
     .filter(c => !me || (Array.isArray(c.participants) && c.participants.includes(me)))
-    .sort((a,b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
+    .filter(c => !hidden[c.id])
+    .sort((a,b) => _chatLastMs(b) - _chatLastMs(a));
 }
 function _showMessagesPage() {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -3209,6 +3334,11 @@ async function startListingChat(listingId) {
   const sellerName = await _fetchCurrentUserName(sellerUid, listing.sellerName || listing.seller || 'Seller');
   if (!sellerName) { toast('This seller profile is no longer available.'); return; }
   const chatId = _chatIdFor(listing, me, sellerUid);
+  const hidden = _getHiddenChatMap();
+  if (hidden[chatId]) {
+    delete hidden[chatId];
+    _saveHiddenChatMap(hidden);
+  }
   const existing = _getLocalChats().find(c => c.id === chatId) || {};
   const bookTitle = listing.title || listing.bookTitle || 'book';
   const chat = Object.assign({}, existing, {
@@ -3234,6 +3364,55 @@ async function startListingChat(listingId) {
   if (input && !input.value) input.value = 'Hi, I found your ' + bookTitle + ' on PKiTAAP. Is it still available?';
   _autosizeMessageInput();
 }
+function deleteChatForMe(chatId) {
+  if (!chatId) return;
+  showConfirm('Delete this conversation from your messages?', () => {
+    const hidden = _getHiddenChatMap();
+    const chat = _getLocalChats().find(c => c.id === chatId);
+    hidden[chatId] = Math.max(Date.now(), _chatLastMs(chat));
+    _saveHiddenChatMap(hidden);
+    _saveLocalChats(_getLocalChats().filter(c => c.id !== chatId));
+    if (_activeChatId === chatId) {
+      _activeChatId = '';
+      _showMessageListView();
+    }
+    renderMessages(true);
+    _updateMessagesMenuBadge();
+    toast('Conversation deleted from your messages.');
+  });
+}
+async function deleteChatMessage(chatId, messageId) {
+  const me = _myChatUid();
+  const chats = _getLocalChats();
+  const idx = chats.findIndex(c => c.id === chatId);
+  if (idx < 0 || !messageId) return;
+  const messages = Array.isArray(chats[idx].messages) ? chats[idx].messages : [];
+  const msg = messages.find(m => String(m.id) === String(messageId));
+  if (!msg) return;
+  if (String(msg.senderUid || msg.senderId || '') !== me) {
+    toast('You can delete only your own message.');
+    return;
+  }
+  chats[idx].messages = messages.filter(m => String(m.id) !== String(messageId));
+  const last = chats[idx].messages.length ? chats[idx].messages[chats[idx].messages.length - 1] : null;
+  chats[idx].lastMessage = last ? (last.text || '') : '';
+  chats[idx].lastMessageAt = last ? (last.createdAt || '') : '';
+  chats[idx].updatedAt = last ? (last.createdAt || chats[idx].updatedAt || '') : (chats[idx].updatedAt || new Date().toISOString());
+  chats[idx].updatedAtMs = last ? (Number(last.createdAtMs || Date.parse(last.createdAt || '')) || Date.now()) : Date.now();
+  _saveLocalChats(chats);
+  if (_db) {
+    try {
+      await _db.collection('chats').doc(chatId).collection('messages').doc(messageId).delete();
+      await _db.collection('chats').doc(chatId).set(_chatMetaForWrite(chats[idx]), { merge: true });
+    } catch(e) {
+      console.warn('[PKITAAP] Message delete sync failed:', e);
+      toast('Deleted locally. Publish the updated Firebase rules to sync message deletion online.');
+    }
+  }
+  renderMessages(true);
+  if (_activeChatId === chatId) openChat(chatId, true);
+  _updateMessagesMenuBadge();
+}
 async function renderMessages(skipFetch) {
   if (!window._isLoggedIn) { requireLogin(); return; }
   if (!skipFetch) _loadMyChatsFromFirestore().then(() => renderMessages(true));
@@ -3248,23 +3427,36 @@ async function renderMessages(skipFetch) {
     const body = document.getElementById('messageChatBody');
     if (body) body.innerHTML = '<p style="color:#64748b;font-size:13px;font-weight:800;padding:8px 0;">Open a seller result and tap Message Seller.</p>';
     _showMessageListView();
+    _updateMessagesMenuBadge();
     return;
   }
   list.innerHTML = chats.map(c => {
     const otherName = c.sellerUid === me ? (c.buyerName || 'Buyer') : (c.sellerName || 'Seller');
     const msgs = Array.isArray(c.messages) ? c.messages : [];
     const last = msgs.length ? msgs[msgs.length - 1].text : (c.lastMessage || 'No messages yet');
+    const unread = _chatUnreadCount(c, me);
     const active = c.id === _activeChatId ? ' active' : '';
-    return '<div class="thread-item' + active + '" role="button" data-open-chat="' + _acEsc(c.id) + '">' +
-      '<strong>' + _acEsc(otherName) + '</strong>' +
+    const unreadClass = unread ? ' unread' : '';
+    return '<div class="thread-item' + active + unreadClass + '" role="button" data-open-chat="' + _acEsc(c.id) + '">' +
+      '<div class="thread-title-row"><strong>' + _acEsc(otherName) + '</strong>' + (unread ? '<i class="thread-unread-dot" aria-label="New message"></i>' : '') + '</div>' +
       '<span>Book: ' + _acEsc(c.bookTitle || 'Book') + '</span>' +
       '<span>' + _acEsc(last) + '</span>' +
-      '<span>' + _acEsc(String(c.updatedAt || '').slice(0,16).replace('T',' ')) + '</span>' +
+      '<div class="thread-meta-row"><span>' + _acEsc(String(c.updatedAt || '').slice(0,16).replace('T',' ')) + '</span><button type="button" class="thread-delete" data-delete-chat="' + _acEsc(c.id) + '">Delete</button></div>' +
     '</div>';
   }).join('');
   list.querySelectorAll('[data-open-chat]').forEach(el => {
-    el.onclick = () => openChat(el.getAttribute('data-open-chat'));
+    el.onclick = e => {
+      if (e.target && e.target.closest('[data-delete-chat]')) return;
+      openChat(el.getAttribute('data-open-chat'));
+    };
   });
+  list.querySelectorAll('[data-delete-chat]').forEach(btn => {
+    btn.onclick = e => {
+      e.stopPropagation();
+      deleteChatForMe(btn.getAttribute('data-delete-chat'));
+    };
+  });
+  _updateMessagesMenuBadge();
 }
 function openChat(chatId, skipRemote) {
   const chat = _getLocalChats().find(c => c.id === chatId);
@@ -3276,22 +3468,32 @@ function openChat(chatId, skipRemote) {
   const sub = document.getElementById('messageChatSub');
   const body = document.getElementById('messageChatBody');
   _showChatView();
+  _markChatRead(chatId);
   if (title) title.textContent = otherName;
   if (sub) sub.textContent = chat.bookTitle || 'Book conversation';
   if (body) {
     const msgs = Array.isArray(chat.messages) ? chat.messages : [];
     body.innerHTML = msgs.length ? msgs.map(m => {
       const mine = String(m.senderUid || m.senderId || '') === me;
-      return '<div class="chat-bubble ' + (mine ? 'mine' : 'theirs') + '">' +
-        _acEsc(m.text || '') +
-        '<span class="chat-time">' + _acEsc(String(m.createdAt || '').slice(0,16).replace('T',' ')) + '</span>' +
+      return '<div class="chat-message-row ' + (mine ? 'mine' : 'theirs') + '">' +
+        '<div class="chat-bubble ' + (mine ? 'mine' : 'theirs') + '">' +
+          _acEsc(m.text || '') +
+          '<span class="chat-time">' + _acEsc(String(m.createdAt || '').slice(0,16).replace('T',' ')) + '</span>' +
+        '</div>' +
+        (mine ? '<button type="button" class="chat-delete-msg" data-delete-message="' + _acEsc(m.id || '') + '">Delete</button>' : '') +
       '</div>';
     }).join('') : '<p style="color:#64748b;font-size:13px;font-weight:800;padding:8px 0;">Start the conversation below.</p>';
+    body.querySelectorAll('[data-delete-message]').forEach(btn => {
+      btn.onclick = () => deleteChatMessage(chatId, btn.getAttribute('data-delete-message'));
+    });
     body.scrollTop = body.scrollHeight;
   }
   if (!skipRemote) {
     _loadChatMessagesFromFirestore(chat).then(() => {
-      if (_activeChatId === chatId) openChat(chatId, true);
+      if (_activeChatId === chatId) {
+        _markChatRead(chatId);
+        openChat(chatId, true);
+      }
     });
     _watchChatMessages(chatId);
   }
@@ -4624,6 +4826,8 @@ function init() {
       show('menuSell');
       show('menuListings');
       show('menuMessages');
+      _watchMyChatsForUnread();
+      _updateMessagesMenuBadge();
       show('menuAccount');
       show('menuLogout');
     });
@@ -4785,6 +4989,8 @@ init();
     if (menuSell)      menuSell.style.display = '';
     if (menuListings)  menuListings.style.display = '';
     if (menuMessages)  menuMessages.style.display = (state.settings.messaging !== false) ? '' : 'none';
+    _watchMyChatsForUnread();
+    _updateMessagesMenuBadge();
     if (menuAccount)   menuAccount.style.display = '';
     if (menuLogout)    menuLogout.style.display = '';
 
@@ -4806,6 +5012,8 @@ init();
       _resetGoogleButton('login');
       _resetGoogleButton('signup');
       _resetSignupToStage1();
+      _stopMyChatsWatcher();
+      _stopActiveChatListener();
       window._isLoggedIn = false;
       window._currentUser = null;
       updateAccessControls();
@@ -4814,6 +5022,7 @@ init();
       if (menuSell)      menuSell.style.display = 'none';
       if (menuListings)  menuListings.style.display = 'none';
       if (menuMessages)  menuMessages.style.display = 'none';
+      if (menuMessages)  menuMessages.classList.remove('has-unread');
       if (menuAccount)   menuAccount.style.display = 'none';
       if (menuLogout)    menuLogout.style.display = 'none';
       document.getElementById('menuBtn')?.classList.remove('open');
