@@ -5347,8 +5347,48 @@ function renderBooks() {
   const grid  = document.querySelector("#bookGrid");
   grid.style.display = catalogStep === "books" ? "grid" : "none";
   grid.innerHTML = items.length ? items.map(item => '<button class="book-card ' + (item.id===selectedBookId?"active":"") + '" data-id="' + item.id + '"><img src="' + imageForBook(item) + '" alt="' + item.title + '"/><div class="card-info"><strong>' + item.title + '</strong><small>' + bookMeta(item) + '</small><span class="price">' + priceText(item) + '</span></div></button>').join("") : '<div>No books found</div>';
-  document.querySelectorAll(".book-card").forEach(card => { card.onclick = () => { triggerAdMob("subjectClick"); selectedBookId=card.dataset.id; const _ml=document.querySelector("#matchList"); if(_ml) _ml.innerHTML=""; render(); }; });
+  document.querySelectorAll(".book-card").forEach(card => {
+    card.onclick = () => {
+      triggerAdMob("subjectClick");
+      selectedBookId = card.dataset.id;
+      const _ml = document.querySelector("#matchList");
+      if (_ml) _ml.innerHTML = "";
+      render();
+      // Auto-find sellers as soon as a subject is tapped — no extra button press needed
+      _autoFindSellers();
+    };
+  });
 }
+
+// ── AUTO FIND SELLERS ─────────────────────────────────────────────
+// Called whenever the user selects a subject on the Buy page.
+// If the user's location is already filled in (from their profile),
+// we skip the manual "Find sellers" button and fire the search
+// automatically, then scroll the results into view.
+function _autoFindSellers() {
+  if (!window._isLoggedIn) return;  // guest — they still need to log in
+  // _prefillBuyFromProfile uses a chain of setTimeout(50ms) so we wait
+  // a little longer to be sure all dropdowns have cascaded into place.
+  setTimeout(function() {
+    const stateVal       = document.getElementById('buyState')?.value       || '';
+    const districtVal    = document.getElementById('buyDistrict')?.value    || '';
+    const subDistrictVal = document.getElementById('buySubDistrict')?.value || '';
+    const placeVal       = document.getElementById('buyPlace')?.value       || '';
+    const mediumVal      = document.getElementById('buyMedium')?.value      || '';
+    // Only auto-fire if the minimum required fields are already filled
+    if (stateVal && districtVal && subDistrictVal && placeVal && mediumVal) {
+      renderMatches();
+      // Scroll the match card into view so results are immediately visible
+      setTimeout(function() {
+        const mc = document.getElementById('matchCard');
+        if (mc) mc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 250);
+    }
+    // If fields aren't filled yet (first-time / incomplete profile) the user
+    // still sees the form and can fill it manually — nothing changes for them.
+  }, 350);
+}
+// ─────────────────────────────────────────────────────────────────
 function renderSelected() {
   const b = book();
   const box = document.querySelector("#selectedBox");
