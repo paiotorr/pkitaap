@@ -462,6 +462,11 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
           <div class="book-grid" id="sellBookGrid" style="display:none;"><div>No books</div></div>
         </div>
       </div>
+      <!-- More Categories (Competitive Exam, Engineering, etc.) — admin-defined -->
+      <div class="card" id="sellCategoryCard" style="display:none;">
+        <div class="card-head"><h2>More Categories</h2></div>
+        <div class="card-body"><div class="class-grid" id="sellCategoryGrid"></div></div>
+      </div>
       <div class="card" id="sellSelectedCard" style="display:none;">
         <div class="card-head"><h2>Selected Book</h2></div>
         <div class="card-body">
@@ -5057,8 +5062,35 @@ function renderSellCatalog() {
       const all = state.settings.general ? [...classes,'General'] : classes;
       cg.style.display = 'grid';
       cg.innerHTML = all.map(name => '<button class="class-card" data-sellclass="' + name + '"><img src="' + imageForClass(name) + '" alt="' + name + '"/><div class="card-info"><strong>' + name + '</strong><span>' + state.books.filter(b=>b.className===name&&(b.type!=="general"||state.settings.general)).length + ' books</span></div></button>').join('');
-      cg.querySelectorAll('[data-sellclass]').forEach(card => { card.onclick = () => { triggerAdMob("classClick"); selectedClass=card.dataset.sellclass; selectedBoard=''; selectedStream=''; selectedBookId=''; sellCatalogStep=selectedClass==='General'?'books':'boards'; renderSellCatalog(); }; });
+      cg.querySelectorAll('[data-sellclass]').forEach(card => { card.onclick = () => { triggerAdMob("classClick"); selectedClass=card.dataset.sellclass; selectedBoard=''; selectedStream=''; selectedBookId=''; selectedCategory=''; sellCatalogStep=selectedClass==='General'?'books':'boards'; renderSellCatalog(); }; });
     } else { cg.style.display='none'; cg.innerHTML=''; }
+  }
+  // Render "More Categories" grid — admin-defined categories like
+  // Competitive Exam, Engineering, etc. Visible only at the classes step,
+  // and only when the admin has actually configured at least one category.
+  const catCard = document.getElementById('sellCategoryCard');
+  const catGrid = document.getElementById('sellCategoryGrid');
+  if (catCard && catGrid) {
+    const cats = state.categories || [];
+    const showCats = sellCatalogStep === 'classes' && cats.length > 0;
+    catCard.style.display = showCats ? '' : 'none';
+    if (showCats) {
+      catGrid.innerHTML = cats.map(cat => '<button class="class-card" data-sellcatid="' + cat.id + '"><img src="' + (cat.image || placeholder(cat.name)) + '" alt="' + cat.name + '"/><div class="card-info"><strong>' + cat.name + '</strong><span>' + state.books.filter(b=>b.categoryId===cat.id).length + ' books</span></div></button>').join('');
+      catGrid.querySelectorAll('[data-sellcatid]').forEach(card => {
+        card.onclick = () => {
+          triggerAdMob("classClick");
+          selectedClass = 'General';
+          selectedCategory = card.dataset.sellcatid;
+          selectedBoard = '';
+          selectedStream = '';
+          selectedBookId = '';
+          sellCatalogStep = 'books';
+          renderSellCatalog();
+        };
+      });
+    } else {
+      catGrid.innerHTML = '';
+    }
   }
   // Render board grid
   const bg = document.getElementById('sellBoardGrid');
@@ -7686,13 +7718,15 @@ function init() {
   const sellBack = document.getElementById('sellBackBtn');
   if (sellBack) sellBack.onclick = () => {
     if (sellCatalogStep==='books') {
-      if (selectedStream) sellCatalogStep='streams';
+      // Books reached via a category card → back goes straight to classes
+      if (selectedCategory) { sellCatalogStep='classes'; selectedCategory=''; selectedClass=''; }
+      else if (selectedStream) sellCatalogStep='streams';
       else if (selectedBoard) sellCatalogStep = selectedClass==='General'?'classes':'boards';
       else sellCatalogStep='classes';
       selectedBookId='';
     } else if (sellCatalogStep==='streams') { sellCatalogStep='boards'; selectedStream=''; selectedBookId=''; }
     else if (sellCatalogStep==='boards') { sellCatalogStep='classes'; selectedBoard=''; selectedStream=''; selectedBookId=''; }
-    else { sellCatalogStep='classes'; selectedClass=selectedBoard=selectedStream=selectedBookId=''; }
+    else { sellCatalogStep='classes'; selectedClass=selectedBoard=selectedStream=selectedBookId=''; selectedCategory=''; }
     renderSellCatalog();
   };
   // Account details dialog save + close
