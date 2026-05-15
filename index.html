@@ -1071,14 +1071,7 @@ const seed = {
           "subDistricts": [
             {
               "subDistrict": "Ananthagiri",
-              "places": [
-                {
-                  "name": "Testing",
-                  "schools": [
-                    "testing"
-                  ]
-                }
-              ]
+              "places": []
             },
             {
               "subDistrict": "Araku Valley",
@@ -4503,14 +4496,17 @@ const seed = {
 // Firebase onSnapshot listeners in loadRemoteAppData() will push live data
 // immediately after startup, overwriting any stale cached values.
 let state = normalizeState(structuredClone(seed));
+// ★ FIREBASE SOURCE OF TRUTH FIX:
+// Never restore listings/app data from old localStorage/exported seed.
+// Deleted Firebase data must not come back from pkitaap-simple or old caches.
 try {
-  // Only restore user-generated content (listings) from cache, never app config.
-  const _cached = JSON.parse(localStorage.getItem("pkitaap-simple") || "null");
-  if (_cached && Array.isArray(_cached.listings)) state.listings = _cached.listings;
+  ["pkitaap-simple","pkitaap_registered_users","pkitaap_locations_cache","pkitaap_app_cache","pkitaap_remote_listing_ids","pkitaap_remote_listing_ids_v1"].forEach(k => localStorage.removeItem(k));
 } catch(e) {}
+state.listings = [];
 let selectedClass = "", selectedBoard = "", selectedStream = "", selectedBookId = "", selectedCategory = "";
 let search = "", catalogStep = "classes";
 let _browseListingsLoadedAt = 0;
+let _listingsUnsub = null;
 let _remoteDataLoaded = false;
 
 window.PKITAAP_ADMOB_IDS = state.adMob || {};
@@ -4722,8 +4718,9 @@ function normalizeState(input) {
     }
     return normalized;
   });
-  // User-generated listings are preserved from localStorage
-  next.listings = next.listings || seed.listings || [];
+  // Listings are never loaded from localStorage or exported seed.
+  // Firestore /listings listener will replace this array with live data.
+  next.listings = [];
   return next;
 }
 function save() { localStorage.setItem("pkitaap-simple", JSON.stringify(state)); }
@@ -4969,23 +4966,17 @@ function _listingMatchesBrowse(l, district, subDistrict) {
 }
 
 function _loadBrowseListings() {
-  if (!_db) return;
-  if (Date.now() - _browseListingsLoadedAt < 12000) return;
-  _browseListingsLoadedAt = Date.now();
-  _db.collection('listings').get().then(snap => {
-    let changed = false;
-    snap.docs.forEach(doc => {
-      const data = Object.assign({ id: doc.id }, doc.data());
-      const idx = (state.listings || []).findIndex(x => String(x.id) === String(data.id));
-      if (idx >= 0) state.listings[idx] = Object.assign({}, state.listings[idx], data);
-      else {
-        (state.listings = state.listings || []).push(data);
-        changed = true;
-      }
-    });
-    if (changed) save();
-    if (catalogStep === "books") renderBooks();
-  }).catch(e => console.warn('[PKITAAP] Browse listings load failed:', e));
+  if (!_db) { state.listings = []; return; }
+  if (_listingsUnsub) return;
+  _listingsUnsub = _db.collection('listings')
+    .onSnapshot({ includeMetadataChanges: false }, snap => {
+      if (snap.metadata && snap.metadata.fromCache) return;
+      // Replace fully with Firestore data. Do not merge with old localStorage/exported data.
+      state.listings = snap.docs.map(doc => Object.assign({ id: doc.id }, doc.data()));
+      save();
+      if (catalogStep === "books") renderBooks();
+      if (typeof renderMyListings === 'function') renderMyListings(true);
+    }, e => console.warn('[PKITAAP] Browse listings live load failed:', e));
 }
 
 // ── AUTO FIND SELLERS ─────────────────────────────────────────────
@@ -5578,43 +5569,21 @@ function renderMatches(bookId) {
   if (list) list.innerHTML = '<p style="color:#888;font-size:13px;font-weight:800;padding:8px 0;">Searching sellers...</p>';
   if (_db) {
     _db.collection('listings').get().then(async snap => {
-      let changed = false;
       const remoteListings = snap.docs.map(doc => Object.assign({id:doc.id}, doc.data()));
-      const remoteIds = new Set(remoteListings.map(l => String(l.id || '').trim()).filter(Boolean));
-      let previousRemoteIds = [];
-      try { previousRemoteIds = JSON.parse(localStorage.getItem('pkitaap_remote_listing_ids_v1') || '[]'); } catch(e) { previousRemoteIds = []; }
-      const previousRemoteSet = new Set((previousRemoteIds || []).map(String));
-      const beforePrune = (state.listings || []).length;
-      state.listings = (state.listings || []).filter(l => {
-        const id = String(l.id || '').trim();
-        return !id || !previousRemoteSet.has(id) || remoteIds.has(id);
-      });
-      if (state.listings.length !== beforePrune) changed = true;
-      snap.docs.forEach(doc => {
-        const data = Object.assign({id:doc.id}, doc.data());
-        const idx = (state.listings || []).findIndex(x => String(x.id) === String(data.id));
-        if (idx >= 0) state.listings[idx] = Object.assign({}, state.listings[idx], data);
-        else { state.listings.push(data); changed = true; }
-      });
-      try { localStorage.setItem('pkitaap_remote_listing_ids_v1', JSON.stringify(Array.from(remoteIds))); } catch(e) {}
-      if (changed) save();
-      // FIX: fetch each seller's CURRENT name live from /users so any
-      // profile name change is reflected immediately without re-listing
+      state.listings = remoteListings;
+      save();
+      // Fetch each seller's CURRENT name/status live from /users so profile changes/deleted users are reflected.
       const sellerNameMap = {};
       const removedSellerUids = {};
       try {
         const matchedListings = remoteListings.filter(l => _selectedBookMatchesListing(l, bId));
-        const uniqueUids = [...new Set(
-          matchedListings
-            .map(l => String(l.userId || l.sellerUserId || '').trim())
-            .filter(Boolean)
-        )];
+        const uniqueUids = [...new Set(matchedListings.map(l => String(l.userId || l.sellerUserId || '').trim()).filter(Boolean))];
         if (uniqueUids.length) {
           await Promise.all(uniqueUids.map(async uid => {
             try {
               const uDoc = await _db.collection('users').doc(uid).get();
-              if (uDoc.exists && uDoc.data().name) sellerNameMap[uid] = uDoc.data().name;
-              if (!uDoc.exists) removedSellerUids[uid] = true;
+              if (uDoc.exists && (uDoc.data().status || 'active') !== 'banned') sellerNameMap[uid] = uDoc.data().name || '';
+              if (!uDoc.exists || uDoc.data().status === 'banned') removedSellerUids[uid] = true;
             } catch(e) {}
           }));
         }
@@ -5622,10 +5591,10 @@ function renderMatches(bookId) {
       _renderMatchList(bId, query, sellerNameMap, removedSellerUids, remoteListings);
     }).catch(e=>{
       console.warn('[PKITAAP] Could not load listings:', e);
-      _renderMatchList(bId, query);
+      _renderMatchList(bId, query, {}, {}, []);
     });
   } else {
-    _renderMatchList(bId, query);
+    _renderMatchList(bId, query, {}, {}, []);
   }
 }
 function _locScore(l, q) {
@@ -6557,10 +6526,10 @@ function _syncTopLocationFilters(prefix, stateName, district, subDistrict) {
   }
 }
 function _defaultHomeState() {
+  // New visitors must see “— Select State —”.
+  // Only a logged-in user with a saved Firebase profile state may be auto-selected.
   const fromUser = window._currentUser?.state || '';
-  if (fromUser) return fromUser;
-  const assam = (state.locations || []).find(st => _sameText(st.state, 'Assam'));
-  return assam ? assam.state : ((state.locations || [])[0]?.state || '');
+  return fromUser || '';
 }
 function _updateBrowseLocationMode() {
   const browseMode = catalogStep === "books" && !!selectedBoard;
@@ -6583,16 +6552,19 @@ function _updateBrowseLocationMode() {
     buyState.value = defaultState;
     updateBuyDistricts();
   }
+  if (!defaultState) _syncTopLocationFilters('', '', '', '');
   if (browseMode) updateBrowseDistricts(false);
 }
 function updateBrowseDistricts(resetSubDistrict) {
-  const stateName = selectedState || window._currentUser?.state || document.getElementById('buyState')?.value || _defaultHomeState();
+  const stateName = selectedState || window._currentUser?.state || document.getElementById('buyState')?.value || '';
+  if (!stateName) { _syncTopLocationFilters('', '', '', ''); return; }
   const currentDistrict = resetSubDistrict ? '' : (document.getElementById('browseDistrict')?.value || window._currentUser?.district || document.getElementById('buyDistrict')?.value || '');
   const currentSubDistrict = resetSubDistrict ? '' : (document.getElementById('browseSubDistrict')?.value || window._currentUser?.subDistrict || document.getElementById('buySubDistrict')?.value || '');
   _syncTopLocationFilters('', stateName, currentDistrict, currentSubDistrict);
 }
 function updateBrowseSubDistricts(shouldRender = true) {
-  const stateName = selectedState || window._currentUser?.state || document.getElementById('buyState')?.value || _defaultHomeState();
+  const stateName = selectedState || window._currentUser?.state || document.getElementById('buyState')?.value || '';
+  if (!stateName) { _syncTopLocationFilters('', '', '', ''); if (shouldRender) renderBooks(); return; }
   const district = document.getElementById('browseDistrict')?.value || '';
   const subDistrict = document.getElementById('browseSubDistrict')?.value || '';
   _syncTopLocationFilters('', stateName, district, subDistrict);
