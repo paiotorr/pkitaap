@@ -873,17 +873,16 @@ function _mergeUserProfiles(localUser, remoteUser) {
     : Object.assign({}, localUser || {}, remoteUser || {});
   const primaryUser = preferLocal ? localUser : remoteUser;
   const secondaryUser = preferLocal ? remoteUser : localUser;
+  // ★ FIX: use only dateOfBirth — never set dob/birthDate/dobDay duplicates
   const dobValue = getUserDobValue(primaryUser) || getUserDobValue(secondaryUser) || getUserDobValue(merged);
   if (dobValue) {
-    const parts = _dobPartsFromValue(dobValue);
     merged.dateOfBirth = dobValue;
-    merged.dob = dobValue;
-    merged.birthDate = dobValue;
-    if (parts) {
-      merged.dobDay = parts.d;
-      merged.dobMonth = parts.m;
-      merged.dobYear = parts.y;
-    }
+    // Remove legacy duplicate fields
+    delete merged.dob;
+    delete merged.birthDate;
+    delete merged.dobDay;
+    delete merged.dobMonth;
+    delete merged.dobYear;
   }
   return merged;
 }
@@ -927,54 +926,82 @@ async function _getUserFromFirestore(uid) {
 async function _saveUserToFirestore(userData) {
   if (!userData) return;
   const authUid = String((_auth && _auth.currentUser && _auth.currentUser.uid) || userData.uid || '').trim();
-  if (authUid) userData.uid = authUid;
-  const mobile = userData.mobile || (userData.phone ? String(userData.phone).replace(/\D/g,'').slice(-10) : '');
-  const dobValue = userData.dateOfBirth || userData.dob || userData.birthDate || '';
-  const dobParts = _dobPartsFromValue(dobValue);
-  const normalizedUser = Object.assign({}, userData, {
-    id: userData.id || userData.uid || (mobile ? 'u' + mobile : ''),
-    mobile,
-    phone: userData.phone || (mobile ? '+91' + mobile : ''),
-    email: userData.email || ((_auth && _auth.currentUser && _auth.currentUser.email) || ''),
-    dateOfBirth: dobValue,
-    dob: dobValue,
-    birthDate: dobValue,
-    dobDay: dobParts ? dobParts.d : (userData.dobDay || ''),
-    dobMonth: dobParts ? dobParts.m : (userData.dobMonth || ''),
-    dobYear: dobParts ? dobParts.y : (userData.dobYear || '')
-  });
-  delete normalizedUser.platformUserId;
-  delete normalizedUser.publicUserId;
-  delete normalizedUser.userName;
-  delete normalizedUser.insta;
-  const docId = normalizedUser.uid || normalizedUser.id || normalizedUser.mobile;
-  // Mirror to localStorage (offline fallback)
+  if (!authUid) { console.warn('[PKITAAP] _saveUserToFirestore: no auth UID'); return; }
+
+  // ★ FIX: Document ID = Firebase Auth UID (not mobile, not random ID)
+  const docId = authUid;
+
+  const mobile = String(userData.mobile || userData.phone || '').replace(/D/g, '').slice(-10);
+  // ★ FIX: ONE canonical dateOfBirth field only — no dob/birthDate duplicates
+  const dateOfBirth = userData.dateOfBirth || userData.dob || userData.birthDate || '';
+
+  // ★ FIX: Clean field names — no duplicates, no confusing aliases
+  const cleanUser = {
+    uid:          authUid,
+    name:         String(userData.name || userData.fullName || userData.displayName || '').trim(),
+    email:        String(userData.email || (_auth && _auth.currentUser && _auth.currentUser.email) || '').trim(),
+    mobile:       mobile,
+    dateOfBirth:  dateOfBirth,               // ONLY this field — never dob/birthDate
+    className:    String(userData.className || userData.class || ''),
+    state:        String(userData.state || ''),
+    district:     String(userData.district || ''),
+    subDistrict:  String(userData.subDistrict || userData.sub_district || ''),
+    place:        String(userData.place || userData.locality || userData.placeName || '').trim(),
+    school:       String(userData.school || userData.college || '').trim(),
+    role:         'user',
+    status:       userData.status || 'active',
+    updatedAt:    new Date().toISOString(),
+    lastLoginAt:  new Date().toISOString()
+  };
+
+  // Minimal localStorage cache — only non-private display fields
   try {
-    const existing = JSON.parse(localStorage.getItem('pkitaap_registered_users') || '[]');
-    const idx = existing.findIndex(function(u){
-      if (normalizedUser.uid) return String(u.uid || '') === String(normalizedUser.uid || '');
-      return (normalizedUser.mobile && u.mobile === normalizedUser.mobile);
-    });
-    if (idx >= 0) { existing[idx] = Object.assign({}, existing[idx], normalizedUser); }
-    else { existing.push(normalizedUser); }
-    localStorage.setItem('pkitaap_registered_users', JSON.stringify(existing));
+    localStorage.setItem('pkitaap_profile_cache', JSON.stringify({
+      uid: authUid,
+      name: cleanUser.name,
+      email: cleanUser.email
+    }));
+    // ★ FIX: Remove the old full-profile localStorage store
+    localStorage.removeItem('pkitaap_registered_users');
   } catch(e) {}
-  // Write to Firestore
-  if (_db && docId) {
+
+  // Write to Firestore — use set with merge so createdAt is preserved
+  if (_db) {
     try {
-      const writeUser = Object.assign({}, normalizedUser, { lastLoginAt: new Date().toISOString() });
-      if (window.firebase && firebase.firestore && firebase.firestore.FieldValue) {
-        writeUser.platformUserId = firebase.firestore.FieldValue.delete();
-        writeUser.publicUserId = firebase.firestore.FieldValue.delete();
-        writeUser.userName = firebase.firestore.FieldValue.delete();
-        writeUser.insta = firebase.firestore.FieldValue.delete();
+      const ref = _db.collection('users').doc(docId);
+      const snap = await ref.get();
+      if (!snap.exists) {
+        cleanUser.createdAt = new Date().toISOString();
+        await ref.set(cleanUser);
+      } else {
+        // Remove stale duplicate fields from Firestore if they exist
+        const TS = (firebase.firestore && firebase.firestore.FieldValue)
+          ? firebase.firestore.FieldValue.delete() : undefined;
+        const updateData = Object.assign({}, cleanUser);
+        if (TS) {
+          updateData.dob = TS;
+          updateData.birthDate = TS;
+          updateData.dobDay = TS;
+          updateData.dobMonth = TS;
+          updateData.dobYear = TS;
+          updateData.phone = TS;
+          updateData.id = TS;
+          updateData.userName = TS;
+          updateData.fullName = TS;
+          updateData.displayName = TS;
+          updateData.locality = TS;
+          updateData.placeName = TS;
+          updateData.platformUserId = TS;
+          updateData.publicUserId = TS;
+          updateData.insta = TS;
+        }
+        await ref.update(updateData);
       }
-      await _db.collection('users').doc(docId).set(writeUser, { merge: true });
     } catch (e) {
-      console.warn('[PKITAAP] Firestore write failed (localStorage used):', e);
+      console.warn('[PKITAAP] Firestore write failed:', e);
     }
   }
-  return normalizedUser;
+  return cleanUser;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1022,7 +1049,7 @@ const seed = {
     "passport": false,
     "allowUserPrice": false,
     "messaging": true,
-    "allowSubjectAdding": false,
+    "allowSubjectAdding": true,
     "instagram": true
   },
   "adMob": {
@@ -4472,7 +4499,15 @@ const seed = {
   ],
   "listings": []
 };
-let state = normalizeState(JSON.parse(localStorage.getItem("pkitaap-simple") || "null") || structuredClone(seed));
+// ★ FIX: Do NOT load admin-controlled app data from pkitaap-simple cache.
+// Firebase onSnapshot listeners in loadRemoteAppData() will push live data
+// immediately after startup, overwriting any stale cached values.
+let state = normalizeState(structuredClone(seed));
+try {
+  // Only restore user-generated content (listings) from cache, never app config.
+  const _cached = JSON.parse(localStorage.getItem("pkitaap-simple") || "null");
+  if (_cached && Array.isArray(_cached.listings)) state.listings = _cached.listings;
+} catch(e) {}
 let selectedClass = "", selectedBoard = "", selectedStream = "", selectedBookId = "", selectedCategory = "";
 let search = "", catalogStep = "classes";
 let _browseListingsLoadedAt = 0;
@@ -4578,38 +4613,82 @@ async function loadRemoteAppData() {
   if (!_db) return;
   try {
     const ref = _db.collection('app_data');
-    const docs = await Promise.all([
-      ref.doc('settings').get(),
-      ref.doc('classes').get(),
-      ref.doc('locations').get(),
-      ref.doc('categories').get()
-    ]);
-    const settingsDoc = docs[0].exists ? docs[0].data() : {};
-    const classesDoc = docs[1].exists ? docs[1].data() : {};
-    const locationsDoc = docs[2].exists ? docs[2].data() : {};
-    const categoriesDoc = docs[3].exists ? docs[3].data() : {};
-    if (settingsDoc.settings) state.settings = Object.assign({}, state.settings || {}, settingsDoc.settings);
-    if (settingsDoc.adMob) state.adMob = Object.assign({}, state.adMob || {}, settingsDoc.adMob);
-    window.PKITAAP_ADMOB_IDS = state.adMob || {};
-    if (settingsDoc.streams) state.streams = settingsDoc.streams;
-    if (classesDoc.classes) state.classes = classesDoc.classes;
-    if (classesDoc.classThumbs) state.classThumbs = classesDoc.classThumbs;
-    if (classesDoc.boardsByState) state.boardsByState = classesDoc.boardsByState;
-    if (classesDoc.mediumsByState) state.mediumsByState = classesDoc.mediumsByState;
-    if (locationsDoc.locations) state.locations = locationsDoc.locations;
-    if (categoriesDoc.categories) state.categories = categoriesDoc.categories;
+
+    // ── 1. Settings — real-time listener ──────────────────────────
+    ref.doc('settings').onSnapshot(snap => {
+      if (!snap.exists || snap.metadata.fromCache) return;
+      const d = snap.data();
+      if (d.settings)   state.settings   = Object.assign({}, state.settings || {}, d.settings);
+      if (d.adMob)      state.adMob      = Object.assign({}, state.adMob || {}, d.adMob);
+      if (d.streams)    state.streams    = d.streams;
+      if (d.appName)    state.appName    = d.appName;
+      if (d.appTagline) state.appTagline = d.appTagline;
+      window.PKITAAP_ADMOB_IDS = state.adMob || {};
+      save(); render();
+    }, err => console.warn('[PKITAAP] settings listener:', err));
+
+    // ── 2. Classes — real-time listener ───────────────────────────
+    ref.doc('classes').onSnapshot(snap => {
+      if (!snap.exists || snap.metadata.fromCache) return;
+      const d = snap.data();
+      if (d.list)        state.classes    = d.list;
+      if (d.classThumbs) state.classThumbs = d.classThumbs;
+      save(); render();
+    }, err => console.warn('[PKITAAP] classes listener:', err));
+
+    // ── 3. Boards — real-time listener ────────────────────────────
+    ref.doc('boards').onSnapshot(snap => {
+      if (!snap.exists || snap.metadata.fromCache) return;
+      const d = snap.data();
+      if (d.byState) state.boardsByState = d.byState;
+      save(); render();
+    }, err => console.warn('[PKITAAP] boards listener:', err));
+
+    // ── 4. Mediums — real-time listener ───────────────────────────
+    ref.doc('mediums').onSnapshot(snap => {
+      if (!snap.exists || snap.metadata.fromCache) return;
+      const d = snap.data();
+      if (d.byState) state.mediumsByState = d.byState;
+      save(); render();
+    }, err => console.warn('[PKITAAP] mediums listener:', err));
+
+    // ── 5. Locations — real-time listener ─────────────────────────
+    ref.doc('locations').onSnapshot(snap => {
+      if (!snap.exists || snap.metadata.fromCache) return;
+      const d = snap.data();
+      if (d.list) {
+        state.locations = d.list;
+        // ★ KEY FIX: overwrite location cache so deleted places don't reappear
+        try { localStorage.setItem('pkitaap_locs_v2', JSON.stringify(d.list)); } catch(e) {}
+        try { localStorage.removeItem('pkitaap_locations_cache'); } catch(e) {}
+      }
+      save(); render();
+    }, err => console.warn('[PKITAAP] locations listener:', err));
+
+    // ── 6. Categories — real-time listener ────────────────────────
+    ref.doc('categories').onSnapshot(snap => {
+      if (!snap.exists || snap.metadata.fromCache) return;
+      const d = snap.data();
+      if (d.list) state.categories = d.list;
+      save(); render();
+    }, err => console.warn('[PKITAAP] categories listener:', err));
+
+    // ── 7. Books — one-time fetch (sub-collection, large) ─────────
     try {
       const bookSnap = await ref.doc('books').collection('items').limit(1000).get();
       if (!bookSnap.empty) state.books = bookSnap.docs.map(doc => Object.assign({id: doc.id}, doc.data()));
     } catch(e) {}
+
+    // ★ KEY FIX: clear the old pkitaap-simple key once Firebase data is loaded
+    // so stale deleted classes/locations/categories never come back from cache.
+    try { localStorage.removeItem('pkitaap-simple'); } catch(e) {}
+
     _remoteDataLoaded = true;
     save();
     render();
-    // ── Data is ready — now dismiss the splash screen ──
     if (window._hideSplash) window._hideSplash();
   } catch(e) {
     console.warn('[PKITAAP] Remote app data load failed:', e);
-    // Dismiss splash even on failure so user isn't stuck
     if (window._hideSplash) window._hideSplash();
   }
 }
@@ -4623,11 +4702,9 @@ function normalizeState(input) {
   next.settings    = { ...seed.settings,   ...(next.settings    || {}) };
   next.adMob       = { ...(seed.adMob || {}), ...(next.adMob || {}) };
   next.classThumbs = { ...seed.classThumbs, ...(next.classThumbs || {}) };
-  // ── Admin-controlled config: ALWAYS use the freshly-exported seed so that
-  //    new boards / mediums / subjects / classes / locations / categories that
-  //    were added in the admin panel are visible in every new export, even
-  //    when the user's browser already has an older pkitaap-simple in
-  //    localStorage (the old || operator was keeping stale cached values). ──
+  // ── Admin-controlled config: seed is used for fast first render only.
+  //    onSnapshot listeners in loadRemoteAppData() immediately overwrite
+  //    these with live Firestore data — deleted items never return from cache.
   next.classes        = seed.classes        || ["Class 9","Class 10","Class 11","Class 12"];
   next.streams        = seed.streams        || ["Science","Commerce","Arts"];
   next.boardsByState  = seed.boardsByState  || {};
