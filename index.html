@@ -932,34 +932,43 @@ async function _saveUserToFirestore(userData) {
     return null;
   }
 
-  const TS = firebase.firestore.FieldValue.serverTimestamp();
   const mobile = String(userData.mobile || userData.phone || '').replace(/D/g, '').slice(-10);
-  const email = String(userData.email || (_auth && _auth.currentUser && _auth.currentUser.email) || '').trim();
-  const name = String(userData.name || userData.fullName || userData.displayName || '').trim();
-  const username = String(userData.username || userData.userName || (email ? email.split('@')[0] : name)).trim();
-
   const cleanUser = {
     uid: authUid,
-    id: authUid,
-    name,
-    username,
-    email,
-    mobile,
-    phone: mobile ? '+91' + mobile : '',
+    name: String(userData.name || userData.fullName || userData.displayName || '').trim(),
+    email: String(userData.email || (_auth && _auth.currentUser && _auth.currentUser.email) || '').trim(),
+    mobile: mobile,
+    userName: String(userData.userName || userData.username || '').trim(),
     dateOfBirth: String(userData.dateOfBirth || userData.dob || userData.birthDate || '').trim(),
     className: String(userData.className || userData.class || '').trim(),
-    previousClass: String(userData.previousClass || userData.prevClass || '').trim(),
     state: String(userData.state || '').trim(),
-    district: String(userData.district || '').trim(),
-    subDistrict: String(userData.subDistrict || userData.sub_district || userData.block || '').trim(),
-    place: String(userData.place || userData.locality || userData.town || userData.village || userData.city || '').trim(),
-    school: String(userData.school || userData.schoolName || userData.college || '').trim(),
+    district: String(userData.district || userData.town || userData.village || '').trim(),
+    subDistrict: String(userData.subDistrict || userData.sub_district || '').trim(),
+    place: String(userData.place || userData.locality || userData.placeName || '').trim(),
+    school: String(userData.school || userData.college || '').trim(),
     role: 'user',
     status: String(userData.status || 'active').trim() || 'active',
-    updatedAt: TS,
-    lastLoginAt: TS
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
+  // ── Persist edit-history & profile-version data to Firestore ─────────
+  // saveAccountDetails() builds these locally — without writing them to
+  // Firestore the admin panel cannot show old/new edited details history.
+  if (Array.isArray(userData.profileUpdateHistory) && userData.profileUpdateHistory.length) {
+    cleanUser.profileUpdateHistory = userData.profileUpdateHistory.slice(-25);
+  }
+  if (userData.lastProfileUpdate)        cleanUser.lastProfileUpdate        = userData.lastProfileUpdate;
+  if (userData.profileVersion != null)   cleanUser.profileVersion           = userData.profileVersion;
+  if (userData.profileVersionLabel)      cleanUser.profileVersionLabel      = userData.profileVersionLabel;
+  if (userData.profileUpdatedAt)         cleanUser.profileUpdatedAt         = userData.profileUpdatedAt;
+  if (userData.accountDetailsSavedAt)    cleanUser.accountDetailsSavedAt    = userData.accountDetailsSavedAt;
+  if (userData.accountDetailsSaveLockedUntil) cleanUser.accountDetailsSaveLockedUntil = userData.accountDetailsSaveLockedUntil;
+  if (userData.profileSaveLockedUntil)   cleanUser.profileSaveLockedUntil   = userData.profileSaveLockedUntil;
+  if (userData.updatedBy)                cleanUser.updatedBy                = userData.updatedBy;
+  if (userData.updatedByUid)             cleanUser.updatedByUid             = userData.updatedByUid;
+
+  // Only keep a tiny non-authoritative cache. Full profiles must live in Firestore.
   try {
     localStorage.setItem('pkitaap_profile_cache', JSON.stringify({uid: authUid, name: cleanUser.name, email: cleanUser.email}));
     localStorage.removeItem('pkitaap_registered_users');
@@ -973,40 +982,28 @@ async function _saveUserToFirestore(userData) {
   try {
     const ref = _db.collection('users').doc(authUid);
     const snap = await ref.get();
-    const existing = snap.exists ? (snap.data() || {}) : {};
 
-    const writeData = Object.assign({}, cleanUser, {
-      role: existing.role || 'user',
-      status: existing.status || cleanUser.status || 'active',
-      accountCreatedAt: existing.accountCreatedAt || existing.createdAt || TS,
-      joinedAt: existing.joinedAt || userData.joinedAt || new Date().toISOString().slice(0,10)
+    if (!snap.exists) {
+      await ref.set(Object.assign({}, cleanUser, {
+        status: 'active',
+        role: 'user',
+        joinedAt: new Date().toISOString(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }));
+    } else {
+      // User rules allow users to update only normal profile fields + updatedAt/lastLoginAt.
+      // Do NOT try to delete legacy fields here; that requires admin permission and can block the write.
+      const existing = snap.data() || {};
+      cleanUser.status = existing.status || cleanUser.status || 'active';
+      cleanUser.role = existing.role || 'user';
+      await ref.set(cleanUser, {merge:true});
+    }
+
+    return Object.assign({}, userData, cleanUser, {
+      uid: authUid,
+      updatedAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString()
     });
-    if (!snap.exists) writeData.createdAt = TS;
-
-    if (userData.lastProfileUpdate && Array.isArray(userData.lastProfileUpdate.changes) && userData.lastProfileUpdate.changes.length) {
-      writeData.profileUpdatedAt = userData.profileUpdatedAt || new Date().toISOString();
-      writeData.profileVersion = userData.profileVersion || ((Number(existing.profileVersion || 0) || 0) + 1);
-      writeData.profileVersionLabel = userData.profileVersionLabel || ('v' + writeData.profileVersion);
-      writeData.lastProfileUpdate = userData.lastProfileUpdate;
-      writeData.profileUpdateHistory = firebase.firestore.FieldValue.arrayUnion(userData.lastProfileUpdate);
-    } else if (!snap.exists) {
-      writeData.profileUpdateHistory = [];
-    }
-
-    await ref.set(writeData, { merge: true });
-
-    const possibleOldIds = [userData.id, email, mobile, mobile ? 'u' + mobile : '']
-      .map(v => String(v || '').trim())
-      .filter(v => v && v !== authUid);
-    for (const oldId of possibleOldIds) {
-      try {
-        const oldRef = _db.collection('users').doc(oldId);
-        const oldSnap = await oldRef.get();
-        if (oldSnap.exists && String((oldSnap.data() || {}).uid || '') === authUid) await oldRef.delete();
-      } catch(e) {}
-    }
-
-    return Object.assign({}, userData, cleanUser, {uid: authUid, id: authUid, updatedAt: new Date().toISOString(), lastLoginAt: new Date().toISOString()});
   } catch (e) {
     console.error('[PKITAAP] Firestore user save failed:', e);
     try { toast('❌ Account details were not saved to Firebase: ' + (e.message || e)); } catch(_) {}
@@ -8255,7 +8252,5 @@ init();
   setTimeout(function(){ if (window._hideSplash) window._hideSplash(); }, 12000);
 })();
 </script>
-
-<!-- PKITAAP V4 exported-user hotfix removed from admin build template to prevent JS syntax break. -->
 </body>
 </html>
