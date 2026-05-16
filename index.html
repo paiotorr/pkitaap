@@ -4625,8 +4625,36 @@ setTimeout(() => triggerAdMob('appOpen'), 0);
 
 function requireLogin() {
   if (window._isLoggedIn) return true;
-  if (typeof openSignup === 'function') openSignup();
-  else document.getElementById('signupDialog')?.showModal();
+  // Open the same hamburger-menu side-panel that contains the
+  // "Welcome to <app> / Login / Create Account" card. We do NOT jump
+  // straight into the signup dialog any more — the user picks Login
+  // or Create Account from the menu card, and each of those wires
+  // through to the Google flow on its own.
+  //
+  // The menu's bindMenu() registers a document-level click-outside
+  // listener that closes the menu when a click lands outside the
+  // panel. Since requireLogin() is called from inside a click
+  // handler on a class/category card, the click event will keep
+  // bubbling up to document after this function returns. If we
+  // open the menu synchronously, that bubbled click would close it
+  // immediately. setTimeout defers the open until after the
+  // current event has finished propagating.
+  setTimeout(function() {
+    var menuBtn      = document.getElementById('menuBtn');
+    var menuPanel    = document.getElementById('menuPanel');
+    var menuBackdrop = document.getElementById('menuBackdrop');
+    if (!menuPanel) {
+      // Fall back to the signup dialog if the menu isn't on the page
+      // for some reason — better than doing nothing.
+      if (typeof openSignup === 'function') openSignup();
+      else document.getElementById('signupDialog')?.showModal();
+      return;
+    }
+    if (menuBtn)      menuBtn.classList.add('open');
+    menuPanel.classList.add('open');
+    if (menuBackdrop) menuBackdrop.classList.add('open');
+    try { triggerAdMob('menuOpen'); } catch(e) {}
+  }, 0);
   toast('Please login or create an account first.');
   return false;
 }
@@ -4921,8 +4949,7 @@ function renderClasses() {
   const grid = document.querySelector("#classGrid");
   grid.style.display = catalogStep === "classes" ? "grid" : "none";
   // Book counts are intentionally NOT shown on class cards — at pan-India
-  // scale, computing counts client-side is unreliable and noisy. Show
-  // the card with its name and image only.
+  // scale, computing counts client-side is unreliable and noisy.
   grid.innerHTML = all.map(name => '<button class="class-card ' + (name===selectedClass?"active":"") + '" data-class="' + name + '"><img src="' + imageForClass(name) + '" alt="' + name + '"/><div class="card-info"><strong>' + name + '</strong></div></button>').join("");
   document.querySelectorAll(".class-card").forEach(card => {
     card.onclick = () => { if(!requireLogin()) return; triggerAdMob("classClick"); selectedClass = card.dataset.class; selectedBoard=""; selectedStream=""; selectedBookId=""; selectedCategory=""; catalogStep = selectedClass === "General" ? "books" : "boards"; const _ml=document.querySelector("#matchList"); if(_ml) _ml.innerHTML=""; render(); };
@@ -4933,8 +4960,7 @@ function renderCategories() {
   const grid = document.querySelector("#categoryGrid");
   // Show every admin-defined category — including custom ones like
   // "Competitive Exam", "Engineering", "Govt Job Books" — regardless of
-  // whether any books have been added yet. Book counts are NOT shown
-  // at all (intentionally — see renderClasses note above).
+  // whether any books have been added yet. No count text is shown.
   const allCats = (state.categories||[]);
   const show = catalogStep === "classes" && allCats.length > 0;
   card.style.display = show ? "block" : "none";
@@ -5069,7 +5095,6 @@ function _loadBrowseListings() {
   // background). Filtering those out caused listings to never appear
   // on slow / flaky networks — once the session only saw cached
   // snapshots, state.listings stayed empty for the whole session.
-  // We accept every snapshot and let the next one refresh us.
   _listingsUnsub = _db.collection('listings')
     .onSnapshot(snap => {
       state.listings = snap.docs.map(doc => Object.assign({ id: doc.id }, doc.data()));
@@ -5150,9 +5175,7 @@ function renderSellCatalog() {
   const catCard = document.getElementById('sellCategoryCard');
   const catGrid = document.getElementById('sellCategoryGrid');
   if (catCard && catGrid) {
-    // Show every admin-defined category — including custom ones with
-    // zero books — so users can pick them when listing. No book count
-    // is shown (intentional — see renderClasses note).
+    // Show every admin-defined category. No count text is shown.
     const cats = (state.categories || []);
     const showCats = sellCatalogStep === 'classes' && cats.length > 0;
     catCard.style.display = showCats ? '' : 'none';
