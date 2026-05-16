@@ -5022,16 +5022,32 @@ function renderBooks() {
 
   const _filterMedium = (document.getElementById('booksMediumFilter')?.value || '').trim();
 
+  // Search term — case-insensitive partial match on the listing title
+  // (with a fallback to the underlying book's title for old listings
+  // where the title field might be missing).
+  const _q = (search || '').trim().toLowerCase();
+  const _titleOf = function(l) {
+    if (l && l.title) return String(l.title);
+    if (l && l.bookId) {
+      const b = (state.books || []).find(x => x.id === l.bookId);
+      if (b && b.title) return String(b.title);
+    }
+    return '';
+  };
+
   const myPlace = String(window._currentUser?.place || '').trim();
   const matches = (state.listings || [])
     .filter(l => _listingMatchesBrowse(l, district, subDistrict))
     .filter(l => !_filterMedium || _sameText(l.medium || '', _filterMedium))
+    .filter(l => !_q || _titleOf(l).toLowerCase().includes(_q))
     .sort((a,b) => String(b.createdAtMs || b.createdAt || '').localeCompare(String(a.createdAtMs || a.createdAt || '')));
 
   if (!matches.length) {
-    grid.innerHTML = _filterMedium
-      ? '<div>No seller books in this medium yet.</div>'
-      : '<div>No seller books found in this sub-district yet.</div>';
+    grid.innerHTML = _q
+      ? '<div>No books matching “' + _acEsc(search) + '” found in this area.</div>'
+      : (_filterMedium
+          ? '<div>No seller books in this medium yet.</div>'
+          : '<div>No seller books found in this sub-district yet.</div>');
     return;
   }
 
@@ -5081,6 +5097,16 @@ function _listingMatchesBrowse(l, district, subDistrict) {
   if (selectedClass && !_sameText(l.className, selectedClass)) return false;
   if (selectedBoard && l.board && !_sameText(l.board, selectedBoard)) return false;
   if (selectedStream && l.stream && !_sameText(l.stream, selectedStream)) return false;
+  // Category filter — listings created under a custom category
+  // (Competitive Exam, Engineering, Govt Job Books, etc.). Newer
+  // listings may carry categoryId directly; older ones reference a
+  // book via bookId whose categoryId we look up in state.books.
+  if (selectedCategory) {
+    const listingCat = l.categoryId
+      || ((state.books || []).find(b => b.id === l.bookId) || {}).categoryId
+      || '';
+    if (listingCat !== selectedCategory) return false;
+  }
   return true;
 }
 
@@ -5152,8 +5178,7 @@ function renderSellCatalog() {
   const mw = document.getElementById('sellMediumWrap');
   if (mw) mw.style.display = selectedCategory ? 'none' : '';
   // School is also irrelevant for custom-category books (Competitive Exam,
-  // Engineering, Govt Job Books, etc.). Hide the field and clear any stale
-  // value so a previously-typed school isn't silently saved with the listing.
+  // Engineering, Govt Job Books, etc.). Hide the field and clear stale value.
   const sw = document.getElementById('sellSchoolWrap');
   if (sw) sw.style.display = selectedCategory ? 'none' : '';
   if (selectedCategory) {
@@ -8110,7 +8135,6 @@ init();
     if (menuAccount)   menuAccount.style.display = '';
     if (menuLogout)    menuLogout.style.display = '';
 
-    // Make sure the menu is fully closed after auth completes
     document.getElementById('menuBtn')?.classList.remove('open');
     document.getElementById('menuPanel')?.classList.remove('open');
     document.getElementById('menuBackdrop')?.classList.remove('open');
@@ -8269,8 +8293,6 @@ init();
       _googleUser   = result.user;
       if (!_googleUser || !_googleUser.uid) throw new Error('Google login completed but no Firebase user was returned.');
 
-      // Belt-and-suspenders menu close + show sync splash during the
-      // Firestore profile-lookup gap so the screen isn't blank.
       document.getElementById('menuBtn')?.classList.remove('open');
       document.getElementById('menuPanel')?.classList.remove('open');
       document.getElementById('menuBackdrop')?.classList.remove('open');
@@ -8283,7 +8305,6 @@ init();
         return;
       }
 
-      // ── New user — hide splash, show profile form ─────────────────
       if (window._hideSyncSplash) window._hideSyncSplash();
 
       if (mode === 'login') {
@@ -8489,7 +8510,6 @@ init();
   if (!_hasSavedFbSession) {
     setTimeout(function(){ if (window._hideSplash) window._hideSplash(); }, 700);
   }
-  // Fallback: if Firebase never calls onAuthStateChanged within 8 seconds, dismiss anyway
   setTimeout(function(){ if (window._hideSplash) window._hideSplash(); }, 8000);
 
   // ── SYNC SPLASH — re-shown after active login while Firebase syncs the account ──
