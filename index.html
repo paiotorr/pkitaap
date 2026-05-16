@@ -4995,9 +4995,6 @@ function renderStreams() {
   grid.innerHTML = toShow.map(name => '<button class="stream-card" data-stream="' + name + '"><strong>' + name + '</strong></button>').join("");
   document.querySelectorAll("[data-stream]").forEach(card => { card.onclick = () => { selectedStream=card.dataset.stream; selectedBookId=""; catalogStep="books"; render(); }; });
 }
-// Re-render the books grid when the user picks (or clears) a medium
-// in the Select Medium dropdown that replaces the heading. This
-// filters listings only — does not touch the main books / catalog data.
 function onBooksMediumFilterChange(val) {
   if (typeof renderBooks === 'function') renderBooks();
 }
@@ -5023,10 +5020,6 @@ function renderBooks() {
 
   _loadBrowseListings();
 
-  // Optional medium filter (set via the Select Medium dropdown that
-  // sits in the catalog card head when catalogStep === "books"). The
-  // user must explicitly pick a medium — it's never auto-selected. An
-  // empty value means "show all mediums".
   const _filterMedium = (document.getElementById('booksMediumFilter')?.value || '').trim();
 
   const myPlace = String(window._currentUser?.place || '').trim();
@@ -7337,8 +7330,7 @@ function render() {
   updateBuyLocationMode();
   const selected = null;
   // Set catalog title text. When on the "books" step we hide the title
-  // and show the medium-filter dropdown in its place. Other steps show
-  // the regular title (Classes / Boards / Streams) and hide the filter.
+  // and show the medium-filter dropdown in its place.
   const _catTitleEl = document.querySelector("#catalogTitle");
   const _mediumFilterEl = document.getElementById("booksMediumFilter");
   if (catalogStep === "books") {
@@ -8086,11 +8078,7 @@ init();
     if (menuAccount)   menuAccount.style.display = '';
     if (menuLogout)    menuLogout.style.display = '';
 
-    // ── Close the hamburger menu side-panel after login/signup ─────
-    // requireLogin() opens the menu for logged-out users (to show the
-    // Login / Create Account card). Once authentication completes, the
-    // menu has done its job — close it so the user lands on the home
-    // page, not on an open menu drawer.
+    // Close the hamburger menu side-panel after login/signup completes
     document.getElementById('menuBtn')?.classList.remove('open');
     document.getElementById('menuPanel')?.classList.remove('open');
     document.getElementById('menuBackdrop')?.classList.remove('open');
@@ -8249,6 +8237,16 @@ init();
       _googleUser   = result.user;
       if (!_googleUser || !_googleUser.uid) throw new Error('Google login completed but no Firebase user was returned.');
 
+      // ── Hide the menu & show splash the INSTANT Google returns ────
+      // The Firestore profile lookup below can take a few hundred ms.
+      // Without this, the user stares at the open hamburger menu the
+      // whole time after Google closes — confusing and ugly. Show the
+      // sync splash now so they see a loading screen, not the menu.
+      document.getElementById('menuBtn')?.classList.remove('open');
+      document.getElementById('menuPanel')?.classList.remove('open');
+      document.getElementById('menuBackdrop')?.classList.remove('open');
+      if (window._showSyncSplash) window._showSyncSplash();
+
       // Check if this Google UID already has a profile in Firestore
       const existingData = await _getUserFromFirestore(_googleUser.uid);
 
@@ -8258,7 +8256,11 @@ init();
         return;
       }
 
-      // ── New user ───────────────────────────────────────────
+      // ── New user — show the profile form (signup stage 2) ─────────
+      // Hide the splash first so the form fields aren't sitting on top
+      // of a loading spinner.
+      if (window._hideSyncSplash) window._hideSyncSplash();
+
       if (mode === 'login') {
         // Came through Login but no profile found — move them to signup stage 2
         loginDialog.close();
@@ -8270,16 +8272,22 @@ init();
         _prefillNameFromGoogle();
         signupDialog.showModal();
       } else {
-        // Signup mode — show profile form
+        // Signup mode — show profile form. With the new direct-to-Google
+        // flow we reach here WITHOUT signupDialog being pre-opened, so
+        // showModal() must be called explicitly.
         document.getElementById('signupStage1').style.display = 'none';
         document.getElementById('signupStage2').style.display = '';
         document.getElementById('signupTagline').textContent  = 'Complete your profile';
         _prefillNameFromGoogle();
+        if (!signupDialog.open) signupDialog.showModal();
         if (btn) { btn.disabled = false; btn.innerHTML = GOOGLE_SVG + ' Sign up with Google'; }
       }
 
     } catch (e) {
       _authStateHandled = false;
+      // If we opened a splash after Google returned and then something
+      // failed (e.g. Firestore lookup error), make sure it doesn't hang.
+      if (window._hideSyncSplash) window._hideSyncSplash();
       if (btn) { btn.disabled = false; btn.innerHTML = mode === 'login' ? GOOGLE_SVG + ' Continue with Google' : GOOGLE_SVG + ' Sign up with Google'; }
       let msg = 'Google sign-in failed. Please try again.';
       if (e.code === 'auth/popup-closed-by-user')  msg = 'Sign-in cancelled.';
