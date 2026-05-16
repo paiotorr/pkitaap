@@ -406,6 +406,9 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
       <div class="card">
         <div class="card-head">
           <h2 id="catalogTitle">Classes</h2>
+          <select id="booksMediumFilter" class="location-select" style="display:none;min-width:180px;font-weight:800;" onchange="onBooksMediumFilterChange(this.value)">
+            <option value="">Select Medium</option>
+          </select>
           <button class="btn btn-ghost" id="backBtn" type="button" style="display:none;">Back</button>
         </div>
         <div class="card-body">
@@ -4625,13 +4628,6 @@ setTimeout(() => triggerAdMob('appOpen'), 0);
 
 function requireLogin() {
   if (window._isLoggedIn) return true;
-  // Open the hamburger-menu side-panel which shows
-  // "Welcome to <app> / Login / Create Account". Each of those buttons
-  // now goes straight to the Google account picker (see bindings
-  // below — they call googleSignIn directly with no in-between dialog).
-  // setTimeout(0) defers the open so the click event that brought us
-  // here finishes bubbling first — otherwise the menu's own document
-  // click-outside handler would close the panel immediately.
   setTimeout(function() {
     var menuBtn      = document.getElementById('menuBtn');
     var menuPanel    = document.getElementById('menuPanel');
@@ -4993,6 +4989,15 @@ function renderStreams() {
   grid.innerHTML = toShow.map(name => '<button class="stream-card" data-stream="' + name + '"><strong>' + name + '</strong></button>').join("");
   document.querySelectorAll("[data-stream]").forEach(card => { card.onclick = () => { selectedStream=card.dataset.stream; selectedBookId=""; catalogStep="books"; render(); }; });
 }
+// Re-render the books grid when the user picks (or clears) a medium
+// in the Select Medium dropdown that replaces the "Books by Place"
+// heading. This filters the listings only — it does not touch the
+// main books / catalog data system.
+function onBooksMediumFilterChange(val) {
+  if (typeof renderBooks === 'function') renderBooks();
+}
+window.onBooksMediumFilterChange = onBooksMediumFilterChange;
+
 function renderBooks() {
   const grid = document.querySelector("#bookGrid");
   grid.style.display = catalogStep === "books" ? "grid" : "none";
@@ -5013,13 +5018,22 @@ function renderBooks() {
 
   _loadBrowseListings();
 
+  // Optional medium filter (set via the Select Medium dropdown that
+  // sits in the catalog card head when catalogStep === "books"). The
+  // user must explicitly pick a medium — it's never auto-selected. An
+  // empty value means "show all mediums".
+  const _filterMedium = (document.getElementById('booksMediumFilter')?.value || '').trim();
+
   const myPlace = String(window._currentUser?.place || '').trim();
   const matches = (state.listings || [])
     .filter(l => _listingMatchesBrowse(l, district, subDistrict))
+    .filter(l => !_filterMedium || _sameText(l.medium || '', _filterMedium))
     .sort((a,b) => String(b.createdAtMs || b.createdAt || '').localeCompare(String(a.createdAtMs || a.createdAt || '')));
 
   if (!matches.length) {
-    grid.innerHTML = '<div>No seller books found in this sub-district yet.</div>';
+    grid.innerHTML = _filterMedium
+      ? '<div>No seller books in this medium yet.</div>'
+      : '<div>No seller books found in this sub-district yet.</div>';
     return;
   }
 
@@ -5075,9 +5089,6 @@ function _listingMatchesBrowse(l, district, subDistrict) {
 function _loadBrowseListings() {
   if (!_db) return;
   if (_listingsUnsub) return;
-  // Do NOT drop cached snapshots — Firestore serves them first while it
-  // contacts the server, and dropping them caused listings to never
-  // appear on slow / flaky networks.
   _listingsUnsub = _db.collection('listings')
     .onSnapshot(snap => {
       state.listings = snap.docs.map(doc => Object.assign({ id: doc.id }, doc.data()));
@@ -7320,7 +7331,31 @@ function render() {
   updateAccessControls();
   updateBuyLocationMode();
   const selected = null;
-  document.querySelector("#catalogTitle").textContent = catalogStep==="classes"?"Classes":catalogStep==="boards"?"Boards":catalogStep==="streams"?"Streams":"Books by Place";
+  // Set catalog title text. When on the "books" step we hide the title
+  // and show the medium-filter dropdown in its place. Other steps show
+  // the regular title (Classes / Boards / Streams) and hide the filter.
+  const _catTitleEl = document.querySelector("#catalogTitle");
+  const _mediumFilterEl = document.getElementById("booksMediumFilter");
+  if (catalogStep === "books") {
+    if (_catTitleEl) _catTitleEl.style.display = "none";
+    if (_mediumFilterEl) {
+      _mediumFilterEl.style.display = "";
+      // Populate the dropdown with mediums for the currently selected
+      // state. Preserve the user's selection if it's still valid.
+      const _meds = (typeof getMediumsForState === 'function' ? getMediumsForState(selectedState) : []) || [];
+      const _prev = _mediumFilterEl.value || '';
+      _mediumFilterEl.innerHTML = '<option value="">Select Medium</option>' +
+        _meds.map(m => '<option value="' + m + '">' + m + '</option>').join('');
+      if (_prev && _meds.indexOf(_prev) >= 0) _mediumFilterEl.value = _prev;
+      else _mediumFilterEl.value = '';
+    }
+  } else {
+    if (_catTitleEl) {
+      _catTitleEl.style.display = "";
+      _catTitleEl.textContent = catalogStep === "classes" ? "Classes" : catalogStep === "boards" ? "Boards" : "Streams";
+    }
+    if (_mediumFilterEl) _mediumFilterEl.style.display = "none";
+  }
   document.querySelector("#backBtn").style.display = catalogStep==="classes" ? "none" : "inline-block";
   document.querySelector("#matchCard").style.display = "none";
   renderClasses(); renderCategories(); renderBoards(); renderStreams(); renderBooks(); renderSelected();
@@ -8006,12 +8041,6 @@ init();
 
   document.getElementById('goSignup').onclick     = openSignup;
   document.getElementById('goLogin').onclick      = openLogin;
-  // The menu's "Login" and "Create Account" buttons go STRAIGHT to the
-  // Google account picker — no in-between "Continue with Google" /
-  // "Sign up with Google" dialog. googleSignIn(mode) opens the Google
-  // popup directly and routes new vs returning users automatically:
-  //   - returning user with profile  → onAuthSuccess (logs them in)
-  //   - new user (no profile yet)    → signup stage 2 (complete profile)
   document.getElementById('loginBtn').onclick     = function(){ triggerAdMob("menuOption"); googleSignIn('login');  };
   document.getElementById('menuGoSignup').onclick = function(){ triggerAdMob("menuOption"); googleSignIn('signup'); };
 
