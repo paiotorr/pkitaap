@@ -4299,6 +4299,12 @@ const seed = {
                   "schools": [
                     "sankardev shishu niketan"
                   ]
+                },
+                {
+                  "name": "Bosasuk",
+                  "schools": [
+                    "Morning Glory Higher Secondary School"
+                  ]
                 }
               ]
             },
@@ -4990,9 +4996,8 @@ function renderStreams() {
   document.querySelectorAll("[data-stream]").forEach(card => { card.onclick = () => { selectedStream=card.dataset.stream; selectedBookId=""; catalogStep="books"; render(); }; });
 }
 // Re-render the books grid when the user picks (or clears) a medium
-// in the Select Medium dropdown that replaces the "Books by Place"
-// heading. This filters the listings only — it does not touch the
-// main books / catalog data system.
+// in the Select Medium dropdown that replaces the heading. This
+// filters listings only — does not touch the main books / catalog data.
 function onBooksMediumFilterChange(val) {
   if (typeof renderBooks === 'function') renderBooks();
 }
@@ -7340,8 +7345,6 @@ function render() {
     if (_catTitleEl) _catTitleEl.style.display = "none";
     if (_mediumFilterEl) {
       _mediumFilterEl.style.display = "";
-      // Populate the dropdown with mediums for the currently selected
-      // state. Preserve the user's selection if it's still valid.
       const _meds = (typeof getMediumsForState === 'function' ? getMediumsForState(selectedState) : []) || [];
       const _prev = _mediumFilterEl.value || '';
       _mediumFilterEl.innerHTML = '<option value="">Select Medium</option>' +
@@ -8082,6 +8085,15 @@ init();
     _updateMessagesMenuBadge();
     if (menuAccount)   menuAccount.style.display = '';
     if (menuLogout)    menuLogout.style.display = '';
+
+    // ── Close the hamburger menu side-panel after login/signup ─────
+    // requireLogin() opens the menu for logged-out users (to show the
+    // Login / Create Account card). Once authentication completes, the
+    // menu has done its job — close it so the user lands on the home
+    // page, not on an open menu drawer.
+    document.getElementById('menuBtn')?.classList.remove('open');
+    document.getElementById('menuPanel')?.classList.remove('open');
+    document.getElementById('menuBackdrop')?.classList.remove('open');
 
     // Wire account details button
     if (menuAccount) menuAccount.onclick = function() {
