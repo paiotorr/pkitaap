@@ -4920,11 +4920,10 @@ function renderClasses() {
   const all = state.settings.general ? [...classes,"General"] : classes;
   const grid = document.querySelector("#classGrid");
   grid.style.display = catalogStep === "classes" ? "grid" : "none";
-  grid.innerHTML = all.map(name => {
-    const n = state.books.filter(b=>b.className===name&&(b.type!=="general"||state.settings.general)).length;
-    const countSpan = n > 0 ? '<span>' + n + ' book' + (n===1?'':'s') + '</span>' : '';
-    return '<button class="class-card ' + (name===selectedClass?"active":"") + '" data-class="' + name + '"><img src="' + imageForClass(name) + '" alt="' + name + '"/><div class="card-info"><strong>' + name + '</strong>' + countSpan + '</div></button>';
-  }).join("");
+  // Book counts are intentionally NOT shown on class cards — at pan-India
+  // scale, computing counts client-side is unreliable and noisy. Show
+  // the card with its name and image only.
+  grid.innerHTML = all.map(name => '<button class="class-card ' + (name===selectedClass?"active":"") + '" data-class="' + name + '"><img src="' + imageForClass(name) + '" alt="' + name + '"/><div class="card-info"><strong>' + name + '</strong></div></button>').join("");
   document.querySelectorAll(".class-card").forEach(card => {
     card.onclick = () => { if(!requireLogin()) return; triggerAdMob("classClick"); selectedClass = card.dataset.class; selectedBoard=""; selectedStream=""; selectedBookId=""; selectedCategory=""; catalogStep = selectedClass === "General" ? "books" : "boards"; const _ml=document.querySelector("#matchList"); if(_ml) _ml.innerHTML=""; render(); };
   });
@@ -4934,17 +4933,13 @@ function renderCategories() {
   const grid = document.querySelector("#categoryGrid");
   // Show every admin-defined category — including custom ones like
   // "Competitive Exam", "Engineering", "Govt Job Books" — regardless of
-  // whether any books have been added yet. The count badge below is
-  // hidden when zero so empty categories still look clean.
+  // whether any books have been added yet. Book counts are NOT shown
+  // at all (intentionally — see renderClasses note above).
   const allCats = (state.categories||[]);
   const show = catalogStep === "classes" && allCats.length > 0;
   card.style.display = show ? "block" : "none";
   if (!show) return;
-  grid.innerHTML = allCats.map(cat => {
-    const n = state.books.filter(b=>b.categoryId===cat.id).length;
-    const countSpan = n > 0 ? '<span>' + n + ' book' + (n===1?'':'s') + '</span>' : '';
-    return '<button class="class-card" data-catid="' + cat.id + '"><img src="' + (cat.image||placeholder(cat.name)) + '" alt="' + cat.name + '"/><div class="card-info"><strong>' + cat.name + '</strong>' + countSpan + '</div></button>';
-  }).join("");
+  grid.innerHTML = allCats.map(cat => '<button class="class-card" data-catid="' + cat.id + '"><img src="' + (cat.image||placeholder(cat.name)) + '" alt="' + cat.name + '"/><div class="card-info"><strong>' + cat.name + '</strong></div></button>').join("");
   document.querySelectorAll("[data-catid]").forEach(card => {
     card.onclick = () => { if(!requireLogin()) return; selectedClass = "General"; selectedCategory = card.dataset.catid; search = ""; document.querySelector("#searchInput").value = ""; document.querySelector("#clearSearch").style.display = "none"; catalogStep = "books"; render(); };
   });
@@ -5030,7 +5025,7 @@ function renderBooks() {
   });
 
   grid.innerHTML = places.map(place => {
-    const heading = '<div class="seller-place-heading"><strong>' + _acEsc(place) + '</strong><span>' + groups[place].length + ' book' + (groups[place].length === 1 ? '' : 's') + '</span></div>';
+    const heading = '<div class="seller-place-heading"><strong>' + _acEsc(place) + '</strong></div>';
     const cards = groups[place].map(l => {
       const title = l.title || l.bookTitle || l.subject || 'Book';
       const seller = l.sellerName || l.seller || l.userName || 'Seller';
@@ -5066,12 +5061,17 @@ function _listingMatchesBrowse(l, district, subDistrict) {
 }
 
 function _loadBrowseListings() {
-  if (!_db) { state.listings = []; return; }
+  if (!_db) return;                  // try again on the next render; don't wipe existing data
   if (_listingsUnsub) return;
+  // IMPORTANT: do NOT drop snapshots whose metadata.fromCache is true.
+  // The first snapshot on page load is almost always cached (Firestore
+  // returns local data instantly while it contacts the server in the
+  // background). Filtering those out caused listings to never appear
+  // on slow / flaky networks — once the session only saw cached
+  // snapshots, state.listings stayed empty for the whole session.
+  // We accept every snapshot and let the next one refresh us.
   _listingsUnsub = _db.collection('listings')
-    .onSnapshot({ includeMetadataChanges: false }, snap => {
-      if (snap.metadata && snap.metadata.fromCache) return;
-      // Replace fully with Firestore data. Do not merge with old localStorage/exported data.
+    .onSnapshot(snap => {
       state.listings = snap.docs.map(doc => Object.assign({ id: doc.id }, doc.data()));
       save();
       if (catalogStep === "books") renderBooks();
@@ -5140,11 +5140,7 @@ function renderSellCatalog() {
     if (sellCatalogStep === 'classes') {
       const all = state.settings.general ? [...classes,'General'] : classes;
       cg.style.display = 'grid';
-      cg.innerHTML = all.map(name => {
-        const n = state.books.filter(b=>b.className===name&&(b.type!=="general"||state.settings.general)).length;
-        const countSpan = n > 0 ? '<span>' + n + ' book' + (n===1?'':'s') + '</span>' : '';
-        return '<button class="class-card" data-sellclass="' + name + '"><img src="' + imageForClass(name) + '" alt="' + name + '"/><div class="card-info"><strong>' + name + '</strong>' + countSpan + '</div></button>';
-      }).join('');
+      cg.innerHTML = all.map(name => '<button class="class-card" data-sellclass="' + name + '"><img src="' + imageForClass(name) + '" alt="' + name + '"/><div class="card-info"><strong>' + name + '</strong></div></button>').join('');
       cg.querySelectorAll('[data-sellclass]').forEach(card => { card.onclick = () => { triggerAdMob("classClick"); selectedClass=card.dataset.sellclass; selectedBoard=''; selectedStream=''; selectedBookId=''; selectedCategory=''; sellCatalogStep=selectedClass==='General'?'books':'boards'; renderSellCatalog(); }; });
     } else { cg.style.display='none'; cg.innerHTML=''; }
   }
@@ -5155,17 +5151,13 @@ function renderSellCatalog() {
   const catGrid = document.getElementById('sellCategoryGrid');
   if (catCard && catGrid) {
     // Show every admin-defined category — including custom ones with
-    // zero books — so users can pick them when listing. Count badge is
-    // hidden when zero for a cleaner look.
+    // zero books — so users can pick them when listing. No book count
+    // is shown (intentional — see renderClasses note).
     const cats = (state.categories || []);
     const showCats = sellCatalogStep === 'classes' && cats.length > 0;
     catCard.style.display = showCats ? '' : 'none';
     if (showCats) {
-      catGrid.innerHTML = cats.map(cat => {
-        const n = state.books.filter(b=>b.categoryId===cat.id).length;
-        const countSpan = n > 0 ? '<span>' + n + ' book' + (n===1?'':'s') + '</span>' : '';
-        return '<button class="class-card" data-sellcatid="' + cat.id + '"><img src="' + (cat.image || placeholder(cat.name)) + '" alt="' + cat.name + '"/><div class="card-info"><strong>' + cat.name + '</strong>' + countSpan + '</div></button>';
-      }).join('');
+      catGrid.innerHTML = cats.map(cat => '<button class="class-card" data-sellcatid="' + cat.id + '"><img src="' + (cat.image || placeholder(cat.name)) + '" alt="' + cat.name + '"/><div class="card-info"><strong>' + cat.name + '</strong></div></button>').join('');
       catGrid.querySelectorAll('[data-sellcatid]').forEach(card => {
         card.onclick = () => {
           triggerAdMob("classClick");
