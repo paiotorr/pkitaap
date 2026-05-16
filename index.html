@@ -4625,27 +4625,18 @@ setTimeout(() => triggerAdMob('appOpen'), 0);
 
 function requireLogin() {
   if (window._isLoggedIn) return true;
-  // Open the same hamburger-menu side-panel that contains the
-  // "Welcome to <app> / Login / Create Account" card. We do NOT jump
-  // straight into the signup dialog any more — the user picks Login
-  // or Create Account from the menu card, and each of those wires
-  // through to the Google flow on its own.
-  //
-  // The menu's bindMenu() registers a document-level click-outside
-  // listener that closes the menu when a click lands outside the
-  // panel. Since requireLogin() is called from inside a click
-  // handler on a class/category card, the click event will keep
-  // bubbling up to document after this function returns. If we
-  // open the menu synchronously, that bubbled click would close it
-  // immediately. setTimeout defers the open until after the
-  // current event has finished propagating.
+  // Open the hamburger-menu side-panel which shows
+  // "Welcome to <app> / Login / Create Account". Each of those buttons
+  // now goes straight to the Google account picker (see bindings
+  // below — they call googleSignIn directly with no in-between dialog).
+  // setTimeout(0) defers the open so the click event that brought us
+  // here finishes bubbling first — otherwise the menu's own document
+  // click-outside handler would close the panel immediately.
   setTimeout(function() {
     var menuBtn      = document.getElementById('menuBtn');
     var menuPanel    = document.getElementById('menuPanel');
     var menuBackdrop = document.getElementById('menuBackdrop');
     if (!menuPanel) {
-      // Fall back to the signup dialog if the menu isn't on the page
-      // for some reason — better than doing nothing.
       if (typeof openSignup === 'function') openSignup();
       else document.getElementById('signupDialog')?.showModal();
       return;
@@ -4948,8 +4939,6 @@ function renderClasses() {
   const all = state.settings.general ? [...classes,"General"] : classes;
   const grid = document.querySelector("#classGrid");
   grid.style.display = catalogStep === "classes" ? "grid" : "none";
-  // Book counts are intentionally NOT shown on class cards — at pan-India
-  // scale, computing counts client-side is unreliable and noisy.
   grid.innerHTML = all.map(name => '<button class="class-card ' + (name===selectedClass?"active":"") + '" data-class="' + name + '"><img src="' + imageForClass(name) + '" alt="' + name + '"/><div class="card-info"><strong>' + name + '</strong></div></button>').join("");
   document.querySelectorAll(".class-card").forEach(card => {
     card.onclick = () => { if(!requireLogin()) return; triggerAdMob("classClick"); selectedClass = card.dataset.class; selectedBoard=""; selectedStream=""; selectedBookId=""; selectedCategory=""; catalogStep = selectedClass === "General" ? "books" : "boards"; const _ml=document.querySelector("#matchList"); if(_ml) _ml.innerHTML=""; render(); };
@@ -4958,9 +4947,6 @@ function renderClasses() {
 function renderCategories() {
   const card = document.querySelector("#categoryCard");
   const grid = document.querySelector("#categoryGrid");
-  // Show every admin-defined category — including custom ones like
-  // "Competitive Exam", "Engineering", "Govt Job Books" — regardless of
-  // whether any books have been added yet. No count text is shown.
   const allCats = (state.categories||[]);
   const show = catalogStep === "classes" && allCats.length > 0;
   card.style.display = show ? "block" : "none";
@@ -5087,14 +5073,11 @@ function _listingMatchesBrowse(l, district, subDistrict) {
 }
 
 function _loadBrowseListings() {
-  if (!_db) return;                  // try again on the next render; don't wipe existing data
+  if (!_db) return;
   if (_listingsUnsub) return;
-  // IMPORTANT: do NOT drop snapshots whose metadata.fromCache is true.
-  // The first snapshot on page load is almost always cached (Firestore
-  // returns local data instantly while it contacts the server in the
-  // background). Filtering those out caused listings to never appear
-  // on slow / flaky networks — once the session only saw cached
-  // snapshots, state.listings stayed empty for the whole session.
+  // Do NOT drop cached snapshots — Firestore serves them first while it
+  // contacts the server, and dropping them caused listings to never
+  // appear on slow / flaky networks.
   _listingsUnsub = _db.collection('listings')
     .onSnapshot(snap => {
       state.listings = snap.docs.map(doc => Object.assign({ id: doc.id }, doc.data()));
@@ -5175,7 +5158,6 @@ function renderSellCatalog() {
   const catCard = document.getElementById('sellCategoryCard');
   const catGrid = document.getElementById('sellCategoryGrid');
   if (catCard && catGrid) {
-    // Show every admin-defined category. No count text is shown.
     const cats = (state.categories || []);
     const showCats = sellCatalogStep === 'classes' && cats.length > 0;
     catCard.style.display = showCats ? '' : 'none';
@@ -8024,8 +8006,14 @@ init();
 
   document.getElementById('goSignup').onclick     = openSignup;
   document.getElementById('goLogin').onclick      = openLogin;
-  document.getElementById('loginBtn').onclick     = function(){ triggerAdMob("menuOption"); openLogin(); };
-  document.getElementById('menuGoSignup').onclick = function(){ triggerAdMob("menuOption"); openSignup(); };
+  // The menu's "Login" and "Create Account" buttons go STRAIGHT to the
+  // Google account picker — no in-between "Continue with Google" /
+  // "Sign up with Google" dialog. googleSignIn(mode) opens the Google
+  // popup directly and routes new vs returning users automatically:
+  //   - returning user with profile  → onAuthSuccess (logs them in)
+  //   - new user (no profile yet)    → signup stage 2 (complete profile)
+  document.getElementById('loginBtn').onclick     = function(){ triggerAdMob("menuOption"); googleSignIn('login');  };
+  document.getElementById('menuGoSignup').onclick = function(){ triggerAdMob("menuOption"); googleSignIn('signup'); };
 
   // ── Auth success handler ───────────────────────────────────
   // _fromActiveLogin = true  → user pressed Login/Signup button (re-show splash)
@@ -8078,7 +8066,6 @@ init();
     if (menuLogout) menuLogout.onclick = async function() {
       triggerAdMob("menuOption");
       if (!confirm('Are you sure you want to log out?')) return;
-      // Show splash while Firebase signs out and we tear down the session.
       if (window._showSyncSplash) window._showSyncSplash();
       _authStateHandled = false;
       try { if (_auth) await _auth.signOut(); } catch(e) {}
@@ -8423,11 +8410,6 @@ init();
   };
 
   // ── EARLY EXIT FOR NEW / NOT-LOGGED-IN VISITORS ─────────────────
-  // The splash only needs to stay up while we are actually waiting on
-  // Firebase to reconnect a signed-in user. New visitors with no saved
-  // Firebase Auth session have nothing to wait for — show them the
-  // home page after a brief splash for visual continuity. Login,
-  // signup, and logout flows re-show the splash via _showSyncSplash().
   var _hasSavedFbSession = false;
   try {
     var _fbCfg = (typeof PKITAAP_FB_CONFIG !== 'undefined') ? PKITAAP_FB_CONFIG : null;
@@ -8435,9 +8417,8 @@ init();
     if (_fbApiKey) {
       _hasSavedFbSession = !!localStorage.getItem('firebase:authUser:' + _fbApiKey + ':[DEFAULT]');
     }
-  } catch(e) { /* localStorage blocked — treat as anonymous */ }
+  } catch(e) {}
   if (!_hasSavedFbSession) {
-    // Anonymous visitor — short splash, then home page.
     setTimeout(function(){ if (window._hideSplash) window._hideSplash(); }, 700);
   }
   // Fallback: if Firebase never calls onAuthStateChanged within 8 seconds, dismiss anyway
