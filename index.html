@@ -1135,8 +1135,8 @@ const seed = {
   },
   "categories": [
     {
-      "id": "xnjxwqgw",
-      "name": "General",
+      "id": "xmtcgs6u",
+      "name": "hi",
       "image": ""
     }
   ],
@@ -4920,7 +4920,11 @@ function renderClasses() {
   const all = state.settings.general ? [...classes,"General"] : classes;
   const grid = document.querySelector("#classGrid");
   grid.style.display = catalogStep === "classes" ? "grid" : "none";
-  grid.innerHTML = all.map(name => '<button class="class-card ' + (name===selectedClass?"active":"") + '" data-class="' + name + '"><img src="' + imageForClass(name) + '" alt="' + name + '"/><div class="card-info"><strong>' + name + '</strong><span>' + state.books.filter(b=>b.className===name&&(b.type!=="general"||state.settings.general)).length + ' books</span></div></button>').join("");
+  grid.innerHTML = all.map(name => {
+    const n = state.books.filter(b=>b.className===name&&(b.type!=="general"||state.settings.general)).length;
+    const countSpan = n > 0 ? '<span>' + n + ' book' + (n===1?'':'s') + '</span>' : '';
+    return '<button class="class-card ' + (name===selectedClass?"active":"") + '" data-class="' + name + '"><img src="' + imageForClass(name) + '" alt="' + name + '"/><div class="card-info"><strong>' + name + '</strong>' + countSpan + '</div></button>';
+  }).join("");
   document.querySelectorAll(".class-card").forEach(card => {
     card.onclick = () => { if(!requireLogin()) return; triggerAdMob("classClick"); selectedClass = card.dataset.class; selectedBoard=""; selectedStream=""; selectedBookId=""; selectedCategory=""; catalogStep = selectedClass === "General" ? "books" : "boards"; const _ml=document.querySelector("#matchList"); if(_ml) _ml.innerHTML=""; render(); };
   });
@@ -4928,11 +4932,19 @@ function renderClasses() {
 function renderCategories() {
   const card = document.querySelector("#categoryCard");
   const grid = document.querySelector("#categoryGrid");
-  const activeCats = (state.categories||[]).filter(cat => state.books.filter(b=>b.categoryId===cat.id).length > 0);
-  const show = catalogStep === "classes" && activeCats.length > 0;
+  // Show every admin-defined category — including custom ones like
+  // "Competitive Exam", "Engineering", "Govt Job Books" — regardless of
+  // whether any books have been added yet. The count badge below is
+  // hidden when zero so empty categories still look clean.
+  const allCats = (state.categories||[]);
+  const show = catalogStep === "classes" && allCats.length > 0;
   card.style.display = show ? "block" : "none";
   if (!show) return;
-  grid.innerHTML = activeCats.map(cat => '<button class="class-card" data-catid="' + cat.id + '"><img src="' + (cat.image||placeholder(cat.name)) + '" alt="' + cat.name + '"/><div class="card-info"><strong>' + cat.name + '</strong><span>' + state.books.filter(b=>b.categoryId===cat.id).length + ' books</span></div></button>').join("");
+  grid.innerHTML = allCats.map(cat => {
+    const n = state.books.filter(b=>b.categoryId===cat.id).length;
+    const countSpan = n > 0 ? '<span>' + n + ' book' + (n===1?'':'s') + '</span>' : '';
+    return '<button class="class-card" data-catid="' + cat.id + '"><img src="' + (cat.image||placeholder(cat.name)) + '" alt="' + cat.name + '"/><div class="card-info"><strong>' + cat.name + '</strong>' + countSpan + '</div></button>';
+  }).join("");
   document.querySelectorAll("[data-catid]").forEach(card => {
     card.onclick = () => { if(!requireLogin()) return; selectedClass = "General"; selectedCategory = card.dataset.catid; search = ""; document.querySelector("#searchInput").value = ""; document.querySelector("#clearSearch").style.display = "none"; catalogStep = "books"; render(); };
   });
@@ -5128,7 +5140,11 @@ function renderSellCatalog() {
     if (sellCatalogStep === 'classes') {
       const all = state.settings.general ? [...classes,'General'] : classes;
       cg.style.display = 'grid';
-      cg.innerHTML = all.map(name => '<button class="class-card" data-sellclass="' + name + '"><img src="' + imageForClass(name) + '" alt="' + name + '"/><div class="card-info"><strong>' + name + '</strong><span>' + state.books.filter(b=>b.className===name&&(b.type!=="general"||state.settings.general)).length + ' books</span></div></button>').join('');
+      cg.innerHTML = all.map(name => {
+        const n = state.books.filter(b=>b.className===name&&(b.type!=="general"||state.settings.general)).length;
+        const countSpan = n > 0 ? '<span>' + n + ' book' + (n===1?'':'s') + '</span>' : '';
+        return '<button class="class-card" data-sellclass="' + name + '"><img src="' + imageForClass(name) + '" alt="' + name + '"/><div class="card-info"><strong>' + name + '</strong>' + countSpan + '</div></button>';
+      }).join('');
       cg.querySelectorAll('[data-sellclass]').forEach(card => { card.onclick = () => { triggerAdMob("classClick"); selectedClass=card.dataset.sellclass; selectedBoard=''; selectedStream=''; selectedBookId=''; selectedCategory=''; sellCatalogStep=selectedClass==='General'?'books':'boards'; renderSellCatalog(); }; });
     } else { cg.style.display='none'; cg.innerHTML=''; }
   }
@@ -5138,11 +5154,18 @@ function renderSellCatalog() {
   const catCard = document.getElementById('sellCategoryCard');
   const catGrid = document.getElementById('sellCategoryGrid');
   if (catCard && catGrid) {
-    const cats = (state.categories || []).filter(cat => state.books.filter(b=>b.categoryId===cat.id).length > 0);
+    // Show every admin-defined category — including custom ones with
+    // zero books — so users can pick them when listing. Count badge is
+    // hidden when zero for a cleaner look.
+    const cats = (state.categories || []);
     const showCats = sellCatalogStep === 'classes' && cats.length > 0;
     catCard.style.display = showCats ? '' : 'none';
     if (showCats) {
-      catGrid.innerHTML = cats.map(cat => '<button class="class-card" data-sellcatid="' + cat.id + '"><img src="' + (cat.image || placeholder(cat.name)) + '" alt="' + cat.name + '"/><div class="card-info"><strong>' + cat.name + '</strong><span>' + state.books.filter(b=>b.categoryId===cat.id).length + ' books</span></div></button>').join('');
+      catGrid.innerHTML = cats.map(cat => {
+        const n = state.books.filter(b=>b.categoryId===cat.id).length;
+        const countSpan = n > 0 ? '<span>' + n + ' book' + (n===1?'':'s') + '</span>' : '';
+        return '<button class="class-card" data-sellcatid="' + cat.id + '"><img src="' + (cat.image || placeholder(cat.name)) + '" alt="' + cat.name + '"/><div class="card-info"><strong>' + cat.name + '</strong>' + countSpan + '</div></button>';
+      }).join('');
       catGrid.querySelectorAll('[data-sellcatid]').forEach(card => {
         card.onclick = () => {
           triggerAdMob("classClick");
