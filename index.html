@@ -7329,8 +7329,6 @@ function render() {
   updateAccessControls();
   updateBuyLocationMode();
   const selected = null;
-  // Set catalog title text. When on the "books" step we hide the title
-  // and show the medium-filter dropdown in its place.
   const _catTitleEl = document.querySelector("#catalogTitle");
   const _mediumFilterEl = document.getElementById("booksMediumFilter");
   if (catalogStep === "books") {
@@ -8036,8 +8034,27 @@ init();
 
   document.getElementById('goSignup').onclick     = openSignup;
   document.getElementById('goLogin').onclick      = openLogin;
-  document.getElementById('loginBtn').onclick     = function(){ triggerAdMob("menuOption"); googleSignIn('login');  };
-  document.getElementById('menuGoSignup').onclick = function(){ triggerAdMob("menuOption"); googleSignIn('signup'); };
+  // ── Menu Login / Create Account ───────────────────────────────
+  // Close the hamburger menu side-panel SYNCHRONOUSLY the moment the
+  // user clicks Login or Create Account — before googleSignIn() runs
+  // and opens the Google account picker. This way the menu is gone
+  // by the time Google's popup starts loading, so there's no flash of
+  // menu visible behind the popup.
+  function _closeMenuPanel() {
+    document.getElementById('menuBtn')?.classList.remove('open');
+    document.getElementById('menuPanel')?.classList.remove('open');
+    document.getElementById('menuBackdrop')?.classList.remove('open');
+  }
+  document.getElementById('loginBtn').onclick = function(){
+    triggerAdMob("menuOption");
+    _closeMenuPanel();
+    googleSignIn('login');
+  };
+  document.getElementById('menuGoSignup').onclick = function(){
+    triggerAdMob("menuOption");
+    _closeMenuPanel();
+    googleSignIn('signup');
+  };
 
   // ── Auth success handler ───────────────────────────────────
   // _fromActiveLogin = true  → user pressed Login/Signup button (re-show splash)
@@ -8078,7 +8095,7 @@ init();
     if (menuAccount)   menuAccount.style.display = '';
     if (menuLogout)    menuLogout.style.display = '';
 
-    // Close the hamburger menu side-panel after login/signup completes
+    // Make sure the menu is fully closed after auth completes
     document.getElementById('menuBtn')?.classList.remove('open');
     document.getElementById('menuPanel')?.classList.remove('open');
     document.getElementById('menuBackdrop')?.classList.remove('open');
@@ -8237,11 +8254,10 @@ init();
       _googleUser   = result.user;
       if (!_googleUser || !_googleUser.uid) throw new Error('Google login completed but no Firebase user was returned.');
 
-      // ── Hide the menu & show splash the INSTANT Google returns ────
-      // The Firestore profile lookup below can take a few hundred ms.
-      // Without this, the user stares at the open hamburger menu the
-      // whole time after Google closes — confusing and ugly. Show the
-      // sync splash now so they see a loading screen, not the menu.
+      // Belt-and-suspenders: in case the user clicked Login/Create
+      // Account through some path that didn't already close the menu,
+      // close it now too. Then show the sync splash so the Firestore
+      // profile lookup (next line) doesn't leave the screen blank.
       document.getElementById('menuBtn')?.classList.remove('open');
       document.getElementById('menuPanel')?.classList.remove('open');
       document.getElementById('menuBackdrop')?.classList.remove('open');
@@ -8256,9 +8272,7 @@ init();
         return;
       }
 
-      // ── New user — show the profile form (signup stage 2) ─────────
-      // Hide the splash first so the form fields aren't sitting on top
-      // of a loading spinner.
+      // ── New user — hide splash, show profile form ─────────────────
       if (window._hideSyncSplash) window._hideSyncSplash();
 
       if (mode === 'login') {
@@ -8272,9 +8286,9 @@ init();
         _prefillNameFromGoogle();
         signupDialog.showModal();
       } else {
-        // Signup mode — show profile form. With the new direct-to-Google
-        // flow we reach here WITHOUT signupDialog being pre-opened, so
-        // showModal() must be called explicitly.
+        // Signup mode — show profile form. With the direct-to-Google
+        // flow we reach here WITHOUT signupDialog being pre-opened,
+        // so showModal() must be called explicitly.
         document.getElementById('signupStage1').style.display = 'none';
         document.getElementById('signupStage2').style.display = '';
         document.getElementById('signupTagline').textContent  = 'Complete your profile';
@@ -8285,8 +8299,7 @@ init();
 
     } catch (e) {
       _authStateHandled = false;
-      // If we opened a splash after Google returned and then something
-      // failed (e.g. Firestore lookup error), make sure it doesn't hang.
+      // Make sure no loading splash hangs if something errors out
       if (window._hideSyncSplash) window._hideSyncSplash();
       if (btn) { btn.disabled = false; btn.innerHTML = mode === 'login' ? GOOGLE_SVG + ' Continue with Google' : GOOGLE_SVG + ' Sign up with Google'; }
       let msg = 'Google sign-in failed. Please try again.';
