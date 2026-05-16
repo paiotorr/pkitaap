@@ -7329,9 +7329,19 @@ function render() {
   updateAccessControls();
   updateBuyLocationMode();
   const selected = null;
+  // Decide what to show in the catalog card head:
+  //  - Classes / Boards / Streams step → plain title text
+  //  - Books step coming from a CLASS card (selectedCategory empty)
+  //      → hide title, show the "Select Medium" dropdown (filter)
+  //  - Books step coming from a CUSTOM CATEGORY card (selectedCategory set)
+  //      → show the category name as title, HIDE the dropdown.
+  //        Medium filter doesn't apply to custom categories like
+  //        "Competitive Exam" / "Engineering" / "Govt Job Books" —
+  //        those listings aren't tied to school mediums.
   const _catTitleEl = document.querySelector("#catalogTitle");
   const _mediumFilterEl = document.getElementById("booksMediumFilter");
-  if (catalogStep === "books") {
+  if (catalogStep === "books" && !selectedCategory) {
+    // Class-driven books view — show Select Medium dropdown
     if (_catTitleEl) _catTitleEl.style.display = "none";
     if (_mediumFilterEl) {
       _mediumFilterEl.style.display = "";
@@ -7342,7 +7352,21 @@ function render() {
       if (_prev && _meds.indexOf(_prev) >= 0) _mediumFilterEl.value = _prev;
       else _mediumFilterEl.value = '';
     }
+  } else if (catalogStep === "books" && selectedCategory) {
+    // Category-driven books view — show category name, hide dropdown
+    if (_catTitleEl) {
+      _catTitleEl.style.display = "";
+      const _cat = (state.categories || []).find(c => c.id === selectedCategory);
+      _catTitleEl.textContent = _cat ? _cat.name : 'Books';
+    }
+    if (_mediumFilterEl) {
+      _mediumFilterEl.style.display = "none";
+      // Clear any previously-set medium so it doesn't silently filter
+      // listings on a category view where the dropdown isn't visible.
+      _mediumFilterEl.value = '';
+    }
   } else {
+    // Classes / Boards / Streams step
     if (_catTitleEl) {
       _catTitleEl.style.display = "";
       _catTitleEl.textContent = catalogStep === "classes" ? "Classes" : catalogStep === "boards" ? "Boards" : "Streams";
@@ -8034,12 +8058,9 @@ init();
 
   document.getElementById('goSignup').onclick     = openSignup;
   document.getElementById('goLogin').onclick      = openLogin;
-  // ── Menu Login / Create Account ───────────────────────────────
-  // Close the hamburger menu side-panel SYNCHRONOUSLY the moment the
-  // user clicks Login or Create Account — before googleSignIn() runs
-  // and opens the Google account picker. This way the menu is gone
-  // by the time Google's popup starts loading, so there's no flash of
-  // menu visible behind the popup.
+  // Menu Login / Create Account — close the menu BEFORE opening Google,
+  // so the user goes straight from click to Google account picker with
+  // no flash of menu visible behind the popup.
   function _closeMenuPanel() {
     document.getElementById('menuBtn')?.classList.remove('open');
     document.getElementById('menuPanel')?.classList.remove('open');
@@ -8254,10 +8275,8 @@ init();
       _googleUser   = result.user;
       if (!_googleUser || !_googleUser.uid) throw new Error('Google login completed but no Firebase user was returned.');
 
-      // Belt-and-suspenders: in case the user clicked Login/Create
-      // Account through some path that didn't already close the menu,
-      // close it now too. Then show the sync splash so the Firestore
-      // profile lookup (next line) doesn't leave the screen blank.
+      // Belt-and-suspenders menu close + show sync splash during the
+      // Firestore profile-lookup gap so the screen isn't blank.
       document.getElementById('menuBtn')?.classList.remove('open');
       document.getElementById('menuPanel')?.classList.remove('open');
       document.getElementById('menuBackdrop')?.classList.remove('open');
