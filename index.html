@@ -485,15 +485,15 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
           <form id="sellForm" class="form-grid">
             <label class="wide" id="sellCustomTitleWrap" style="display:none;">Subject / Book Title<input id="sellCustomTitle" placeholder="e.g. Assamese, The Alchemist"></label>
             <label class="wide" id="sellCustomPriceWrap" style="display:none;">Price (₹)<input id="sellCustomPrice" type="number" min="1" placeholder="Expected selling price"></label>
-            <label class="wide">Details<textarea id="sellDetails" placeholder="Edition, notes, marks, missing pages, pickup timing"></textarea></label>
             <label class="wide">State <select id="sellState" onchange="updateSellDistricts()"><option value="">— Select Your State —</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Assam">Assam</option></select></label>
             <label class="wide" id="sellMediumWrap">Medium <span style="color:#ef4444;font-size:11px;"> *required</span><select id="sellMedium" required><option value="">Select state first</option></select></label>
             <label>District <select id="sellDistrict" onchange="updateSellSubDistricts()"></select></label>
             <label>Sub-District <select id="sellSubDistrict" onchange="updateSellPlaces()"></select></label>
             <label>Place <input id="sellPlace" list="sellPlaceOptions" onchange="updateSellSchools()" placeholder="Place / town"><datalist id="sellPlaceOptions"></datalist><select id="sellPlaceFallback" onchange="document.getElementById('sellPlace').value=this.value;updateSellSchools()" style="margin-top:6px;"><option value="">— Select Place —</option></select></label>
             <label class="wide">School <input id="sellSchool" list="sellSchoolOptions" placeholder="School / college"><datalist id="sellSchoolOptions"></datalist><select id="sellSchoolFallback" onchange="document.getElementById('sellSchool').value=this.value" style="margin-top:6px;"><option value="">— Select School —</option></select></label>
-            <label class="wide">Condition
-              <select id="sellCondition">
+            <label class="wide">Condition <span style="color:#ef4444;font-size:11px;"> *required</span>
+              <select id="sellCondition" required>
+                <option value="">— Select condition —</option>
                 <option>Like new</option><option>Good</option><option>Usable</option>
               </select>
             </label>
@@ -7329,19 +7329,9 @@ function render() {
   updateAccessControls();
   updateBuyLocationMode();
   const selected = null;
-  // Decide what to show in the catalog card head:
-  //  - Classes / Boards / Streams step → plain title text
-  //  - Books step coming from a CLASS card (selectedCategory empty)
-  //      → hide title, show the "Select Medium" dropdown (filter)
-  //  - Books step coming from a CUSTOM CATEGORY card (selectedCategory set)
-  //      → show the category name as title, HIDE the dropdown.
-  //        Medium filter doesn't apply to custom categories like
-  //        "Competitive Exam" / "Engineering" / "Govt Job Books" —
-  //        those listings aren't tied to school mediums.
   const _catTitleEl = document.querySelector("#catalogTitle");
   const _mediumFilterEl = document.getElementById("booksMediumFilter");
   if (catalogStep === "books" && !selectedCategory) {
-    // Class-driven books view — show Select Medium dropdown
     if (_catTitleEl) _catTitleEl.style.display = "none";
     if (_mediumFilterEl) {
       _mediumFilterEl.style.display = "";
@@ -7353,7 +7343,6 @@ function render() {
       else _mediumFilterEl.value = '';
     }
   } else if (catalogStep === "books" && selectedCategory) {
-    // Category-driven books view — show category name, hide dropdown
     if (_catTitleEl) {
       _catTitleEl.style.display = "";
       const _cat = (state.categories || []).find(c => c.id === selectedCategory);
@@ -7361,12 +7350,9 @@ function render() {
     }
     if (_mediumFilterEl) {
       _mediumFilterEl.style.display = "none";
-      // Clear any previously-set medium so it doesn't silently filter
-      // listings on a category view where the dropdown isn't visible.
       _mediumFilterEl.value = '';
     }
   } else {
-    // Classes / Boards / Streams step
     if (_catTitleEl) {
       _catTitleEl.style.display = "";
       _catTitleEl.textContent = catalogStep === "classes" ? "Classes" : catalogStep === "boards" ? "Boards" : "Streams";
@@ -8058,9 +8044,6 @@ init();
 
   document.getElementById('goSignup').onclick     = openSignup;
   document.getElementById('goLogin').onclick      = openLogin;
-  // Menu Login / Create Account — close the menu BEFORE opening Google,
-  // so the user goes straight from click to Google account picker with
-  // no flash of menu visible behind the popup.
   function _closeMenuPanel() {
     document.getElementById('menuBtn')?.classList.remove('open');
     document.getElementById('menuPanel')?.classList.remove('open');
@@ -8295,7 +8278,6 @@ init();
       if (window._hideSyncSplash) window._hideSyncSplash();
 
       if (mode === 'login') {
-        // Came through Login but no profile found — move them to signup stage 2
         loginDialog.close();
         toast('⚠️ No account found. Please complete your profile.');
         await new Promise(r => setTimeout(r, 400));
@@ -8305,9 +8287,6 @@ init();
         _prefillNameFromGoogle();
         signupDialog.showModal();
       } else {
-        // Signup mode — show profile form. With the direct-to-Google
-        // flow we reach here WITHOUT signupDialog being pre-opened,
-        // so showModal() must be called explicitly.
         document.getElementById('signupStage1').style.display = 'none';
         document.getElementById('signupStage2').style.display = '';
         document.getElementById('signupTagline').textContent  = 'Complete your profile';
