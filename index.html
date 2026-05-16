@@ -490,7 +490,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
             <label>District <select id="sellDistrict" onchange="updateSellSubDistricts()"></select></label>
             <label>Sub-District <select id="sellSubDistrict" onchange="updateSellPlaces()"></select></label>
             <label>Place <input id="sellPlace" list="sellPlaceOptions" onchange="updateSellSchools()" placeholder="Place / town"><datalist id="sellPlaceOptions"></datalist><select id="sellPlaceFallback" onchange="document.getElementById('sellPlace').value=this.value;updateSellSchools()" style="margin-top:6px;"><option value="">— Select Place —</option></select></label>
-            <label class="wide">School <input id="sellSchool" list="sellSchoolOptions" placeholder="School / college"><datalist id="sellSchoolOptions"></datalist><select id="sellSchoolFallback" onchange="document.getElementById('sellSchool').value=this.value" style="margin-top:6px;"><option value="">— Select School —</option></select></label>
+            <label class="wide" id="sellSchoolWrap">School <input id="sellSchool" list="sellSchoolOptions" placeholder="School / college"><datalist id="sellSchoolOptions"></datalist><select id="sellSchoolFallback" onchange="document.getElementById('sellSchool').value=this.value" style="margin-top:6px;"><option value="">— Select School —</option></select></label>
             <label class="wide">Condition <span style="color:#ef4444;font-size:11px;"> *required</span>
               <select id="sellCondition" required>
                 <option value="">— Select condition —</option>
@@ -5151,6 +5151,17 @@ function renderSellCatalog() {
   // Medium is only relevant for school/class books, not for admin-defined categories
   const mw = document.getElementById('sellMediumWrap');
   if (mw) mw.style.display = selectedCategory ? 'none' : '';
+  // School is also irrelevant for custom-category books (Competitive Exam,
+  // Engineering, Govt Job Books, etc.). Hide the field and clear any stale
+  // value so a previously-typed school isn't silently saved with the listing.
+  const sw = document.getElementById('sellSchoolWrap');
+  if (sw) sw.style.display = selectedCategory ? 'none' : '';
+  if (selectedCategory) {
+    const sInput = document.getElementById('sellSchool');
+    if (sInput) sInput.value = '';
+    const sFb = document.getElementById('sellSchoolFallback');
+    if (sFb) sFb.value = '';
+  }
   // Render class grid
   const cg = document.getElementById('sellClassGrid');
   if (cg) {
@@ -8265,11 +8276,9 @@ init();
       document.getElementById('menuBackdrop')?.classList.remove('open');
       if (window._showSyncSplash) window._showSyncSplash();
 
-      // Check if this Google UID already has a profile in Firestore
       const existingData = await _getUserFromFirestore(_googleUser.uid);
 
       if (existingData) {
-        // ── Returning user ─ log in directly ──────────────
         await onAuthSuccess(existingData, _googleUser, true);
         return;
       }
@@ -8297,7 +8306,6 @@ init();
 
     } catch (e) {
       _authStateHandled = false;
-      // Make sure no loading splash hangs if something errors out
       if (window._hideSyncSplash) window._hideSyncSplash();
       if (btn) { btn.disabled = false; btn.innerHTML = mode === 'login' ? GOOGLE_SVG + ' Continue with Google' : GOOGLE_SVG + ' Sign up with Google'; }
       let msg = 'Google sign-in failed. Please try again.';
