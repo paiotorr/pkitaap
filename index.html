@@ -406,7 +406,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
       <div class="card">
         <div class="card-head">
           <h2 id="catalogTitle">Classes</h2>
-          <select id="booksMediumFilter" style="display:none;min-width:170px;padding:8px 30px 8px 12px;border:2px solid var(--border);border-radius:10px;background-color:#fff;background-image:url(&quot;data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4 L6 8 L10 4' stroke='%23222' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>&quot;);background-repeat:no-repeat;background-position:right 10px center;background-size:11px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;color:var(--text);cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;-moz-appearance:none;transition:border-color .15s;" onchange="onBooksMediumFilterChange(this.value)">
+          <select id="booksMediumFilter" style="display:none;width:134px;padding:8px 18px 8px 12px;border:2px solid var(--border);border-radius:10px;background-color:#fff;background-image:url(&quot;data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4 L6 8 L10 4' stroke='%23222' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>&quot;);background-repeat:no-repeat;background-position:right 4px center;background-size:11px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;color:var(--text);cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;-moz-appearance:none;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;transition:border-color .15s;" onchange="onBooksMediumFilterChange(this.value)">
             <option value="">Select Medium</option>
           </select>
           <button class="btn btn-ghost" id="backBtn" type="button" style="display:none;">Back</button>
@@ -5063,10 +5063,8 @@ function renderBooks() {
 
   grid.innerHTML = places.map(place => {
     const heading = '<div class="seller-place-heading"><strong>' + _acEsc(place) + '</strong></div>';
-    // Inline styles for the detail rows — overrides the existing
-    // '.seller-subject-card span' rule (which would otherwise force
-    // 12px/muted/850 weight) and lets us keep the label softer and the
-    // value more readable than that rule allows.
+    // Inline styles for detail rows — softer than the default
+    // .seller-subject-card span rule (12px / muted / weight 850).
     const _rowStyle = 'font-size:13px;line-height:1.55;color:var(--muted);font-weight:600;';
     const _valStyle = 'font-size:13px;color:var(--text);font-weight:700;';
     const cards = groups[place].map(l => {
