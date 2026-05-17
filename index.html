@@ -596,7 +596,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
 </div>
 <footer class="brand-footer">
   <span>Contact: <a href="mailto:pulinoffice@gmail.com">pulinoffice@gmail.com</a></span>
-  <span>Copyright by PAIOTORR</span>
+  <span>Copyright © by PAIOTORR</span>
 </footer>
 <dialog id="loginDialog">
   <div class="auth-modal">
@@ -5022,9 +5022,6 @@ function renderBooks() {
 
   const _filterMedium = (document.getElementById('booksMediumFilter')?.value || '').trim();
 
-  // Search term — case-insensitive partial match on the listing title
-  // (with a fallback to the underlying book's title for old listings
-  // where the title field might be missing).
   const _q = (search || '').trim().toLowerCase();
   const _titleOf = function(l) {
     if (l && l.title) return String(l.title);
@@ -5097,10 +5094,6 @@ function _listingMatchesBrowse(l, district, subDistrict) {
   if (selectedClass && !_sameText(l.className, selectedClass)) return false;
   if (selectedBoard && l.board && !_sameText(l.board, selectedBoard)) return false;
   if (selectedStream && l.stream && !_sameText(l.stream, selectedStream)) return false;
-  // Category filter — listings created under a custom category
-  // (Competitive Exam, Engineering, Govt Job Books, etc.). Newer
-  // listings may carry categoryId directly; older ones reference a
-  // book via bookId whose categoryId we look up in state.books.
   if (selectedCategory) {
     const listingCat = l.categoryId
       || ((state.books || []).find(b => b.id === l.bookId) || {}).categoryId
@@ -5177,8 +5170,6 @@ function renderSellCatalog() {
   // Medium is only relevant for school/class books, not for admin-defined categories
   const mw = document.getElementById('sellMediumWrap');
   if (mw) mw.style.display = selectedCategory ? 'none' : '';
-  // School is also irrelevant for custom-category books (Competitive Exam,
-  // Engineering, Govt Job Books, etc.). Hide the field and clear stale value.
   const sw = document.getElementById('sellSchoolWrap');
   if (sw) sw.style.display = selectedCategory ? 'none' : '';
   if (selectedCategory) {
