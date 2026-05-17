@@ -596,7 +596,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
 </div>
 <footer class="brand-footer">
   <span>Contact: <a href="mailto:pulinoffice@gmail.com">pulinoffice@gmail.com</a></span>
-  <span>Copyright © by PAIOTORR</span>
+  <span>© 2026 PAIOTORR. All rights reserved.</span>
 </footer>
 <dialog id="loginDialog">
   <div class="auth-modal">
@@ -5066,12 +5066,18 @@ function renderBooks() {
     const cards = groups[place].map(l => {
       const title = l.title || l.bookTitle || l.subject || 'Book';
       const seller = l.sellerName || l.seller || l.userName || 'Seller';
-      const price = l.price ? ('Rs ' + l.price) : '';
-      const meta = [l.school, l.condition, price].filter(Boolean).join(' - ');
+      // Build the detail rows. Each non-empty field renders as its own
+      // <span> on its own line (the card uses display:grid + gap so the
+      // spans auto-stack). Empty values are skipped to keep cards tidy.
+      const rows = [];
+      rows.push('<span><strong style="color:var(--text);font-weight:850;">Seller:</strong> ' + _acEsc(seller) + '</span>');
+      if (l.condition) rows.push('<span><strong style="color:var(--text);font-weight:850;">Condition:</strong> ' + _acEsc(l.condition) + '</span>');
+      if (l.school)    rows.push('<span><strong style="color:var(--text);font-weight:850;">School:</strong> ' + _acEsc(l.school) + '</span>');
+      rows.push('<span><strong style="color:var(--text);font-weight:850;">Place:</strong> ' + _acEsc(place) + '</span>');
+      if (l.price)     rows.push('<span><strong style="color:var(--text);font-weight:850;">Price ₹:</strong> ' + _acEsc(String(l.price)) + '</span>');
       return '<button class="seller-subject-card" type="button" data-message-listing="' + _acEsc(l.id) + '">' +
         '<strong>' + _acEsc(title) + '</strong>' +
-        '<span>Seller: ' + _acEsc(seller) + '</span>' +
-        '<span>Place: ' + _acEsc(place) + (meta ? ' - ' + _acEsc(meta) : '') + '</span>' +
+        rows.join('') +
         '</button>';
     }).join('');
     return '<div class="seller-place-group">' + heading + cards + '</div>';
@@ -5167,7 +5173,6 @@ function renderSellCatalog() {
   if (sellSelectedCard) sellSelectedCard.style.display = (selectedBookId && sellCatalogStep==='books') ? '' : 'none';
   if (sellFormCard) sellFormCard.style.display = (selectedBookId && sellCatalogStep==='books') ? '' : 'none';
   updateSellPriceControls();
-  // Medium is only relevant for school/class books, not for admin-defined categories
   const mw = document.getElementById('sellMediumWrap');
   if (mw) mw.style.display = selectedCategory ? 'none' : '';
   const sw = document.getElementById('sellSchoolWrap');
