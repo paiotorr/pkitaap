@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
 <meta name="theme-color" content="#16a34a"/>
 <title>PKiTAAP</title>
 <!-- ═══ Firebase SDKs (compat v10) ═══ -->
@@ -312,19 +312,25 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
   .messages-shell { grid-template-columns: 1fr; min-height: 0; }
   .thread-list-panel { min-height: calc(100dvh - 210px); }
   .thread-list { max-height: none; overflow-y: visible; padding-bottom: 18px; }
-  .messages-shell.chat-open { min-height: calc(100dvh - 170px); }
-  .messages-shell.chat-open .chat-panel { height: calc(100dvh - 170px); min-height: 520px; }
-  .messages-shell.chat-open .chat-body { min-height: 0; }
-  /* While typing in chat input on mobile, hide the brand footer so it
-     doesn't sit between the input and the soft keyboard. */
+  /* Chat-open: panel fills the visible viewport (browser shrinks 100dvh
+     when the soft keyboard opens, thanks to interactive-widget=resizes-content
+     on the viewport meta). Drop min-heights so the panel can shrink with
+     the keyboard and keep the input pinned to the keyboard top. */
+  .messages-shell.chat-open { min-height: 0; height: calc(100dvh - 110px); }
+  .messages-shell.chat-open .chat-panel { height: 100%; min-height: 0; }
+  .messages-shell.chat-open .chat-body { min-height: 0; flex: 1 1 0; }
   body.chat-typing .brand-footer { display: none; }
+  /* When typing, also hide the page header so the chat takes the full
+     visible viewport — input ends up right above the keyboard. */
+  body.chat-typing #messagesPage .page-head { display: none; }
+  body.chat-typing .messages-shell.chat-open { height: 100dvh; }
 }
-/* WhatsApp-style status ticks on 'mine' bubbles. Colors are chosen so
-   each state reads clearly on the red bubble background. */
-.msg-ticks { display: inline-block; margin-left: 5px; font-size: 11px; letter-spacing: -1px; font-weight: 900; vertical-align: middle; }
-.msg-ticks.sent { color: rgba(255,255,255,.55); }
-.msg-ticks.delivered { color: rgba(255,255,255,.85); }
-.msg-ticks.read { color: #bae6fd; }
+/* WhatsApp-style status ticks on 'mine' bubbles. Sent + Delivered share
+   the same translucent white (only tick count differs); Read uses a
+   saturated sky blue that stands out on either green or red bubbles. */
+.msg-ticks { display: inline-block; margin-left: 5px; font-size: 12px; letter-spacing: -1px; font-weight: 900; vertical-align: middle; }
+.msg-ticks.sent, .msg-ticks.delivered { color: rgba(255,255,255,.78); }
+.msg-ticks.read { color: #38bdf8; }
 .page-head { align-items: center; display: flex; gap: 12px; justify-content: space-between; }
 .page-head .search-wrap { flex: 1; }
 /* ── SPLASH / REFRESH SCREEN ── */
@@ -6022,7 +6028,7 @@ async function _markMessagesDelivered(chatId, messages) {
       batch.update(ref, { deliveredTo: firebase.firestore.FieldValue.arrayUnion(me) });
     });
     await batch.commit();
-  } catch(e) { console.warn('[PKITAAP] mark delivered failed', e); }
+  } catch(e) { console.warn('[PKITAAP] mark delivered failed (check Firestore rules allow update of deliveredTo/readBy):', e); }
 }
 async function _markMessagesRead(chatId) {
   if (!_db || !chatId) return;
@@ -6045,7 +6051,7 @@ async function _markMessagesRead(chatId) {
       });
     });
     await batch.commit();
-  } catch(e) { console.warn('[PKITAAP] mark read failed', e); }
+  } catch(e) { console.warn('[PKITAAP] mark read failed (check Firestore rules allow update of deliveredTo/readBy):', e); }
 }
 function _chatUnreadCount(chat, me) {
   if (!chat || !me) return 0;
@@ -7985,9 +7991,6 @@ function init() {
     msgInput.addEventListener('input', _autosizeMessageInput);
     msgInput.addEventListener('focus', () => {
       document.body.classList.add('chat-typing');
-      // After the soft keyboard finishes sliding in, the chat-body
-      // viewport shrinks. Re-scroll to bottom so the user sees the most
-      // recent message right above the input.
       setTimeout(() => {
         const b = document.getElementById('messageChatBody');
         if (b) b.scrollTop = b.scrollHeight;
