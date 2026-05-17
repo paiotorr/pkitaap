@@ -315,7 +315,16 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
   .messages-shell.chat-open { min-height: calc(100dvh - 170px); }
   .messages-shell.chat-open .chat-panel { height: calc(100dvh - 170px); min-height: 520px; }
   .messages-shell.chat-open .chat-body { min-height: 0; }
+  /* While typing in chat input on mobile, hide the brand footer so it
+     doesn't sit between the input and the soft keyboard. */
+  body.chat-typing .brand-footer { display: none; }
 }
+/* WhatsApp-style status ticks on 'mine' bubbles. Colors are chosen so
+   each state reads clearly on the red bubble background. */
+.msg-ticks { display: inline-block; margin-left: 5px; font-size: 11px; letter-spacing: -1px; font-weight: 900; vertical-align: middle; }
+.msg-ticks.sent { color: rgba(255,255,255,.55); }
+.msg-ticks.delivered { color: rgba(255,255,255,.85); }
+.msg-ticks.read { color: #bae6fd; }
 .page-head { align-items: center; display: flex; gap: 12px; justify-content: space-between; }
 .page-head .search-wrap { flex: 1; }
 /* ── SPLASH / REFRESH SCREEN ── */
@@ -525,7 +534,6 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
       </div>
       <div class="messages-shell" id="messagesShell">
         <div class="thread-list-panel">
-          <div class="thread-head"><strong>Chats</strong><span id="messageThreadCount">0</span></div>
           <div class="thread-list" id="messageThreadList">
             <p style="color:#888;font-size:13px;font-weight:700;padding:8px 0;">No messages yet.</p>
           </div>
@@ -5063,8 +5071,6 @@ function renderBooks() {
 
   grid.innerHTML = places.map(place => {
     const heading = '<div class="seller-place-heading"><strong>' + _acEsc(place) + '</strong></div>';
-    // Inline styles for detail rows — softer than the default
-    // .seller-subject-card span rule (12px / muted / weight 850).
     const _rowStyle = 'font-size:13px;line-height:1.55;color:var(--muted);font-weight:600;';
     const _valStyle = 'font-size:13px;color:var(--text);font-weight:700;';
     const cards = groups[place].map(l => {
@@ -5987,6 +5993,60 @@ function _markChatRead(chatId) {
   _saveChatReadMap(map);
   _updateMessagesMenuBadge();
 }
+function _fmtMsgIST(msg) {
+  const ms = Number((msg && msg.createdAtMs) || Date.parse((msg && msg.createdAt) || '')) || 0;
+  if (!ms) return '';
+  try {
+    const d = new Date(ms);
+    const today = new Date();
+    const sameDay = d.toDateString() === today.toDateString();
+    if (sameDay) {
+      return d.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+    return d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+  } catch(e) { return new Date(ms).toLocaleString(); }
+}
+async function _markMessagesDelivered(chatId, messages) {
+  if (!_db || !chatId) return;
+  const me = _myChatUid();
+  if (!me) return;
+  const toMark = (messages || []).filter(m =>
+    m && m.id && String(m.senderUid || m.senderId || '') !== me &&
+    !((m.deliveredTo || []).includes(me))
+  );
+  if (!toMark.length) return;
+  try {
+    const batch = _db.batch();
+    toMark.forEach(m => {
+      const ref = _db.collection('chats').doc(chatId).collection('messages').doc(m.id);
+      batch.update(ref, { deliveredTo: firebase.firestore.FieldValue.arrayUnion(me) });
+    });
+    await batch.commit();
+  } catch(e) { console.warn('[PKITAAP] mark delivered failed', e); }
+}
+async function _markMessagesRead(chatId) {
+  if (!_db || !chatId) return;
+  const me = _myChatUid();
+  if (!me) return;
+  const chat = _getLocalChats().find(c => c.id === chatId);
+  if (!chat || !Array.isArray(chat.messages)) return;
+  const toMark = chat.messages.filter(m =>
+    m && m.id && String(m.senderUid || m.senderId || '') !== me &&
+    !((m.readBy || []).includes(me))
+  );
+  if (!toMark.length) return;
+  try {
+    const batch = _db.batch();
+    toMark.forEach(m => {
+      const ref = _db.collection('chats').doc(chatId).collection('messages').doc(m.id);
+      batch.update(ref, {
+        deliveredTo: firebase.firestore.FieldValue.arrayUnion(me),
+        readBy: firebase.firestore.FieldValue.arrayUnion(me)
+      });
+    });
+    await batch.commit();
+  } catch(e) { console.warn('[PKITAAP] mark read failed', e); }
+}
 function _chatUnreadCount(chat, me) {
   if (!chat || !me) return 0;
   const readAt = Number(_getChatReadMap()[chat.id] || 0) || 0;
@@ -6242,6 +6302,7 @@ function _watchChatMessages(chatId) {
     _activeChatUnsub = _db.collection('chats').doc(chatId).collection('messages').orderBy('createdAt','asc').onSnapshot(snap => {
       const messages = snap.docs.map(doc => _normalizeChatMessage(Object.assign({ id: doc.id }, doc.data())));
       _mergeChatMessages(chatId, messages, true);
+      _markMessagesDelivered(chatId, messages);
       if (_activeChatId === chatId) openChat(chatId, true);
       renderMessages(true);
     }, err => console.warn('[PKITAAP] Chat listener failed:', err));
@@ -6412,6 +6473,7 @@ function openChat(chatId, skipRemote) {
   if (!chat) return;
   _activeChatId = chatId;
   const me = _myChatUid();
+  const otherUid = chat.sellerUid === me ? chat.buyerUid : chat.sellerUid;
   const otherName = chat.sellerUid === me ? (chat.buyerName || 'Buyer') : (chat.sellerName || 'Seller');
   const title = document.getElementById('messageChatTitle');
   const sub = document.getElementById('messageChatSub');
@@ -6424,19 +6486,33 @@ function openChat(chatId, skipRemote) {
     const msgs = Array.isArray(chat.messages) ? chat.messages : [];
     body.innerHTML = msgs.length ? msgs.map(m => {
       const mine = String(m.senderUid || m.senderId || '') === me;
+      let tickHtml = '';
+      if (mine) {
+        const readBy = Array.isArray(m.readBy) ? m.readBy : [];
+        const deliveredTo = Array.isArray(m.deliveredTo) ? m.deliveredTo : [];
+        if (otherUid && readBy.indexOf(otherUid) >= 0) {
+          tickHtml = '<span class="msg-ticks read">✓✓</span>';
+        } else if (otherUid && deliveredTo.indexOf(otherUid) >= 0) {
+          tickHtml = '<span class="msg-ticks delivered">✓✓</span>';
+        } else {
+          tickHtml = '<span class="msg-ticks sent">✓</span>';
+        }
+      }
       return '<div class="chat-message-row ' + (mine ? 'mine' : 'theirs') + '">' +
         '<div class="chat-bubble ' + (mine ? 'mine' : 'theirs') + '">' +
           _acEsc(m.text || '') +
-          '<span class="chat-time">' + _acEsc(String(m.createdAt || '').slice(0,16).replace('T',' ')) + '</span>' +
+          '<span class="chat-time">' + _acEsc(_fmtMsgIST(m)) + tickHtml + '</span>' +
         '</div>' +
       '</div>';
     }).join('') : '<p style="color:#64748b;font-size:13px;font-weight:800;padding:8px 0;">Start the conversation below.</p>';
     body.scrollTop = body.scrollHeight;
   }
+  _markMessagesRead(chatId);
   if (!skipRemote) {
     _loadChatMessagesFromFirestore(chat).then(() => {
       if (_activeChatId === chatId) {
         _markChatRead(chatId);
+        _markMessagesRead(chatId);
         openChat(chatId, true);
       }
     });
@@ -6458,7 +6534,9 @@ async function sendChatMessage() {
     senderName: window._currentUser?.name || '',
     text: text,
     createdAt: new Date().toISOString(),
-    createdAtMs: Date.now()
+    createdAtMs: Date.now(),
+    deliveredTo: [],
+    readBy: []
   };
   if (_db) {
     try {
@@ -7903,7 +7981,22 @@ function init() {
   const msgForm = document.getElementById('messageForm');
   if (msgForm) msgForm.onsubmit = e => { e.preventDefault(); sendChatMessage(); };
   const msgInput = document.getElementById('messageInput');
-  if (msgInput) msgInput.addEventListener('input', _autosizeMessageInput);
+  if (msgInput) {
+    msgInput.addEventListener('input', _autosizeMessageInput);
+    msgInput.addEventListener('focus', () => {
+      document.body.classList.add('chat-typing');
+      // After the soft keyboard finishes sliding in, the chat-body
+      // viewport shrinks. Re-scroll to bottom so the user sees the most
+      // recent message right above the input.
+      setTimeout(() => {
+        const b = document.getElementById('messageChatBody');
+        if (b) b.scrollTop = b.scrollHeight;
+      }, 300);
+    });
+    msgInput.addEventListener('blur', () => {
+      document.body.classList.remove('chat-typing');
+    });
+  }
   const msgBack = document.getElementById('messageBackBtn');
   if (msgBack) msgBack.onclick = () => { _activeChatId = ''; _showMessageListView(); renderMessages(true); };
 
