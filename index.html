@@ -312,22 +312,13 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
   .messages-shell { grid-template-columns: 1fr; min-height: 0; }
   .thread-list-panel { min-height: calc(100dvh - 210px); }
   .thread-list { max-height: none; overflow-y: visible; padding-bottom: 18px; }
-  /* Chat-open: panel fills the visible viewport (browser shrinks 100dvh
-     when the soft keyboard opens, thanks to interactive-widget=resizes-content
-     on the viewport meta). Drop min-heights so the panel can shrink with
-     the keyboard and keep the input pinned to the keyboard top. */
   .messages-shell.chat-open { min-height: 0; height: calc(100dvh - 110px); }
   .messages-shell.chat-open .chat-panel { height: 100%; min-height: 0; }
   .messages-shell.chat-open .chat-body { min-height: 0; flex: 1 1 0; }
   body.chat-typing .brand-footer { display: none; }
-  /* When typing, also hide the page header so the chat takes the full
-     visible viewport — input ends up right above the keyboard. */
   body.chat-typing #messagesPage .page-head { display: none; }
   body.chat-typing .messages-shell.chat-open { height: 100dvh; }
 }
-/* WhatsApp-style status ticks on 'mine' bubbles. Sent + Delivered share
-   the same translucent white (only tick count differs); Read uses a
-   saturated sky blue that stands out on either green or red bubbles. */
 .msg-ticks { display: inline-block; margin-left: 5px; font-size: 12px; letter-spacing: -1px; font-weight: 900; vertical-align: middle; }
 .msg-ticks.sent, .msg-ticks.delivered { color: rgba(255,255,255,.78); }
 .msg-ticks.read { color: #38bdf8; }
@@ -1120,12 +1111,10 @@ const seed = {
   ],
   "boardsByState": {
     "Assam": [
-      "ASSEB",
-      "CBSE"
+      "CBSE",
+      "ASSEB"
     ],
-    "Andhra Pradesh": [
-      "CBSE"
-    ]
+    "Andhra Pradesh": []
   },
   "mediumsByState": {
     "Assam": [
@@ -1133,10 +1122,7 @@ const seed = {
       "English",
       "Hindi"
     ],
-    "Andhra Pradesh": [
-      "English",
-      "Hindi"
-    ]
+    "Andhra Pradesh": []
   },
   "settings": {
     "general": false,
@@ -1144,11 +1130,12 @@ const seed = {
     "passport": false,
     "allowUserPrice": false,
     "messaging": true,
-    "allowSubjectAdding": true
+    "allowSubjectAdding": true,
+    "instagram": true
   },
   "adMob": {
-    "appId": "",
-    "appOpen": "",
+    "appId": "ca-app-pub-2402742761850779~4175768516",
+    "appOpen": "ca-app-pub-2402742761850779/9162399097",
     "classClick": "",
     "subjectClick": "",
     "menuOpen": "",
@@ -1156,7 +1143,7 @@ const seed = {
   },
   "categories": [
     {
-      "id": "x6saqndy",
+      "id": "xfgpjvrn",
       "name": "General",
       "image": ""
     }
@@ -3748,58 +3735,6 @@ const seed = {
       "state": "Assam",
       "districts": [
         {
-          "district": "Lakhimpur",
-          "subDistricts": [
-            {
-              "subDistrict": "North Lakhimpur",
-              "places": [
-                {
-                  "name": "Balijan",
-                  "schools": [
-                    "Morning Glory Higher Secondary School"
-                  ]
-                },
-                {
-                  "name": "14 mile",
-                  "schools": [
-                    "sankardev shishu niketan"
-                  ]
-                },
-                {
-                  "name": "Bosasuk",
-                  "schools": [
-                    "Morning Glory Higher Secondary School"
-                  ]
-                }
-              ]
-            },
-            {
-              "subDistrict": "Bihpuria",
-              "places": []
-            },
-            {
-              "subDistrict": "Dhakuakhana (Pt-I)",
-              "places": []
-            },
-            {
-              "subDistrict": "Kadam",
-              "places": []
-            },
-            {
-              "subDistrict": "Naobaicha",
-              "places": []
-            },
-            {
-              "subDistrict": "Narayanpur",
-              "places": []
-            },
-            {
-              "subDistrict": "Subansiri (Pt-I)",
-              "places": []
-            }
-          ]
-        },
-        {
           "district": "Bajali",
           "subDistricts": [
             {
@@ -4063,7 +3998,14 @@ const seed = {
             },
             {
               "subDistrict": "Dibrugarh West",
-              "places": []
+              "places": [
+                {
+                  "name": "Balijan",
+                  "schools": [
+                    "Mg balijan"
+                  ]
+                }
+              ]
             },
             {
               "subDistrict": "Moran",
@@ -4326,11 +4268,70 @@ const seed = {
           ]
         },
         {
+          "district": "Lakhimpur",
+          "subDistricts": [
+            {
+              "subDistrict": "Bihpuria",
+              "places": []
+            },
+            {
+              "subDistrict": "Dhakuakhana (Pt-I)",
+              "places": []
+            },
+            {
+              "subDistrict": "Kadam",
+              "places": []
+            },
+            {
+              "subDistrict": "Naobaicha",
+              "places": []
+            },
+            {
+              "subDistrict": "Narayanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "North Lakhimpur",
+              "places": [
+                {
+                  "name": "Balijan",
+                  "schools": [
+                    "Morning Glory Higher Secondary School"
+                  ]
+                },
+                {
+                  "name": "14 mile",
+                  "schools": [
+                    "sankardev shishu niketan"
+                  ]
+                },
+                {
+                  "name": "Bosasuk",
+                  "schools": [
+                    "Morning Glory Higher Secondary School"
+                  ]
+                }
+              ]
+            },
+            {
+              "subDistrict": "Subansiri (Pt-I)",
+              "places": []
+            }
+          ]
+        },
+        {
           "district": "Majuli",
           "subDistricts": [
             {
               "subDistrict": "Majuli",
-              "places": []
+              "places": [
+                {
+                  "name": "Majuli Town",
+                  "schools": [
+                    "Majuli Lp School"
+                  ]
+                }
+              ]
             },
             {
               "subDistrict": "Ujani Majuli Circle",
@@ -6002,6 +6003,18 @@ function _fmtMsgIST(msg) {
     return d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
   } catch(e) { return new Date(ms).toLocaleString(); }
 }
+// Scroll chat body to bottom (latest message). Runs the assignment in
+// rAF so it fires AFTER the just-inserted bubbles are laid out and
+// scrollHeight is accurate.
+function _scrollChatToBottom() {
+  const body = document.getElementById('messageChatBody');
+  if (!body) return;
+  body.scrollTop = body.scrollHeight;
+  requestAnimationFrame(() => {
+    body.scrollTop = body.scrollHeight;
+    requestAnimationFrame(() => { body.scrollTop = body.scrollHeight; });
+  });
+}
 async function _markMessagesDelivered(chatId, messages) {
   if (!_db || !chatId) return;
   const me = _myChatUid();
@@ -6501,7 +6514,7 @@ function openChat(chatId, skipRemote) {
         '</div>' +
       '</div>';
     }).join('') : '<p style="color:#64748b;font-size:13px;font-weight:800;padding:8px 0;">Start the conversation below.</p>';
-    body.scrollTop = body.scrollHeight;
+    _scrollChatToBottom();
   }
   _markMessagesRead(chatId);
   if (!skipRemote) {
@@ -7977,21 +7990,48 @@ function init() {
   const msgForm = document.getElementById('messageForm');
   if (msgForm) msgForm.onsubmit = e => { e.preventDefault(); sendChatMessage(); };
   const msgInput = document.getElementById('messageInput');
+  let _chatBlurTimer = null;
   if (msgInput) {
     msgInput.addEventListener('input', _autosizeMessageInput);
     msgInput.addEventListener('focus', () => {
+      if (_chatBlurTimer) { clearTimeout(_chatBlurTimer); _chatBlurTimer = null; }
       document.body.classList.add('chat-typing');
-      setTimeout(() => {
-        const b = document.getElementById('messageChatBody');
-        if (b) b.scrollTop = b.scrollHeight;
-      }, 300);
+      // After the soft keyboard finishes sliding in (~300ms), re-scroll
+      // the chat body to bottom so the latest message sits right above
+      // the input, just like WhatsApp.
+      setTimeout(() => _scrollChatToBottom(), 300);
     });
     msgInput.addEventListener('blur', () => {
-      document.body.classList.remove('chat-typing');
+      // Delay removal so a quick refocus (e.g. tap on send button)
+      // doesn't trigger a layout reflow between tap and click. Without
+      // this delay, taps on the send button miss their target on the
+      // first click — the user has to tap twice.
+      if (_chatBlurTimer) clearTimeout(_chatBlurTimer);
+      _chatBlurTimer = setTimeout(() => {
+        document.body.classList.remove('chat-typing');
+        _chatBlurTimer = null;
+      }, 250);
     });
   }
+  // Send button: prevent the default mousedown behaviour so the textarea
+  // does NOT lose focus when the button is tapped. Without this, the
+  // textarea blurs → body.chat-typing is removed → page-head & footer
+  // reappear → layout reflows → the click misses the (now moved) send
+  // button. Suppressing mousedown's default keeps focus on the textarea,
+  // the click fires on the button as intended, and one tap is enough.
+  const _sendBtn = document.querySelector('#messageForm button.chat-send, #messageForm button[type="submit"]');
+  if (_sendBtn) {
+    _sendBtn.addEventListener('mousedown', e => e.preventDefault());
+    _sendBtn.addEventListener('pointerdown', e => e.preventDefault());
+  }
   const msgBack = document.getElementById('messageBackBtn');
-  if (msgBack) msgBack.onclick = () => { _activeChatId = ''; _showMessageListView(); renderMessages(true); };
+  if (msgBack) msgBack.onclick = () => {
+    _activeChatId = '';
+    document.body.classList.remove('chat-typing');
+    if (_chatBlurTimer) { clearTimeout(_chatBlurTimer); _chatBlurTimer = null; }
+    _showMessageListView();
+    renderMessages(true);
+  };
 
   // ── AUTO-SYNC: Load latest admin data from Firebase on every page open ──
   // This is what keeps the user file always up-to-date without re-exporting.
@@ -8581,7 +8621,6 @@ init();
     setTimeout(function(){ if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 600);
   };
 
-  // ── EARLY EXIT FOR NEW / NOT-LOGGED-IN VISITORS ─────────────────
   var _hasSavedFbSession = false;
   try {
     var _fbCfg = (typeof PKITAAP_FB_CONFIG !== 'undefined') ? PKITAAP_FB_CONFIG : null;
