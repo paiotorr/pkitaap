@@ -37458,48 +37458,64 @@ init();
       if (_authStateHandled) return;
       _authStateHandled = true;
 
-      if (!firebaseUser) {
-        // Not logged in — no remote data to wait for, dismiss splash now
-        if (window._hideSplash) window._hideSplash();
-        return;
-      }
-
-      // Firebase says user is signed in — check if they have a profile
-      const existingData = await _getUserFromFirestore(firebaseUser.uid);
-
-      if (existingData) {
-        // Returning user with complete profile — restore session silently.
-        // Splash is dismissed inside onAuthSuccess after remote data loads.
-        await onAuthSuccess(existingData, firebaseUser);
-      } else {
-        // Firebase session exists but no Firestore profile yet.
-        // BEFORE forcing the signup form, check if we have a profile draft
-        // saved locally from a previous, failed save attempt. If yes, retry
-        // the Firestore write — this auto-heals signups whose first write
-        // got blocked (transient network, rules not yet deployed, etc.).
-        let healedFromLocal = null;
-        try {
-          const localProfile = _getLocalSavedUserProfile({ uid: firebaseUser.uid });
-          if (localProfile && localProfile.name && localProfile.mobile && localProfile.className) {
-            console.log('[PKITAAP] Auto-resync: retrying Firestore save for', firebaseUser.uid);
-            localProfile.uid   = firebaseUser.uid;
-            localProfile.email = firebaseUser.email || localProfile.email || '';
-            healedFromLocal = await _saveUserToFirestore(localProfile);
-          }
-        } catch(e) { console.warn('[PKITAAP] Auto-resync attempt failed:', e); }
-
-        if (healedFromLocal) {
-          await onAuthSuccess(healedFromLocal, firebaseUser);
-        } else {
-          _googleUser = firebaseUser;
-          document.getElementById('signupStage1').style.display = 'none';
-          document.getElementById('signupStage2').style.display = '';
-          document.getElementById('signupTagline').textContent  = 'Complete your profile';
-          _prefillNameFromGoogle();
-          signupDialog.showModal();
-          // Dismiss splash now — user needs to see the signup form
+      try {
+        if (!firebaseUser) {
+          // Not logged in — no remote data to wait for. Open the splash
+          // gate so any pending _hideSplash() can run, then dismiss now.
+          if (window._markAuthResolved) window._markAuthResolved();
           if (window._hideSplash) window._hideSplash();
+          return;
         }
+
+        // Firebase says user is signed in — check if they have a profile
+        const existingData = await _getUserFromFirestore(firebaseUser.uid);
+
+        if (existingData) {
+          // Returning user with complete profile — restore session silently.
+          // onAuthSuccess sets window._isLoggedIn = true. Only AFTER that
+          // do we release the splash gate, so any queued _hideSplash()
+          // (from loadRemoteAppData() etc.) now runs with _isLoggedIn=true
+          // already in place. The user never sees a half-state where
+          // splash is gone but _isLoggedIn is still false.
+          await onAuthSuccess(existingData, firebaseUser);
+          if (window._markAuthResolved) window._markAuthResolved();
+        } else {
+          // Firebase session exists but no Firestore profile yet.
+          // BEFORE forcing the signup form, check if we have a profile draft
+          // saved locally from a previous, failed save attempt. If yes, retry
+          // the Firestore write — this auto-heals signups whose first write
+          // got blocked (transient network, rules not yet deployed, etc.).
+          let healedFromLocal = null;
+          try {
+            const localProfile = _getLocalSavedUserProfile({ uid: firebaseUser.uid });
+            if (localProfile && localProfile.name && localProfile.mobile && localProfile.className) {
+              console.log('[PKITAAP] Auto-resync: retrying Firestore save for', firebaseUser.uid);
+              localProfile.uid   = firebaseUser.uid;
+              localProfile.email = firebaseUser.email || localProfile.email || '';
+              healedFromLocal = await _saveUserToFirestore(localProfile);
+            }
+          } catch(e) { console.warn('[PKITAAP] Auto-resync attempt failed:', e); }
+
+          if (healedFromLocal) {
+            await onAuthSuccess(healedFromLocal, firebaseUser);
+            if (window._markAuthResolved) window._markAuthResolved();
+          } else {
+            _googleUser = firebaseUser;
+            document.getElementById('signupStage1').style.display = 'none';
+            document.getElementById('signupStage2').style.display = '';
+            document.getElementById('signupTagline').textContent  = 'Complete your profile';
+            _prefillNameFromGoogle();
+            signupDialog.showModal();
+            // Open the gate and dismiss splash — user needs to see the signup form
+            if (window._markAuthResolved) window._markAuthResolved();
+            if (window._hideSplash) window._hideSplash();
+          }
+        }
+      } catch (err) {
+        // On any error, never strand the user behind the splash.
+        console.warn('[PKITAAP] auth-state handler failed:', err);
+        if (window._markAuthResolved) window._markAuthResolved();
+        if (window._hideSplash) window._hideSplash();
       }
     });
   } else {
@@ -37510,11 +37526,24 @@ init();
 })();
 </script>
 <script>
-/* ── SPLASH DISMISS — waits for Firebase onAuthStateChanged ── */
+/* ── SPLASH DISMISS — held until Firebase onAuthStateChanged definitively resolves ── */
 (function(){
   document.body.classList.add('splash-active');
   var _splashDone = false;
-  window._hideSplash = function(){
+  // Auth-gating: keeps the splash up until Firebase has DEFINITIVELY decided
+  // whether this visitor is logged in. Prevents the "logged-in user briefly
+  // sees the login prompt" race where loadRemoteAppData() (or any other
+  // code path) would otherwise hide the splash before onAuthStateChanged
+  // had a chance to set window._isLoggedIn = true.
+  var _authResolved = false;
+  var _hidePending = false;
+  // Optimistic assumption: do we suspect a saved Firebase session is on
+  // disk? If yes, the splash gate stays closed until auth resolves.
+  // If no, the gate opens immediately so visitors see the homepage with
+  // zero added delay (same UX as before the fix).
+  var _suspectSavedSession = false;
+
+  function _doHideSplash() {
     if (_splashDone) return;
     _splashDone = true;
     var overlay = document.getElementById('splashOverlay');
@@ -37522,26 +37551,78 @@ init();
     document.body.classList.remove('splash-active');
     overlay.classList.add('fade-out');
     setTimeout(function(){ if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 600);
+  }
+
+  // Public: callable from anywhere. Honors the auth-resolution gate.
+  window._hideSplash = function(){
+    if (!_authResolved) { _hidePending = true; return; }
+    _doHideSplash();
   };
 
-  var _hasSavedFbSession = false;
+  // Called from inside onAuthStateChanged after _isLoggedIn has been set
+  // correctly. Releases the gate and runs any queued hide.
+  window._markAuthResolved = function(){
+    _authResolved = true;
+    if (_hidePending) _doHideSplash();
+  };
+
+  // ── PROBE 1: synchronous localStorage check ─────────────────────
+  // Firebase v8 / legacy compat with no IndexedDB falls back here.
   try {
     var _fbCfg = (typeof PKITAAP_FB_CONFIG !== 'undefined') ? PKITAAP_FB_CONFIG : null;
     var _fbApiKey = (_fbCfg && _fbCfg.apiKey) || '';
-    if (_fbApiKey) {
-      _hasSavedFbSession = !!localStorage.getItem('firebase:authUser:' + _fbApiKey + ':[DEFAULT]');
+    if (_fbApiKey && localStorage.getItem('firebase:authUser:' + _fbApiKey + ':[DEFAULT]')) {
+      _suspectSavedSession = true;
     }
   } catch(e) {}
-  if (!_hasSavedFbSession) {
-    setTimeout(function(){ if (window._hideSplash) window._hideSplash(); }, 700);
-  }
-  setTimeout(function(){ if (window._hideSplash) window._hideSplash(); }, 8000);
+
+  // ── PROBE 2: async IndexedDB check ──────────────────────────────
+  // Firebase v9+ stores auth in IndexedDB on modern browsers. The old
+  // localStorage-only check missed this completely, which is what made
+  // _isLoggedIn stay false past the splash-hide for many returning users.
+  (function _probeIdb() {
+    function done(hasIdb) {
+      if (hasIdb) _suspectSavedSession = true;
+      if (!_suspectSavedSession) {
+        // Visitor: nothing saved anywhere. Open the gate immediately so
+        // the splash hides as soon as the existing path requests it.
+        _authResolved = true;
+        if (_hidePending) _doHideSplash();
+      }
+      // If _suspectSavedSession is true, do nothing — wait for
+      // onAuthStateChanged via window._markAuthResolved().
+    }
+    if (!window.indexedDB) { done(false); return; }
+    try {
+      var req = indexedDB.open('firebaseLocalStorageDb');
+      req.onsuccess = function(ev) {
+        try {
+          var db = ev.target.result;
+          if (!db.objectStoreNames.contains('firebaseLocalStorage')) { db.close(); done(false); return; }
+          var tx = db.transaction(['firebaseLocalStorage'], 'readonly');
+          var cReq = tx.objectStore('firebaseLocalStorage').count();
+          cReq.onsuccess = function(){ db.close(); done(cReq.result > 0); };
+          cReq.onerror   = function(){ db.close(); done(false); };
+        } catch(e) { done(false); }
+      };
+      req.onerror   = function(){ done(false); };
+      req.onblocked = function(){ done(false); };
+    } catch(e) { done(false); }
+  })();
+
+  // Safety net: never strand the user behind the splash. If Firebase or
+  // the network is completely dead, force the gate open after 15 s and
+  // dismiss. This is NOT a deterministic delay — it's only the worst
+  // case; in practice onAuthStateChanged fires within a second or two.
+  setTimeout(function(){
+    _authResolved = true;
+    _doHideSplash();
+  }, 15000);
 
   // ── SYNC SPLASH — re-shown after active login while Firebase syncs the account ──
-  // Called at the start of onAuthSuccess so the user never sees a half-loaded page.
-  // Dismissed by loadRemoteAppData() once all Firestore data is confirmed written.
+  // (Unchanged from before — exists for post-login data loading.)
   window._showSyncSplash = function(){
-    if (document.getElementById('splashOverlay')) return; // original still on screen — no duplicate needed
+    if (document.getElementById('splashOverlay')) return;
     if (document.getElementById('syncSplashOverlay')) return;
     var el = document.createElement('div');
     el.id = 'syncSplashOverlay';
@@ -37553,7 +37634,6 @@ init();
       + '<span style="width:10px;height:10px;border-radius:50%;background:#16a34a;animation:splashDot 1.2s ease-in-out infinite;animation-delay:0.4s;display:block;"></span>'
       + '</div>';
     document.body.appendChild(el);
-    // Safety fallback — if Firestore hangs, dismiss after 15 s so the user is never stuck
     setTimeout(function(){ if (window._hideSyncSplash) window._hideSyncSplash(); }, 15000);
   };
   window._hideSyncSplash = function(){
