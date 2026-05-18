@@ -777,11 +777,13 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
           <label>Place / Town</label>
           <input type="text" id="accPlace" list="accPlaceOptions" onchange="updateAccSchools()" placeholder="Place / town">
           <datalist id="accPlaceOptions"></datalist>
+          <select id="accPlaceFallback" onchange="document.getElementById('accPlace').value=this.value;updateAccSchools()" style="margin-top:6px;"><option value="">— Select Place —</option></select>
         </div>
         <div class="auth-field">
           <label>School / College</label>
           <input type="text" id="accSchool" list="accSchoolOptions" placeholder="School / college">
           <datalist id="accSchoolOptions"></datalist>
+          <select id="accSchoolFallback" onchange="document.getElementById('accSchool').value=this.value" style="margin-top:6px;"><option value="">— Select School —</option></select>
         </div>
       </div>
       <p style="font-size:12px;color:var(--muted);font-weight:700;margin-top:-4px;">📍 Changes here become your new default location for selling.</p>
@@ -22009,6 +22011,8 @@ function updateAccDistricts() {
   if (s) s.value = '';
   _fillChoiceControl('accPlace', 'accPlaceOptions', '— Place —', [], x=>x.name, '');
   _fillChoiceControl('accSchool', 'accSchoolOptions', '— School —', [], null, '');
+  _fillFallbackSelect('accPlaceFallback', '— Select Place —', [], x=>x.name, '');
+  _fillFallbackSelect('accSchoolFallback', '— Select School —', [], null, '');
 }
 function updateAccSubDistricts() {
   const st = document.getElementById('accState')?.value;
@@ -22021,6 +22025,8 @@ function updateAccSubDistricts() {
   if (s) s.value = '';
   _fillChoiceControl('accPlace', 'accPlaceOptions', '— Place —', [], x=>x.name, '');
   _fillChoiceControl('accSchool', 'accSchoolOptions', '— School —', [], null, '');
+  _fillFallbackSelect('accPlaceFallback', '— Select Place —', [], x=>x.name, '');
+  _fillFallbackSelect('accSchoolFallback', '— Select School —', [], null, '');
 }
 function updateAccPlaces() {
   const st = document.getElementById('accState')?.value;
@@ -22030,11 +22036,14 @@ function updateAccPlaces() {
   const s = document.getElementById('accSchool');
   const selected = p?.value || window._currentUser?.place || '';
   _fillChoiceControl('accPlace', 'accPlaceOptions', '— Place —', _getPlaces(st, d, sd), x=>x.name, selected);
+  _fillFallbackSelect('accPlaceFallback', '— Select Place —', _getPlaces(st, d, sd), x=>x.name, selected);
   if (s) s.value = '';
   _fillChoiceControl('accSchool', 'accSchoolOptions', '— School —', [], null, '');
+  _fillFallbackSelect('accSchoolFallback', '— Select School —', [], null, '');
   _loadCommunityPlaces(st, d, sd).then(() => {
     const keep = p?.value || selected;
     _fillChoiceControl('accPlace', 'accPlaceOptions', '— Place —', _getPlaces(st, d, sd), x=>x.name, keep);
+    _fillFallbackSelect('accPlaceFallback', '— Select Place —', _getPlaces(st, d, sd), x=>x.name, keep);
     if (p && keep) p.value = keep;
     updateAccSchools();
   });
@@ -22047,9 +22056,11 @@ function updateAccSchools() {
   const s = document.getElementById('accSchool');
   const selected = s?.value || window._currentUser?.school || '';
   _fillChoiceControl('accSchool', 'accSchoolOptions', '— School —', _getSchools(st, d, sd, p), null, selected);
+  _fillFallbackSelect('accSchoolFallback', '— Select School —', _getSchools(st, d, sd, p), null, selected);
   if (p) _loadCommunitySchools(st, d, sd, p).then(() => {
     const keep = s?.value || selected;
     _fillChoiceControl('accSchool', 'accSchoolOptions', '— School —', _getSchools(st, d, sd, p), null, keep);
+    _fillFallbackSelect('accSchoolFallback', '— Select School —', _getSchools(st, d, sd, p), null, keep);
     if (keep) s.value = keep;
   });
 }
@@ -22706,9 +22717,6 @@ function _fmtMsgIST(msg) {
     return d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
   } catch(e) { return new Date(ms).toLocaleString(); }
 }
-// Scroll chat body to bottom (latest message). Runs the assignment in
-// rAF so it fires AFTER the just-inserted bubbles are laid out and
-// scrollHeight is accurate.
 function _scrollChatToBottom() {
   const body = document.getElementById('messageChatBody');
   if (!body) return;
@@ -24699,16 +24707,9 @@ function init() {
     msgInput.addEventListener('focus', () => {
       if (_chatBlurTimer) { clearTimeout(_chatBlurTimer); _chatBlurTimer = null; }
       document.body.classList.add('chat-typing');
-      // After the soft keyboard finishes sliding in (~300ms), re-scroll
-      // the chat body to bottom so the latest message sits right above
-      // the input, just like WhatsApp.
       setTimeout(() => _scrollChatToBottom(), 300);
     });
     msgInput.addEventListener('blur', () => {
-      // Delay removal so a quick refocus (e.g. tap on send button)
-      // doesn't trigger a layout reflow between tap and click. Without
-      // this delay, taps on the send button miss their target on the
-      // first click — the user has to tap twice.
       if (_chatBlurTimer) clearTimeout(_chatBlurTimer);
       _chatBlurTimer = setTimeout(() => {
         document.body.classList.remove('chat-typing');
@@ -24716,12 +24717,6 @@ function init() {
       }, 250);
     });
   }
-  // Send button: prevent the default mousedown behaviour so the textarea
-  // does NOT lose focus when the button is tapped. Without this, the
-  // textarea blurs → body.chat-typing is removed → page-head & footer
-  // reappear → layout reflows → the click misses the (now moved) send
-  // button. Suppressing mousedown's default keeps focus on the textarea,
-  // the click fires on the button as intended, and one tap is enough.
   const _sendBtn = document.querySelector('#messageForm button.chat-send, #messageForm button[type="submit"]');
   if (_sendBtn) {
     _sendBtn.addEventListener('mousedown', e => e.preventDefault());
