@@ -405,7 +405,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
       </div>
       <div class="location-lock">
         <div id="buyStateBox"><span>Country</span><strong>India</strong></div>
-        <div id="buyStateSelectBox"><span>States</span><select id="stateFilter" class="location-select" onchange="onStateFilterChange(this.value)"><option value="">— Select State —</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option></select></div>
+        <div id="buyStateSelectBox"><span>States</span><select id="stateFilter" class="location-select" onchange="onStateFilterChange(this.value)"><option value="">— Select State —</option><option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Bihar">Bihar</option><option value="Chandigarh">Chandigarh</option><option value="Chhattisgarh">Chhattisgarh</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option></select></div>
         <div id="buyDistrictBox" style="display:none;"><span>District</span><select id="browseDistrict" class="location-select" onchange="updateBrowseSubDistricts()"><option value="">District</option></select></div>
         <div id="buySubDistrictBox" style="display:none;"><span>Sub-District</span><select id="browseSubDistrict" class="location-select" onchange="renderBooks()"><option value="">Sub-District</option></select></div>
       </div>
@@ -432,7 +432,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
         <div class="card-head"><h2>Match</h2></div>
         <div class="card-body">
           <form id="buyForm" class="form-grid">
-            <label class="wide">State <span style="color:#ef4444;font-size:11px;"> *required</span><select id="buyState" required onchange="updateBuyDistricts()"><option value="">— Select Your State —</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option></select></label>
+            <label class="wide">State <span style="color:#ef4444;font-size:11px;"> *required</span><select id="buyState" required onchange="updateBuyDistricts()"><option value="">— Select Your State —</option><option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Bihar">Bihar</option><option value="Chandigarh">Chandigarh</option><option value="Chhattisgarh">Chhattisgarh</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option></select></label>
             <label>District <span style="color:#ef4444;font-size:11px;"> *required</span><select id="buyDistrict" required onchange="updateBuySubDistricts()"></select></label>
             <label>Sub-District <span style="color:#ef4444;font-size:11px;"> *required</span><select id="buySubDistrict" required onchange="updateBuyPlaces()"></select></label>
             <label>Place <span style="color:#ef4444;font-size:11px;"> *required</span><select id="buyPlace" required onchange="updateBuySchools()"></select></label>
@@ -454,7 +454,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
         <button class="btn btn-primary" type="button" data-go-buy>Home</button>
       </div>
       <div class="location-lock">
-        <select id="stateFilter2" style="display:none;" onchange="onStateFilterChange2(this.value)"><option value="">— Select State —</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option></select>
+        <select id="stateFilter2" style="display:none;" onchange="onStateFilterChange2(this.value)"><option value="">— Select State —</option><option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Bihar">Bihar</option><option value="Chandigarh">Chandigarh</option><option value="Chhattisgarh">Chhattisgarh</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option></select>
         <div><span>District</span><select id="sellDistrictFilter" class="location-select" onchange="onSellDistrictFilterChange(this.value)"><option value="">— District —</option></select></div>
         <div><span>Sub-District</span><select id="sellSubDistrictFilter" class="location-select" onchange="onSellSubDistrictFilterChange(this.value)"><option value="">— Sub-District —</option></select></div>
       </div>
@@ -491,7 +491,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
           <form id="sellForm" class="form-grid">
             <label class="wide" id="sellCustomTitleWrap" style="display:none;">Subject / Book Title<input id="sellCustomTitle" placeholder="e.g. Assamese, The Alchemist"></label>
             <label class="wide" id="sellCustomPriceWrap" style="display:none;">Price (₹)<input id="sellCustomPrice" type="number" min="1" placeholder="Expected selling price"></label>
-            <label class="wide">State <select id="sellState" onchange="updateSellDistricts()"><option value="">— Select Your State —</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option></select></label>
+            <label class="wide">State <select id="sellState" onchange="updateSellDistricts()"><option value="">— Select Your State —</option><option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Bihar">Bihar</option><option value="Chandigarh">Chandigarh</option><option value="Chhattisgarh">Chhattisgarh</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option></select></label>
             <label class="wide" id="sellMediumWrap">Medium <span style="color:#ef4444;font-size:11px;"> *required</span><select id="sellMedium" required><option value="">Select state first</option></select></label>
             <label>District <select id="sellDistrict" onchange="updateSellSubDistricts()"></select></label>
             <label>Sub-District <select id="sellSubDistrict" onchange="updateSellPlaces()"></select></label>
@@ -665,7 +665,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
             <label>State <span style="color:#ef4444;font-size:11px;"> *required</span></label>
             <select id="signupState" required onchange="updateSignupDistricts()">
               <option value="">— Select Your State —</option>
-              <option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option>
+              <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Bihar">Bihar</option><option value="Chandigarh">Chandigarh</option><option value="Chhattisgarh">Chhattisgarh</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option>
             </select>
           </div>
           <div class="auth-field">
@@ -754,7 +754,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
           <label>State</label>
           <select id="accState" onchange="updateAccDistricts()">
             <option value="">— Select State —</option>
-            <option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option>
+            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Bihar">Bihar</option><option value="Chandigarh">Chandigarh</option><option value="Chhattisgarh">Chhattisgarh</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option>
           </select>
         </div>
         <div class="auth-field">
@@ -1151,6 +1151,32 @@ const seed = {
       "IB Board",
       "Cambridge Board",
       "IGCSE"
+    ],
+    "Bihar": [
+      "BSEB",
+      "CBSE",
+      "ICSE-ISC",
+      "NIOS",
+      "CISCE"
+    ],
+    "Andaman and Nicobar Islands": [
+      "CBSE",
+      "ICSE-ISC",
+      "CISCE",
+      "NIOS"
+    ],
+    "Chandigarh": [
+      "CBSE",
+      "CISCE",
+      "ICSE-ISC",
+      "NIOS"
+    ],
+    "Chhattisgarh": [
+      "CGBSE",
+      "CBSE",
+      "CISCE",
+      "ICSE-ISC",
+      "NIOS"
     ]
   },
   "mediumsByState": {
@@ -1185,6 +1211,31 @@ const seed = {
       "Hindi Medium",
       "Urdu Medium",
       "Punjabi Medium"
+    ],
+    "Bihar": [
+      "Hindi Medium",
+      "English Medium",
+      "Urdu Medium",
+      "Maithili Medium",
+      "Local Language Medium"
+    ],
+    "Andaman and Nicobar Islands": [
+      "English Medium",
+      "Hindi Medium",
+      "Tamil Medium",
+      "Bengali Medium",
+      "Telugu Medium"
+    ],
+    "Chandigarh": [
+      "English Medium",
+      "Hindi Medium",
+      "Punjabi Medium"
+    ],
+    "Chhattisgarh": [
+      "Hindi Medium",
+      "English Medium",
+      "Urdu Medium",
+      "Local Language Medium"
     ]
   },
   "settings": {
@@ -1212,6 +1263,62 @@ const seed = {
   ],
   "books": [],
   "locations": [
+    {
+      "state": "Andaman and Nicobar Islands",
+      "districts": [
+        {
+          "district": "Nicobars",
+          "subDistricts": [
+            {
+              "subDistrict": "Car Nicobar",
+              "places": []
+            },
+            {
+              "subDistrict": "Great Nicobar",
+              "places": []
+            },
+            {
+              "subDistrict": "Nancowry",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "North And Middle Andaman",
+          "subDistricts": [
+            {
+              "subDistrict": "Diglipur",
+              "places": []
+            },
+            {
+              "subDistrict": "Mayabunder",
+              "places": []
+            },
+            {
+              "subDistrict": "Rangat",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "South Andamans",
+          "subDistricts": [
+            {
+              "subDistrict": "Ferrargunj",
+              "places": []
+            },
+            {
+              "subDistrict": "Little Andaman",
+              "places": []
+            },
+            {
+              "subDistrict": "Port Blair",
+              "places": []
+            }
+          ]
+        }
+      ]
+    },
     {
       "state": "Andhra Pradesh",
       "districts": [
@@ -5610,6 +5717,3485 @@ const seed = {
             },
             {
               "subDistrict": "Baithalangso",
+              "places": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "state": "Bihar",
+      "districts": [
+        {
+          "district": "Araria",
+          "subDistricts": [
+            {
+              "subDistrict": "Araria",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhargama",
+              "places": []
+            },
+            {
+              "subDistrict": "Forbesganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Jokihat",
+              "places": []
+            },
+            {
+              "subDistrict": "Kursakatta",
+              "places": []
+            },
+            {
+              "subDistrict": "Narpatganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Palasi",
+              "places": []
+            },
+            {
+              "subDistrict": "Raniganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Sikti",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Arwal",
+          "subDistricts": [
+            {
+              "subDistrict": "Arwal",
+              "places": []
+            },
+            {
+              "subDistrict": "Kaler",
+              "places": []
+            },
+            {
+              "subDistrict": "Karpi",
+              "places": []
+            },
+            {
+              "subDistrict": "Kurtha",
+              "places": []
+            },
+            {
+              "subDistrict": "Sonbhadra Banshi Suryapur",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Aurangabad",
+          "subDistricts": [
+            {
+              "subDistrict": "Aurangabad",
+              "places": []
+            },
+            {
+              "subDistrict": "Barun",
+              "places": []
+            },
+            {
+              "subDistrict": "Daudnagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Deo",
+              "places": []
+            },
+            {
+              "subDistrict": "Goh",
+              "places": []
+            },
+            {
+              "subDistrict": "Haspura",
+              "places": []
+            },
+            {
+              "subDistrict": "Kutumba",
+              "places": []
+            },
+            {
+              "subDistrict": "Madanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Nabinagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Obra",
+              "places": []
+            },
+            {
+              "subDistrict": "Rafiganj",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Banka",
+          "subDistricts": [
+            {
+              "subDistrict": "Amarpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Banka",
+              "places": []
+            },
+            {
+              "subDistrict": "Barahat",
+              "places": []
+            },
+            {
+              "subDistrict": "Bausi",
+              "places": []
+            },
+            {
+              "subDistrict": "Belhar",
+              "places": []
+            },
+            {
+              "subDistrict": "Chanan",
+              "places": []
+            },
+            {
+              "subDistrict": "Dhuraiya",
+              "places": []
+            },
+            {
+              "subDistrict": "Katoria",
+              "places": []
+            },
+            {
+              "subDistrict": "Phulidumar",
+              "places": []
+            },
+            {
+              "subDistrict": "Rajaun",
+              "places": []
+            },
+            {
+              "subDistrict": "Shambhuganj",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Begusarai",
+          "subDistricts": [
+            {
+              "subDistrict": "Bachhwara",
+              "places": []
+            },
+            {
+              "subDistrict": "Bakhri",
+              "places": []
+            },
+            {
+              "subDistrict": "Balia",
+              "places": []
+            },
+            {
+              "subDistrict": "Barauni",
+              "places": []
+            },
+            {
+              "subDistrict": "Begusarai",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhagwanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Birpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Cheria Bariarpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Chhorahi",
+              "places": []
+            },
+            {
+              "subDistrict": "Dandari",
+              "places": []
+            },
+            {
+              "subDistrict": "Garhpura",
+              "places": []
+            },
+            {
+              "subDistrict": "Khudabandpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Mansurchak",
+              "places": []
+            },
+            {
+              "subDistrict": "Matihani",
+              "places": []
+            },
+            {
+              "subDistrict": "Naokothi",
+              "places": []
+            },
+            {
+              "subDistrict": "Sahebpur Kamal",
+              "places": []
+            },
+            {
+              "subDistrict": "Shamho Akha Kurha",
+              "places": []
+            },
+            {
+              "subDistrict": "Teghra",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Bhagalpur",
+          "subDistricts": [
+            {
+              "subDistrict": "Bihpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Gopalpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Goradih",
+              "places": []
+            },
+            {
+              "subDistrict": "Ismailpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Jagdishpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Kahalgaon",
+              "places": []
+            },
+            {
+              "subDistrict": "Kharik",
+              "places": []
+            },
+            {
+              "subDistrict": "Narayanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Nathnagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Naugachhia",
+              "places": []
+            },
+            {
+              "subDistrict": "Pirpainti",
+              "places": []
+            },
+            {
+              "subDistrict": "Rangra Chowk",
+              "places": []
+            },
+            {
+              "subDistrict": "Sabour",
+              "places": []
+            },
+            {
+              "subDistrict": "Shahkund",
+              "places": []
+            },
+            {
+              "subDistrict": "Sonhaula",
+              "places": []
+            },
+            {
+              "subDistrict": "Sultanganj",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Bhojpur",
+          "subDistricts": [
+            {
+              "subDistrict": "Agiaon",
+              "places": []
+            },
+            {
+              "subDistrict": "Arrah",
+              "places": []
+            },
+            {
+              "subDistrict": "Barhara",
+              "places": []
+            },
+            {
+              "subDistrict": "Behea",
+              "places": []
+            },
+            {
+              "subDistrict": "Charpokhari",
+              "places": []
+            },
+            {
+              "subDistrict": "Garhani",
+              "places": []
+            },
+            {
+              "subDistrict": "Jagdishpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Koilwar",
+              "places": []
+            },
+            {
+              "subDistrict": "Piro",
+              "places": []
+            },
+            {
+              "subDistrict": "Sahar",
+              "places": []
+            },
+            {
+              "subDistrict": "Sandesh",
+              "places": []
+            },
+            {
+              "subDistrict": "Shahpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Tarari",
+              "places": []
+            },
+            {
+              "subDistrict": "Udwant Nagar",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Buxar",
+          "subDistricts": [
+            {
+              "subDistrict": "Barhampur",
+              "places": []
+            },
+            {
+              "subDistrict": "Buxar",
+              "places": []
+            },
+            {
+              "subDistrict": "Chakki",
+              "places": []
+            },
+            {
+              "subDistrict": "Chaugain",
+              "places": []
+            },
+            {
+              "subDistrict": "Chausa",
+              "places": []
+            },
+            {
+              "subDistrict": "Dumraon",
+              "places": []
+            },
+            {
+              "subDistrict": "Itarhi",
+              "places": []
+            },
+            {
+              "subDistrict": "Kesath",
+              "places": []
+            },
+            {
+              "subDistrict": "Nawanagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Rajpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Simri",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Darbhanga",
+          "subDistricts": [
+            {
+              "subDistrict": "Alinagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Bahadurpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Baheri",
+              "places": []
+            },
+            {
+              "subDistrict": "Benipur",
+              "places": []
+            },
+            {
+              "subDistrict": "Biraul",
+              "places": []
+            },
+            {
+              "subDistrict": "Darbhanga",
+              "places": []
+            },
+            {
+              "subDistrict": "Ghanshyampur",
+              "places": []
+            },
+            {
+              "subDistrict": "Gora Bauram",
+              "places": []
+            },
+            {
+              "subDistrict": "Hanumannagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Hayaghat",
+              "places": []
+            },
+            {
+              "subDistrict": "Jale",
+              "places": []
+            },
+            {
+              "subDistrict": "Keotiranway",
+              "places": []
+            },
+            {
+              "subDistrict": "Kiratpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Kusheshwar Asthan",
+              "places": []
+            },
+            {
+              "subDistrict": "Kusheshwar Asthan Purbi",
+              "places": []
+            },
+            {
+              "subDistrict": "Manigachhi",
+              "places": []
+            },
+            {
+              "subDistrict": "Singhwara",
+              "places": []
+            },
+            {
+              "subDistrict": "Tardih",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Gaya",
+          "subDistricts": [
+            {
+              "subDistrict": "Amas",
+              "places": []
+            },
+            {
+              "subDistrict": "Atri",
+              "places": []
+            },
+            {
+              "subDistrict": "Banke Bazar",
+              "places": []
+            },
+            {
+              "subDistrict": "Barachatti",
+              "places": []
+            },
+            {
+              "subDistrict": "Belaganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Bodh Gaya",
+              "places": []
+            },
+            {
+              "subDistrict": "Dobhi",
+              "places": []
+            },
+            {
+              "subDistrict": "Dumaria",
+              "places": []
+            },
+            {
+              "subDistrict": "Fatehpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Gaya Town C.D.Block",
+              "places": []
+            },
+            {
+              "subDistrict": "Guraru",
+              "places": []
+            },
+            {
+              "subDistrict": "Gurua",
+              "places": []
+            },
+            {
+              "subDistrict": "Imamganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Khizirsarai",
+              "places": []
+            },
+            {
+              "subDistrict": "Konch",
+              "places": []
+            },
+            {
+              "subDistrict": "Manpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Mohanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Muhra",
+              "places": []
+            },
+            {
+              "subDistrict": "Neem Chak Bathani",
+              "places": []
+            },
+            {
+              "subDistrict": "Paraiya",
+              "places": []
+            },
+            {
+              "subDistrict": "Sherghati",
+              "places": []
+            },
+            {
+              "subDistrict": "Tan Kuppa",
+              "places": []
+            },
+            {
+              "subDistrict": "Tikari",
+              "places": []
+            },
+            {
+              "subDistrict": "Wazirganj",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Gopalganj",
+          "subDistricts": [
+            {
+              "subDistrict": "Baikunthpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Barauli",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhorey",
+              "places": []
+            },
+            {
+              "subDistrict": "Bijaipur",
+              "places": []
+            },
+            {
+              "subDistrict": "Gopalganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Hathua",
+              "places": []
+            },
+            {
+              "subDistrict": "Katiya",
+              "places": []
+            },
+            {
+              "subDistrict": "Kuchaikote",
+              "places": []
+            },
+            {
+              "subDistrict": "Manjha",
+              "places": []
+            },
+            {
+              "subDistrict": "Pach Deuri",
+              "places": []
+            },
+            {
+              "subDistrict": "Phulwaria",
+              "places": []
+            },
+            {
+              "subDistrict": "Sidhwalia",
+              "places": []
+            },
+            {
+              "subDistrict": "Thawe",
+              "places": []
+            },
+            {
+              "subDistrict": "Uchkagaon",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Jamui",
+          "subDistricts": [
+            {
+              "subDistrict": "Barhat",
+              "places": []
+            },
+            {
+              "subDistrict": "Chakai",
+              "places": []
+            },
+            {
+              "subDistrict": "Gidhaur",
+              "places": []
+            },
+            {
+              "subDistrict": "Islamnagar Aliganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Jamui",
+              "places": []
+            },
+            {
+              "subDistrict": "Jhajha",
+              "places": []
+            },
+            {
+              "subDistrict": "Khaira",
+              "places": []
+            },
+            {
+              "subDistrict": "Lakshmipur",
+              "places": []
+            },
+            {
+              "subDistrict": "Sikandra",
+              "places": []
+            },
+            {
+              "subDistrict": "Sono",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Jehanabad",
+          "subDistricts": [
+            {
+              "subDistrict": "Ghoshi",
+              "places": []
+            },
+            {
+              "subDistrict": "Hulasganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Jehanabad",
+              "places": []
+            },
+            {
+              "subDistrict": "Kako",
+              "places": []
+            },
+            {
+              "subDistrict": "Makhdumpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Modanganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Ratni Faridpur",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Kaimur (Bhabua)",
+          "subDistricts": [
+            {
+              "subDistrict": "Adhaura",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhabua",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhagwanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Chainpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Chand",
+              "places": []
+            },
+            {
+              "subDistrict": "Durgawati",
+              "places": []
+            },
+            {
+              "subDistrict": "Kudra",
+              "places": []
+            },
+            {
+              "subDistrict": "Mohania",
+              "places": []
+            },
+            {
+              "subDistrict": "Nuaon",
+              "places": []
+            },
+            {
+              "subDistrict": "Ramgarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Rampur",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Katihar",
+          "subDistricts": [
+            {
+              "subDistrict": "Amdabad",
+              "places": []
+            },
+            {
+              "subDistrict": "Azamnagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Balrampur",
+              "places": []
+            },
+            {
+              "subDistrict": "Barari",
+              "places": []
+            },
+            {
+              "subDistrict": "Barsoi",
+              "places": []
+            },
+            {
+              "subDistrict": "Dandkhora",
+              "places": []
+            },
+            {
+              "subDistrict": "Falka",
+              "places": []
+            },
+            {
+              "subDistrict": "Hasanganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Kadwa",
+              "places": []
+            },
+            {
+              "subDistrict": "Katihar",
+              "places": []
+            },
+            {
+              "subDistrict": "Korha",
+              "places": []
+            },
+            {
+              "subDistrict": "Kursela",
+              "places": []
+            },
+            {
+              "subDistrict": "Manihari",
+              "places": []
+            },
+            {
+              "subDistrict": "Mansahi",
+              "places": []
+            },
+            {
+              "subDistrict": "Pranpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Sameli",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Khagaria",
+          "subDistricts": [
+            {
+              "subDistrict": "Alauli",
+              "places": []
+            },
+            {
+              "subDistrict": "Beldaur",
+              "places": []
+            },
+            {
+              "subDistrict": "Chautham",
+              "places": []
+            },
+            {
+              "subDistrict": "Gogri",
+              "places": []
+            },
+            {
+              "subDistrict": "Khagaria",
+              "places": []
+            },
+            {
+              "subDistrict": "Mansi",
+              "places": []
+            },
+            {
+              "subDistrict": "Parbatta",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Kishanganj",
+          "subDistricts": [
+            {
+              "subDistrict": "Bahadurganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Dighalbank",
+              "places": []
+            },
+            {
+              "subDistrict": "Kishanganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Kochadhamin",
+              "places": []
+            },
+            {
+              "subDistrict": "Pothia",
+              "places": []
+            },
+            {
+              "subDistrict": "Terhagachh",
+              "places": []
+            },
+            {
+              "subDistrict": "Thakurganj",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Lakhisarai",
+          "subDistricts": [
+            {
+              "subDistrict": "Barahiya",
+              "places": []
+            },
+            {
+              "subDistrict": "Chanan*",
+              "places": []
+            },
+            {
+              "subDistrict": "Halsi",
+              "places": []
+            },
+            {
+              "subDistrict": "Lakhisarai",
+              "places": []
+            },
+            {
+              "subDistrict": "Pipariya",
+              "places": []
+            },
+            {
+              "subDistrict": "Ramgarh Chowk",
+              "places": []
+            },
+            {
+              "subDistrict": "Surajgarha",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Madhepura",
+          "subDistricts": [
+            {
+              "subDistrict": "Alamnagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Bihariganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Chausa",
+              "places": []
+            },
+            {
+              "subDistrict": "Gamharia",
+              "places": []
+            },
+            {
+              "subDistrict": "Ghailarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Gwalpara",
+              "places": []
+            },
+            {
+              "subDistrict": "Kishanganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Kumarkhand",
+              "places": []
+            },
+            {
+              "subDistrict": "Madhepura",
+              "places": []
+            },
+            {
+              "subDistrict": "Murliganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Puraini",
+              "places": []
+            },
+            {
+              "subDistrict": "Shankarpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Singheshwar",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Madhubani",
+          "subDistricts": [
+            {
+              "subDistrict": "Andhratharhi",
+              "places": []
+            },
+            {
+              "subDistrict": "Babubarhi",
+              "places": []
+            },
+            {
+              "subDistrict": "Basopatti",
+              "places": []
+            },
+            {
+              "subDistrict": "Benipatti",
+              "places": []
+            },
+            {
+              "subDistrict": "Bisfi",
+              "places": []
+            },
+            {
+              "subDistrict": "Ghoghardiha",
+              "places": []
+            },
+            {
+              "subDistrict": "Harlakhi",
+              "places": []
+            },
+            {
+              "subDistrict": "Jainagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Jhanjharpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Kaluahi",
+              "places": []
+            },
+            {
+              "subDistrict": "Khajauli",
+              "places": []
+            },
+            {
+              "subDistrict": "Ladania",
+              "places": []
+            },
+            {
+              "subDistrict": "Lakhnaur",
+              "places": []
+            },
+            {
+              "subDistrict": "Laukaha",
+              "places": []
+            },
+            {
+              "subDistrict": "Laukahi",
+              "places": []
+            },
+            {
+              "subDistrict": "Madhepur",
+              "places": []
+            },
+            {
+              "subDistrict": "Madhubani",
+              "places": []
+            },
+            {
+              "subDistrict": "Madhwapur",
+              "places": []
+            },
+            {
+              "subDistrict": "Pandaul",
+              "places": []
+            },
+            {
+              "subDistrict": "Phulparas",
+              "places": []
+            },
+            {
+              "subDistrict": "Rajnagar",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Munger",
+          "subDistricts": [
+            {
+              "subDistrict": "Asarganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Bariarpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Dharhara",
+              "places": []
+            },
+            {
+              "subDistrict": "Jamalpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Kharagpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Munger",
+              "places": []
+            },
+            {
+              "subDistrict": "Sangrampur",
+              "places": []
+            },
+            {
+              "subDistrict": "Tarapur",
+              "places": []
+            },
+            {
+              "subDistrict": "Tetiha Bambor",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Muzaffarpur",
+          "subDistricts": [
+            {
+              "subDistrict": "Aurai",
+              "places": []
+            },
+            {
+              "subDistrict": "Bandra",
+              "places": []
+            },
+            {
+              "subDistrict": "Baruraj (Motipur)",
+              "places": []
+            },
+            {
+              "subDistrict": "Bochaha",
+              "places": []
+            },
+            {
+              "subDistrict": "Dholi (Moraul)",
+              "places": []
+            },
+            {
+              "subDistrict": "Gaighat",
+              "places": []
+            },
+            {
+              "subDistrict": "Kanti",
+              "places": []
+            },
+            {
+              "subDistrict": "Katra",
+              "places": []
+            },
+            {
+              "subDistrict": "Kurhani",
+              "places": []
+            },
+            {
+              "subDistrict": "Marwan",
+              "places": []
+            },
+            {
+              "subDistrict": "Minapur",
+              "places": []
+            },
+            {
+              "subDistrict": "Musahri",
+              "places": []
+            },
+            {
+              "subDistrict": "Paroo",
+              "places": []
+            },
+            {
+              "subDistrict": "Sahebganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Sakra",
+              "places": []
+            },
+            {
+              "subDistrict": "Saraiya",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Nalanda",
+          "subDistricts": [
+            {
+              "subDistrict": "Asthawan",
+              "places": []
+            },
+            {
+              "subDistrict": "Ben",
+              "places": []
+            },
+            {
+              "subDistrict": "Bihar",
+              "places": []
+            },
+            {
+              "subDistrict": "Bind",
+              "places": []
+            },
+            {
+              "subDistrict": "Chandi",
+              "places": []
+            },
+            {
+              "subDistrict": "Ekangarsarai",
+              "places": []
+            },
+            {
+              "subDistrict": "Giriak",
+              "places": []
+            },
+            {
+              "subDistrict": "Harnaut",
+              "places": []
+            },
+            {
+              "subDistrict": "Hilsa",
+              "places": []
+            },
+            {
+              "subDistrict": "Islampur",
+              "places": []
+            },
+            {
+              "subDistrict": "Karai Parsurai",
+              "places": []
+            },
+            {
+              "subDistrict": "Katrisarai",
+              "places": []
+            },
+            {
+              "subDistrict": "Nagar Nausa",
+              "places": []
+            },
+            {
+              "subDistrict": "Noorsarai",
+              "places": []
+            },
+            {
+              "subDistrict": "Parbalpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Rahui",
+              "places": []
+            },
+            {
+              "subDistrict": "Rajgir",
+              "places": []
+            },
+            {
+              "subDistrict": "Sarmera",
+              "places": []
+            },
+            {
+              "subDistrict": "Silao",
+              "places": []
+            },
+            {
+              "subDistrict": "Tharthari",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Nawada",
+          "subDistricts": [
+            {
+              "subDistrict": "Akbarpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Gobindpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Hisua",
+              "places": []
+            },
+            {
+              "subDistrict": "Kashi Chak",
+              "places": []
+            },
+            {
+              "subDistrict": "Kawakol",
+              "places": []
+            },
+            {
+              "subDistrict": "Meskaur",
+              "places": []
+            },
+            {
+              "subDistrict": "Nardiganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Narhat",
+              "places": []
+            },
+            {
+              "subDistrict": "Nawada",
+              "places": []
+            },
+            {
+              "subDistrict": "Pakribarawan",
+              "places": []
+            },
+            {
+              "subDistrict": "Rajauli",
+              "places": []
+            },
+            {
+              "subDistrict": "Roh",
+              "places": []
+            },
+            {
+              "subDistrict": "Sirdala",
+              "places": []
+            },
+            {
+              "subDistrict": "Warisaliganj",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Pashchim Champaran",
+          "subDistricts": [
+            {
+              "subDistrict": "Bagaha",
+              "places": []
+            },
+            {
+              "subDistrict": "Bairia",
+              "places": []
+            },
+            {
+              "subDistrict": "Bettiah",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhitaha",
+              "places": []
+            },
+            {
+              "subDistrict": "Chanpatia",
+              "places": []
+            },
+            {
+              "subDistrict": "Gaunaha",
+              "places": []
+            },
+            {
+              "subDistrict": "Jogapatti",
+              "places": []
+            },
+            {
+              "subDistrict": "Lauriya",
+              "places": []
+            },
+            {
+              "subDistrict": "Madhubani",
+              "places": []
+            },
+            {
+              "subDistrict": "Mainatanr",
+              "places": []
+            },
+            {
+              "subDistrict": "Majhaulia",
+              "places": []
+            },
+            {
+              "subDistrict": "Narkatiaganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Nautan",
+              "places": []
+            },
+            {
+              "subDistrict": "Piprasi",
+              "places": []
+            },
+            {
+              "subDistrict": "Ramnagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Sidhaw",
+              "places": []
+            },
+            {
+              "subDistrict": "Sikta",
+              "places": []
+            },
+            {
+              "subDistrict": "Thakrahan",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Patna",
+          "subDistricts": [
+            {
+              "subDistrict": "Patna Sadar",
+              "places": []
+            },
+            {
+              "subDistrict": "Athmalgola",
+              "places": []
+            },
+            {
+              "subDistrict": "Bakhtiarpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Barh",
+              "places": []
+            },
+            {
+              "subDistrict": "Belchi",
+              "places": []
+            },
+            {
+              "subDistrict": "Bihta",
+              "places": []
+            },
+            {
+              "subDistrict": "Bikram",
+              "places": []
+            },
+            {
+              "subDistrict": "Danapur",
+              "places": []
+            },
+            {
+              "subDistrict": "Daniyawan",
+              "places": []
+            },
+            {
+              "subDistrict": "Dhanarua",
+              "places": []
+            },
+            {
+              "subDistrict": "Dulhin Bazar",
+              "places": []
+            },
+            {
+              "subDistrict": "Fatuha",
+              "places": []
+            },
+            {
+              "subDistrict": "Ghoswari",
+              "places": []
+            },
+            {
+              "subDistrict": "Khusrupur",
+              "places": []
+            },
+            {
+              "subDistrict": "Maner",
+              "places": []
+            },
+            {
+              "subDistrict": "Masaurhi",
+              "places": []
+            },
+            {
+              "subDistrict": "Mokama",
+              "places": []
+            },
+            {
+              "subDistrict": "Naubatpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Paliganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Pandarak",
+              "places": []
+            },
+            {
+              "subDistrict": "Phulwari Sharif",
+              "places": []
+            },
+            {
+              "subDistrict": "Punpun",
+              "places": []
+            },
+            {
+              "subDistrict": "Sampatchak",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Purba Champaran",
+          "subDistricts": [
+            {
+              "subDistrict": "Adapur",
+              "places": []
+            },
+            {
+              "subDistrict": "Areraj",
+              "places": []
+            },
+            {
+              "subDistrict": "Banjaria",
+              "places": []
+            },
+            {
+              "subDistrict": "Bankatwa",
+              "places": []
+            },
+            {
+              "subDistrict": "Chakia",
+              "places": []
+            },
+            {
+              "subDistrict": "Chiraiya",
+              "places": []
+            },
+            {
+              "subDistrict": "Dhaka",
+              "places": []
+            },
+            {
+              "subDistrict": "Ghorasahan",
+              "places": []
+            },
+            {
+              "subDistrict": "Harsidhi",
+              "places": []
+            },
+            {
+              "subDistrict": "Kalyanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Kesaria",
+              "places": []
+            },
+            {
+              "subDistrict": "Kotwa",
+              "places": []
+            },
+            {
+              "subDistrict": "Madhuban",
+              "places": []
+            },
+            {
+              "subDistrict": "Mehsi",
+              "places": []
+            },
+            {
+              "subDistrict": "Motihari",
+              "places": []
+            },
+            {
+              "subDistrict": "Narkatia",
+              "places": []
+            },
+            {
+              "subDistrict": "Paharpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Pakri Dayal",
+              "places": []
+            },
+            {
+              "subDistrict": "Patahi",
+              "places": []
+            },
+            {
+              "subDistrict": "Phenhara",
+              "places": []
+            },
+            {
+              "subDistrict": "Piprakothi",
+              "places": []
+            },
+            {
+              "subDistrict": "Ramgarhwa",
+              "places": []
+            },
+            {
+              "subDistrict": "Raxaul",
+              "places": []
+            },
+            {
+              "subDistrict": "Sangrampur",
+              "places": []
+            },
+            {
+              "subDistrict": "Sugauli",
+              "places": []
+            },
+            {
+              "subDistrict": "Tetaria",
+              "places": []
+            },
+            {
+              "subDistrict": "Turkaulia",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Purnia",
+          "subDistricts": [
+            {
+              "subDistrict": "Amour",
+              "places": []
+            },
+            {
+              "subDistrict": "Baisa",
+              "places": []
+            },
+            {
+              "subDistrict": "Baisi",
+              "places": []
+            },
+            {
+              "subDistrict": "Banmankhi",
+              "places": []
+            },
+            {
+              "subDistrict": "Barhara Kothi",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhawanipur Rajdham",
+              "places": []
+            },
+            {
+              "subDistrict": "Dagarua",
+              "places": []
+            },
+            {
+              "subDistrict": "Dhamdaha",
+              "places": []
+            },
+            {
+              "subDistrict": "Jalalgarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Kasba",
+              "places": []
+            },
+            {
+              "subDistrict": "Krityanand Nagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Purnia East",
+              "places": []
+            },
+            {
+              "subDistrict": "Rupauli",
+              "places": []
+            },
+            {
+              "subDistrict": "Srinagar",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Rohtas",
+          "subDistricts": [
+            {
+              "subDistrict": "Akorhi Gola",
+              "places": []
+            },
+            {
+              "subDistrict": "Bikramganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Chenari",
+              "places": []
+            },
+            {
+              "subDistrict": "Dawath",
+              "places": []
+            },
+            {
+              "subDistrict": "Dehri",
+              "places": []
+            },
+            {
+              "subDistrict": "Dinara",
+              "places": []
+            },
+            {
+              "subDistrict": "Karakat",
+              "places": []
+            },
+            {
+              "subDistrict": "Kargahar",
+              "places": []
+            },
+            {
+              "subDistrict": "Kochas",
+              "places": []
+            },
+            {
+              "subDistrict": "Nasriganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Nauhatta",
+              "places": []
+            },
+            {
+              "subDistrict": "Nokha",
+              "places": []
+            },
+            {
+              "subDistrict": "Rajpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Rohtas",
+              "places": []
+            },
+            {
+              "subDistrict": "Sanjhauli",
+              "places": []
+            },
+            {
+              "subDistrict": "Sasaram",
+              "places": []
+            },
+            {
+              "subDistrict": "Sheosagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Suryapura",
+              "places": []
+            },
+            {
+              "subDistrict": "Tilauthu",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Saharsa",
+          "subDistricts": [
+            {
+              "subDistrict": "Banma Itahri",
+              "places": []
+            },
+            {
+              "subDistrict": "Kahara",
+              "places": []
+            },
+            {
+              "subDistrict": "Mahishi",
+              "places": []
+            },
+            {
+              "subDistrict": "Nauhatta",
+              "places": []
+            },
+            {
+              "subDistrict": "Patarghat",
+              "places": []
+            },
+            {
+              "subDistrict": "Salkhua",
+              "places": []
+            },
+            {
+              "subDistrict": "Sattar Kataiya",
+              "places": []
+            },
+            {
+              "subDistrict": "Sour Bazar",
+              "places": []
+            },
+            {
+              "subDistrict": "Simri Bakhtiyarpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Sonbarsa",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Samastipur",
+          "subDistricts": [
+            {
+              "subDistrict": "Bibhutipur",
+              "places": []
+            },
+            {
+              "subDistrict": "Bithan",
+              "places": []
+            },
+            {
+              "subDistrict": "Dalsing Sarai",
+              "places": []
+            },
+            {
+              "subDistrict": "Hasanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Kalyanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Khanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Mohanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Mohiuddin Nagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Morwa",
+              "places": []
+            },
+            {
+              "subDistrict": "Patori",
+              "places": []
+            },
+            {
+              "subDistrict": "Pusa",
+              "places": []
+            },
+            {
+              "subDistrict": "Rosera",
+              "places": []
+            },
+            {
+              "subDistrict": "Samastipur",
+              "places": []
+            },
+            {
+              "subDistrict": "Sarairanjan",
+              "places": []
+            },
+            {
+              "subDistrict": "Shivajinagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Singhiya",
+              "places": []
+            },
+            {
+              "subDistrict": "Tajpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Ujiyarpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Vidyapati Nagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Warishnagar",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Saran",
+          "subDistricts": [
+            {
+              "subDistrict": "Amnour",
+              "places": []
+            },
+            {
+              "subDistrict": "Baniapur",
+              "places": []
+            },
+            {
+              "subDistrict": "Chhapra",
+              "places": []
+            },
+            {
+              "subDistrict": "Dariyapur",
+              "places": []
+            },
+            {
+              "subDistrict": "Dighwara",
+              "places": []
+            },
+            {
+              "subDistrict": "Ekma",
+              "places": []
+            },
+            {
+              "subDistrict": "Garkha",
+              "places": []
+            },
+            {
+              "subDistrict": "Ishupur",
+              "places": []
+            },
+            {
+              "subDistrict": "Jalalpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Lahladpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Maker",
+              "places": []
+            },
+            {
+              "subDistrict": "Manjhi",
+              "places": []
+            },
+            {
+              "subDistrict": "Marhaura",
+              "places": []
+            },
+            {
+              "subDistrict": "Mashrakh",
+              "places": []
+            },
+            {
+              "subDistrict": "Nagra",
+              "places": []
+            },
+            {
+              "subDistrict": "Panapur",
+              "places": []
+            },
+            {
+              "subDistrict": "Parsa",
+              "places": []
+            },
+            {
+              "subDistrict": "Revelganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Sonpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Taraiya",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Sheikhpura",
+          "subDistricts": [
+            {
+              "subDistrict": "Ariari",
+              "places": []
+            },
+            {
+              "subDistrict": "Barbigha",
+              "places": []
+            },
+            {
+              "subDistrict": "Chewara",
+              "places": []
+            },
+            {
+              "subDistrict": "Ghat Kusumbha",
+              "places": []
+            },
+            {
+              "subDistrict": "Sheikhpura",
+              "places": []
+            },
+            {
+              "subDistrict": "Shekhopur Sarai",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Sheohar",
+          "subDistricts": [
+            {
+              "subDistrict": "Dumri Katsari",
+              "places": []
+            },
+            {
+              "subDistrict": "Piprahi",
+              "places": []
+            },
+            {
+              "subDistrict": "Purnahiya",
+              "places": []
+            },
+            {
+              "subDistrict": "Sheohar",
+              "places": []
+            },
+            {
+              "subDistrict": "Tariani Chowk",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Sitamarhi",
+          "subDistricts": [
+            {
+              "subDistrict": "Bairgania",
+              "places": []
+            },
+            {
+              "subDistrict": "Bajpatti",
+              "places": []
+            },
+            {
+              "subDistrict": "Bathnaha",
+              "places": []
+            },
+            {
+              "subDistrict": "Belsand",
+              "places": []
+            },
+            {
+              "subDistrict": "Bokhra",
+              "places": []
+            },
+            {
+              "subDistrict": "Choraut",
+              "places": []
+            },
+            {
+              "subDistrict": "Dumra",
+              "places": []
+            },
+            {
+              "subDistrict": "Majorganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Nanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Parihar",
+              "places": []
+            },
+            {
+              "subDistrict": "Parsauni",
+              "places": []
+            },
+            {
+              "subDistrict": "Pupri",
+              "places": []
+            },
+            {
+              "subDistrict": "Riga",
+              "places": []
+            },
+            {
+              "subDistrict": "Runni Saidpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Sonbarsa",
+              "places": []
+            },
+            {
+              "subDistrict": "Suppi",
+              "places": []
+            },
+            {
+              "subDistrict": "Sursand",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Siwan",
+          "subDistricts": [
+            {
+              "subDistrict": "Andar",
+              "places": []
+            },
+            {
+              "subDistrict": "Barharia",
+              "places": []
+            },
+            {
+              "subDistrict": "Basantpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhagwanpur Hat",
+              "places": []
+            },
+            {
+              "subDistrict": "Darauli",
+              "places": []
+            },
+            {
+              "subDistrict": "Daraundha",
+              "places": []
+            },
+            {
+              "subDistrict": "Goriakothi",
+              "places": []
+            },
+            {
+              "subDistrict": "Guthani",
+              "places": []
+            },
+            {
+              "subDistrict": "Hasanpura",
+              "places": []
+            },
+            {
+              "subDistrict": "Hussainganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Lakri Nabiganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Maharajganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Mairwa",
+              "places": []
+            },
+            {
+              "subDistrict": "Nautan",
+              "places": []
+            },
+            {
+              "subDistrict": "Pachrukhi",
+              "places": []
+            },
+            {
+              "subDistrict": "Raghunathpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Siswan",
+              "places": []
+            },
+            {
+              "subDistrict": "Siwan",
+              "places": []
+            },
+            {
+              "subDistrict": "Ziradei",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Supaul",
+          "subDistricts": [
+            {
+              "subDistrict": "Basantpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Chhatapur",
+              "places": []
+            },
+            {
+              "subDistrict": "Kishanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Marauna",
+              "places": []
+            },
+            {
+              "subDistrict": "Nirmali",
+              "places": []
+            },
+            {
+              "subDistrict": "Pipra",
+              "places": []
+            },
+            {
+              "subDistrict": "Pratapganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Raghopur",
+              "places": []
+            },
+            {
+              "subDistrict": "Saraigarh-Bhaptiyahi",
+              "places": []
+            },
+            {
+              "subDistrict": "Supaul",
+              "places": []
+            },
+            {
+              "subDistrict": "Triveniganj",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Vaishali",
+          "subDistricts": [
+            {
+              "subDistrict": "Bhagwanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Bidupur",
+              "places": []
+            },
+            {
+              "subDistrict": "Chehra Kalan",
+              "places": []
+            },
+            {
+              "subDistrict": "Desri",
+              "places": []
+            },
+            {
+              "subDistrict": "Goraul",
+              "places": []
+            },
+            {
+              "subDistrict": "Hajipur",
+              "places": []
+            },
+            {
+              "subDistrict": "Jandaha",
+              "places": []
+            },
+            {
+              "subDistrict": "Lalganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Mahnar",
+              "places": []
+            },
+            {
+              "subDistrict": "Mahua",
+              "places": []
+            },
+            {
+              "subDistrict": "Patepur",
+              "places": []
+            },
+            {
+              "subDistrict": "Paterhi Belsar",
+              "places": []
+            },
+            {
+              "subDistrict": "Raghopur",
+              "places": []
+            },
+            {
+              "subDistrict": "Raja Pakar",
+              "places": []
+            },
+            {
+              "subDistrict": "Sahdai Buzurg",
+              "places": []
+            },
+            {
+              "subDistrict": "Vaishali",
+              "places": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "state": "Chandigarh",
+      "districts": [
+        {
+          "district": "Chandigarh",
+          "subDistricts": [
+            {
+              "subDistrict": "Chandigarh",
+              "places": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "state": "Chhattisgarh",
+      "districts": [
+        {
+          "district": "Balod",
+          "subDistricts": [
+            {
+              "subDistrict": "Arjunda",
+              "places": []
+            },
+            {
+              "subDistrict": "Balod",
+              "places": []
+            },
+            {
+              "subDistrict": "Daundi",
+              "places": []
+            },
+            {
+              "subDistrict": "Daundilohara",
+              "places": []
+            },
+            {
+              "subDistrict": "Gunderdehi",
+              "places": []
+            },
+            {
+              "subDistrict": "Gurur",
+              "places": []
+            },
+            {
+              "subDistrict": "Marri Bangla(Deori)",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Balodabazar-Bhatapara",
+          "subDistricts": [
+            {
+              "subDistrict": "Balodabazar",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhatapara",
+              "places": []
+            },
+            {
+              "subDistrict": "Kasdol",
+              "places": []
+            },
+            {
+              "subDistrict": "Lavan",
+              "places": []
+            },
+            {
+              "subDistrict": "Palari",
+              "places": []
+            },
+            {
+              "subDistrict": "Simga",
+              "places": []
+            },
+            {
+              "subDistrict": "Sonakhan",
+              "places": []
+            },
+            {
+              "subDistrict": "Suhela",
+              "places": []
+            },
+            {
+              "subDistrict": "Tundara",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Balrampur-Ramanujganj",
+          "subDistricts": [
+            {
+              "subDistrict": "Balrampur",
+              "places": []
+            },
+            {
+              "subDistrict": "Chalgali",
+              "places": []
+            },
+            {
+              "subDistrict": "Chando",
+              "places": []
+            },
+            {
+              "subDistrict": "Daura-Kochali",
+              "places": []
+            },
+            {
+              "subDistrict": "Kusmi(Samri)",
+              "places": []
+            },
+            {
+              "subDistrict": "Raghunathnagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Rajpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Ramanujganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Ramchandrapur",
+              "places": []
+            },
+            {
+              "subDistrict": "Samri",
+              "places": []
+            },
+            {
+              "subDistrict": "Shankargarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Wadrafnagar",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Bastar",
+          "subDistricts": [
+            {
+              "subDistrict": "Bakavand",
+              "places": []
+            },
+            {
+              "subDistrict": "Bastanar",
+              "places": []
+            },
+            {
+              "subDistrict": "Bastar",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhanpuri",
+              "places": []
+            },
+            {
+              "subDistrict": "Darbha",
+              "places": []
+            },
+            {
+              "subDistrict": "Jagdalpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Karpawand",
+              "places": []
+            },
+            {
+              "subDistrict": "Lohandiguda",
+              "places": []
+            },
+            {
+              "subDistrict": "Nangur",
+              "places": []
+            },
+            {
+              "subDistrict": "Tokapal",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Bemetara",
+          "subDistricts": [
+            {
+              "subDistrict": "Bemetara",
+              "places": []
+            },
+            {
+              "subDistrict": "Berla",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhimbhauri",
+              "places": []
+            },
+            {
+              "subDistrict": "Darhi",
+              "places": []
+            },
+            {
+              "subDistrict": "Devkar",
+              "places": []
+            },
+            {
+              "subDistrict": "Nandghat",
+              "places": []
+            },
+            {
+              "subDistrict": "Nawagarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Saja",
+              "places": []
+            },
+            {
+              "subDistrict": "Thankhamariya",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Bijapur",
+          "subDistricts": [
+            {
+              "subDistrict": "Bhairamgarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhopalpattnam",
+              "places": []
+            },
+            {
+              "subDistrict": "Bijapur",
+              "places": []
+            },
+            {
+              "subDistrict": "Gangaloor",
+              "places": []
+            },
+            {
+              "subDistrict": "Kutru",
+              "places": []
+            },
+            {
+              "subDistrict": "Usur",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Bilaspur",
+          "subDistricts": [
+            {
+              "subDistrict": "Belgahna",
+              "places": []
+            },
+            {
+              "subDistrict": "Beltara",
+              "places": []
+            },
+            {
+              "subDistrict": "Bilaspur",
+              "places": []
+            },
+            {
+              "subDistrict": "Bilha",
+              "places": []
+            },
+            {
+              "subDistrict": "Bodri",
+              "places": []
+            },
+            {
+              "subDistrict": "Kota",
+              "places": []
+            },
+            {
+              "subDistrict": "Masturi",
+              "places": []
+            },
+            {
+              "subDistrict": "Pachpedi",
+              "places": []
+            },
+            {
+              "subDistrict": "Ratanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Sankari",
+              "places": []
+            },
+            {
+              "subDistrict": "Seepat",
+              "places": []
+            },
+            {
+              "subDistrict": "Takhatpur",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Dakshin Bastar Dantewada",
+          "subDistricts": [
+            {
+              "subDistrict": "Bade Bacheli",
+              "places": []
+            },
+            {
+              "subDistrict": "Barsur",
+              "places": []
+            },
+            {
+              "subDistrict": "Dantewada",
+              "places": []
+            },
+            {
+              "subDistrict": "Gidam",
+              "places": []
+            },
+            {
+              "subDistrict": "Katekalyan",
+              "places": []
+            },
+            {
+              "subDistrict": "Kuakonda",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Dhamtari",
+          "subDistricts": [
+            {
+              "subDistrict": "Belargaon",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhakhara",
+              "places": []
+            },
+            {
+              "subDistrict": "Dhamtari",
+              "places": []
+            },
+            {
+              "subDistrict": "Kukrel",
+              "places": []
+            },
+            {
+              "subDistrict": "Kurud",
+              "places": []
+            },
+            {
+              "subDistrict": "Magarlod",
+              "places": []
+            },
+            {
+              "subDistrict": "Nagri",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Durg",
+          "subDistricts": [
+            {
+              "subDistrict": "Ahiwara",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhilai-3",
+              "places": []
+            },
+            {
+              "subDistrict": "Bori",
+              "places": []
+            },
+            {
+              "subDistrict": "Dhamdha",
+              "places": []
+            },
+            {
+              "subDistrict": "Durg",
+              "places": []
+            },
+            {
+              "subDistrict": "Patan",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Gariyaband",
+          "subDistricts": [
+            {
+              "subDistrict": "Amlipadar",
+              "places": []
+            },
+            {
+              "subDistrict": "Chhura",
+              "places": []
+            },
+            {
+              "subDistrict": "Devbhog",
+              "places": []
+            },
+            {
+              "subDistrict": "Fingeshwar",
+              "places": []
+            },
+            {
+              "subDistrict": "Gariyaband",
+              "places": []
+            },
+            {
+              "subDistrict": "Mainpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Rajim",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Gaurela-Pendra-Marwahi",
+          "subDistricts": [
+            {
+              "subDistrict": "Marwahi",
+              "places": []
+            },
+            {
+              "subDistrict": "Pendra",
+              "places": []
+            },
+            {
+              "subDistrict": "Pendra Road",
+              "places": []
+            },
+            {
+              "subDistrict": "Sakola",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Janjgir-Champa",
+          "subDistricts": [
+            {
+              "subDistrict": "Akaltara",
+              "places": []
+            },
+            {
+              "subDistrict": "Baloda",
+              "places": []
+            },
+            {
+              "subDistrict": "Bamhnidih",
+              "places": []
+            },
+            {
+              "subDistrict": "Champa",
+              "places": []
+            },
+            {
+              "subDistrict": "Janjgir",
+              "places": []
+            },
+            {
+              "subDistrict": "Nawagarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Pamgarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Saragaon",
+              "places": []
+            },
+            {
+              "subDistrict": "Shivrinarayan",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Jashpur",
+          "subDistricts": [
+            {
+              "subDistrict": "Bagbahar",
+              "places": []
+            },
+            {
+              "subDistrict": "Bagicha",
+              "places": []
+            },
+            {
+              "subDistrict": "Duldula",
+              "places": []
+            },
+            {
+              "subDistrict": "Farsabahar",
+              "places": []
+            },
+            {
+              "subDistrict": "Jashpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Kansabel",
+              "places": []
+            },
+            {
+              "subDistrict": "Kunkuri",
+              "places": []
+            },
+            {
+              "subDistrict": "Manora",
+              "places": []
+            },
+            {
+              "subDistrict": "Pathalgaon",
+              "places": []
+            },
+            {
+              "subDistrict": "Sanna",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Kabeerdham",
+          "subDistricts": [
+            {
+              "subDistrict": "Bodla",
+              "places": []
+            },
+            {
+              "subDistrict": "Kawardha",
+              "places": []
+            },
+            {
+              "subDistrict": "Kukdur",
+              "places": []
+            },
+            {
+              "subDistrict": "Kunda",
+              "places": []
+            },
+            {
+              "subDistrict": "Pandariya",
+              "places": []
+            },
+            {
+              "subDistrict": "Pipariya",
+              "places": []
+            },
+            {
+              "subDistrict": "Rengakharkala",
+              "places": []
+            },
+            {
+              "subDistrict": "Sahaspur Lohara",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Khairagarh-Chhuikhadan-Gandai",
+          "subDistricts": [
+            {
+              "subDistrict": "Chhuikhadan",
+              "places": []
+            },
+            {
+              "subDistrict": "Gandai",
+              "places": []
+            },
+            {
+              "subDistrict": "Khairagarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Salhewara",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Kondagaon",
+          "subDistricts": [
+            {
+              "subDistrict": "Baderajpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Dhanora",
+              "places": []
+            },
+            {
+              "subDistrict": "Keshkal",
+              "places": []
+            },
+            {
+              "subDistrict": "Kondagaon",
+              "places": []
+            },
+            {
+              "subDistrict": "Makdi",
+              "places": []
+            },
+            {
+              "subDistrict": "Mardapal",
+              "places": []
+            },
+            {
+              "subDistrict": "Pharasgaon",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Korba",
+          "subDistricts": [
+            {
+              "subDistrict": "Ajgarbahar",
+              "places": []
+            },
+            {
+              "subDistrict": "Barpali",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhaisma",
+              "places": []
+            },
+            {
+              "subDistrict": "Darri",
+              "places": []
+            },
+            {
+              "subDistrict": "Dipka",
+              "places": []
+            },
+            {
+              "subDistrict": "Hardibazar",
+              "places": []
+            },
+            {
+              "subDistrict": "Kartala",
+              "places": []
+            },
+            {
+              "subDistrict": "Katghora",
+              "places": []
+            },
+            {
+              "subDistrict": "Korba",
+              "places": []
+            },
+            {
+              "subDistrict": "Pali",
+              "places": []
+            },
+            {
+              "subDistrict": "Pasan",
+              "places": []
+            },
+            {
+              "subDistrict": "Poundi-Uproda",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Korea",
+          "subDistricts": [
+            {
+              "subDistrict": "Baikunthpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Patna",
+              "places": []
+            },
+            {
+              "subDistrict": "Pondi(Bachra)",
+              "places": []
+            },
+            {
+              "subDistrict": "Sonhat",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Mahasamund",
+          "subDistricts": [
+            {
+              "subDistrict": "Bagbahra",
+              "places": []
+            },
+            {
+              "subDistrict": "Basna",
+              "places": []
+            },
+            {
+              "subDistrict": "Komakhan",
+              "places": []
+            },
+            {
+              "subDistrict": "Mahasamund",
+              "places": []
+            },
+            {
+              "subDistrict": "Pithora",
+              "places": []
+            },
+            {
+              "subDistrict": "Saraipali",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Manendragarh-Chirmiri-Bharatpur(M C B)",
+          "subDistricts": [
+            {
+              "subDistrict": "Bharatpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Chirmiri",
+              "places": []
+            },
+            {
+              "subDistrict": "Kelhari",
+              "places": []
+            },
+            {
+              "subDistrict": "Khadganva",
+              "places": []
+            },
+            {
+              "subDistrict": "Kotadol",
+              "places": []
+            },
+            {
+              "subDistrict": "Manendragarh",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Mohla-Manpur-Ambagarh Chouki",
+          "subDistricts": [
+            {
+              "subDistrict": "Ambagarh Chouki",
+              "places": []
+            },
+            {
+              "subDistrict": "Aundhi",
+              "places": []
+            },
+            {
+              "subDistrict": "Khadgaon",
+              "places": []
+            },
+            {
+              "subDistrict": "Manpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Mohla",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Mungeli",
+          "subDistricts": [
+            {
+              "subDistrict": "Jarhagaon",
+              "places": []
+            },
+            {
+              "subDistrict": "Lalpur Thana",
+              "places": []
+            },
+            {
+              "subDistrict": "Lormi",
+              "places": []
+            },
+            {
+              "subDistrict": "Mungeli",
+              "places": []
+            },
+            {
+              "subDistrict": "Pathariya",
+              "places": []
+            },
+            {
+              "subDistrict": "Sargaon",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Narayanpur",
+          "subDistricts": [
+            {
+              "subDistrict": "Chhotedongar",
+              "places": []
+            },
+            {
+              "subDistrict": "Kohkameta",
+              "places": []
+            },
+            {
+              "subDistrict": "Narayanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Orchha",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Raigarh",
+          "subDistricts": [
+            {
+              "subDistrict": "Chhal",
+              "places": []
+            },
+            {
+              "subDistrict": "Dharamjaigarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Gharghoda",
+              "places": []
+            },
+            {
+              "subDistrict": "Kapu",
+              "places": []
+            },
+            {
+              "subDistrict": "Kharsia",
+              "places": []
+            },
+            {
+              "subDistrict": "Lailunga",
+              "places": []
+            },
+            {
+              "subDistrict": "Mukdega",
+              "places": []
+            },
+            {
+              "subDistrict": "Pusour",
+              "places": []
+            },
+            {
+              "subDistrict": "Raigarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Tamnar",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Raipur",
+          "subDistricts": [
+            {
+              "subDistrict": "Raipur",
+              "places": []
+            },
+            {
+              "subDistrict": "Tilda",
+              "places": []
+            },
+            {
+              "subDistrict": "Arang",
+              "places": []
+            },
+            {
+              "subDistrict": "Abhanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Gobra Nawapara",
+              "places": []
+            },
+            {
+              "subDistrict": "Kharora",
+              "places": []
+            },
+            {
+              "subDistrict": "Dharsiva",
+              "places": []
+            },
+            {
+              "subDistrict": "Mandir Hasaud",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Rajnandgaon",
+          "subDistricts": [
+            {
+              "subDistrict": "Rajnandgaon",
+              "places": []
+            },
+            {
+              "subDistrict": "Ghumka",
+              "places": []
+            },
+            {
+              "subDistrict": "Dongargarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Lal Bahadur Nagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Dongargaon",
+              "places": []
+            },
+            {
+              "subDistrict": "Chhuriya",
+              "places": []
+            },
+            {
+              "subDistrict": "Kumarda",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Sakti",
+          "subDistricts": [
+            {
+              "subDistrict": "Sakti",
+              "places": []
+            },
+            {
+              "subDistrict": "Naya Baradwar",
+              "places": []
+            },
+            {
+              "subDistrict": "Jaijaipur",
+              "places": []
+            },
+            {
+              "subDistrict": "Dabhara",
+              "places": []
+            },
+            {
+              "subDistrict": "Malkharouda",
+              "places": []
+            },
+            {
+              "subDistrict": "Adbhar",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Sarangarh-Bilaigarh",
+          "subDistricts": [
+            {
+              "subDistrict": "Sarangarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Baramkela",
+              "places": []
+            },
+            {
+              "subDistrict": "Sariya",
+              "places": []
+            },
+            {
+              "subDistrict": "Kosir",
+              "places": []
+            },
+            {
+              "subDistrict": "Bilaigarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhatgaon",
+              "places": []
+            },
+            {
+              "subDistrict": "Sarsiwa",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Sukma",
+          "subDistricts": [
+            {
+              "subDistrict": "Sukma",
+              "places": []
+            },
+            {
+              "subDistrict": "Chindgarh",
+              "places": []
+            },
+            {
+              "subDistrict": "Konta",
+              "places": []
+            },
+            {
+              "subDistrict": "Gadirras",
+              "places": []
+            },
+            {
+              "subDistrict": "Tongpal",
+              "places": []
+            },
+            {
+              "subDistrict": "Dornapal",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Surajpur",
+          "subDistricts": [
+            {
+              "subDistrict": "Pratappur",
+              "places": []
+            },
+            {
+              "subDistrict": "Odagi",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhaiya Than",
+              "places": []
+            },
+            {
+              "subDistrict": "Surajpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Ramanuj Nagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Prem Nagar",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Surguja",
+          "subDistricts": [
+            {
+              "subDistrict": "Ambikapur",
+              "places": []
+            },
+            {
+              "subDistrict": "Lakhanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Udaipur",
+              "places": []
+            },
+            {
+              "subDistrict": "Dhourpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Lundra",
+              "places": []
+            },
+            {
+              "subDistrict": "Batauli",
+              "places": []
+            },
+            {
+              "subDistrict": "Sitapur",
+              "places": []
+            },
+            {
+              "subDistrict": "Mainpat",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Uttar Bastar Kanker",
+          "subDistricts": [
+            {
+              "subDistrict": "Kanker",
+              "places": []
+            },
+            {
+              "subDistrict": "Charama",
+              "places": []
+            },
+            {
+              "subDistrict": "Narharpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhanupratappur",
+              "places": []
+            },
+            {
+              "subDistrict": "Durgukondal",
+              "places": []
+            },
+            {
+              "subDistrict": "Koyalibeda",
+              "places": []
+            },
+            {
+              "subDistrict": "Antagarh",
               "places": []
             }
           ]
