@@ -405,7 +405,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
       </div>
       <div class="location-lock">
         <div id="buyStateBox"><span>Country</span><strong>India</strong></div>
-        <div id="buyStateSelectBox"><span>States</span><select id="stateFilter" class="location-select" onchange="onStateFilterChange(this.value)"><option value="">— Select State —</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Assam">Assam</option></select></div>
+        <div id="buyStateSelectBox"><span>States</span><select id="stateFilter" class="location-select" onchange="onStateFilterChange(this.value)"><option value="">— Select State —</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option></select></div>
         <div id="buyDistrictBox" style="display:none;"><span>District</span><select id="browseDistrict" class="location-select" onchange="updateBrowseSubDistricts()"><option value="">District</option></select></div>
         <div id="buySubDistrictBox" style="display:none;"><span>Sub-District</span><select id="browseSubDistrict" class="location-select" onchange="renderBooks()"><option value="">Sub-District</option></select></div>
       </div>
@@ -432,7 +432,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
         <div class="card-head"><h2>Match</h2></div>
         <div class="card-body">
           <form id="buyForm" class="form-grid">
-            <label class="wide">State <span style="color:#ef4444;font-size:11px;"> *required</span><select id="buyState" required onchange="updateBuyDistricts()"><option value="">— Select Your State —</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Assam">Assam</option></select></label>
+            <label class="wide">State <span style="color:#ef4444;font-size:11px;"> *required</span><select id="buyState" required onchange="updateBuyDistricts()"><option value="">— Select Your State —</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option></select></label>
             <label>District <span style="color:#ef4444;font-size:11px;"> *required</span><select id="buyDistrict" required onchange="updateBuySubDistricts()"></select></label>
             <label>Sub-District <span style="color:#ef4444;font-size:11px;"> *required</span><select id="buySubDistrict" required onchange="updateBuyPlaces()"></select></label>
             <label>Place <span style="color:#ef4444;font-size:11px;"> *required</span><select id="buyPlace" required onchange="updateBuySchools()"></select></label>
@@ -454,7 +454,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
         <button class="btn btn-primary" type="button" data-go-buy>Home</button>
       </div>
       <div class="location-lock">
-        <select id="stateFilter2" style="display:none;" onchange="onStateFilterChange2(this.value)"><option value="">— Select State —</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Assam">Assam</option></select>
+        <select id="stateFilter2" style="display:none;" onchange="onStateFilterChange2(this.value)"><option value="">— Select State —</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option></select>
         <div><span>District</span><select id="sellDistrictFilter" class="location-select" onchange="onSellDistrictFilterChange(this.value)"><option value="">— District —</option></select></div>
         <div><span>Sub-District</span><select id="sellSubDistrictFilter" class="location-select" onchange="onSellSubDistrictFilterChange(this.value)"><option value="">— Sub-District —</option></select></div>
       </div>
@@ -491,7 +491,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
           <form id="sellForm" class="form-grid">
             <label class="wide" id="sellCustomTitleWrap" style="display:none;">Subject / Book Title<input id="sellCustomTitle" placeholder="e.g. Assamese, The Alchemist"></label>
             <label class="wide" id="sellCustomPriceWrap" style="display:none;">Price (₹)<input id="sellCustomPrice" type="number" min="1" placeholder="Expected selling price"></label>
-            <label class="wide">State <select id="sellState" onchange="updateSellDistricts()"><option value="">— Select Your State —</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Assam">Assam</option></select></label>
+            <label class="wide">State <select id="sellState" onchange="updateSellDistricts()"><option value="">— Select Your State —</option><option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option></select></label>
             <label class="wide" id="sellMediumWrap">Medium <span style="color:#ef4444;font-size:11px;"> *required</span><select id="sellMedium" required><option value="">Select state first</option></select></label>
             <label>District <select id="sellDistrict" onchange="updateSellSubDistricts()"></select></label>
             <label>Sub-District <select id="sellSubDistrict" onchange="updateSellPlaces()"></select></label>
@@ -665,7 +665,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
             <label>State <span style="color:#ef4444;font-size:11px;"> *required</span></label>
             <select id="signupState" required onchange="updateSignupDistricts()">
               <option value="">— Select Your State —</option>
-              <option value="Andhra Pradesh">Andhra Pradesh</option><option value="Assam">Assam</option>
+              <option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option>
             </select>
           </div>
           <div class="auth-field">
@@ -754,7 +754,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
           <label>State</label>
           <select id="accState" onchange="updateAccDistricts()">
             <option value="">— Select State —</option>
-            <option value="Andhra Pradesh">Andhra Pradesh</option><option value="Assam">Assam</option>
+            <option value="Andhra Pradesh">Andhra Pradesh</option><option value="Arunachal Pradesh">Arunachal Pradesh</option><option value="Assam">Assam</option><option value="Delhi">Delhi</option><option value="Mizoram">Mizoram</option><option value="Nagaland">Nagaland</option>
           </select>
         </div>
         <div class="auth-field">
@@ -1111,10 +1111,47 @@ const seed = {
   ],
   "boardsByState": {
     "Assam": [
-      "CBSE",
-      "ASSEB"
+      "ASSEB",
+      "CBSE"
     ],
-    "Andhra Pradesh": []
+    "Andhra Pradesh": [
+      "CBSE",
+      "BSEAP",
+      "SSC",
+      "BIEAP",
+      "CISCE",
+      "ICSE-ISC",
+      "NIOS"
+    ],
+    "Arunachal Pradesh": [
+      "CBSE",
+      "CISCE",
+      "ICSE-ISC",
+      "NIOS"
+    ],
+    "Nagaland": [
+      "NBSE",
+      "CBSE",
+      "CISCE",
+      "ICSE-ISC",
+      "NIOS"
+    ],
+    "Mizoram": [
+      "MBSE",
+      "CBSE",
+      "CISCE",
+      "ICSE-ISC",
+      "NIOS"
+    ],
+    "Delhi": [
+      "CBSE",
+      "CISCE",
+      "ICSE-ISC",
+      "NIOS",
+      "IB Board",
+      "Cambridge Board",
+      "IGCSE"
+    ]
   },
   "mediumsByState": {
     "Assam": [
@@ -1122,7 +1159,33 @@ const seed = {
       "English",
       "Hindi"
     ],
-    "Andhra Pradesh": []
+    "Andhra Pradesh": [
+      "Telugu Medium",
+      "English Medium",
+      "Urdu Medium",
+      "Hindi Medium"
+    ],
+    "Arunachal Pradesh": [
+      "English Medium",
+      "Hindi Medium",
+      "Local Language Medium"
+    ],
+    "Nagaland": [
+      "English Medium",
+      "Hindi Medium",
+      "Local Language Medium"
+    ],
+    "Mizoram": [
+      "English Medium",
+      "Mizo Medium",
+      "Hindi Medium"
+    ],
+    "Delhi": [
+      "English Medium",
+      "Hindi Medium",
+      "Urdu Medium",
+      "Punjabi Medium"
+    ]
   },
   "settings": {
     "general": false,
@@ -1130,12 +1193,11 @@ const seed = {
     "passport": false,
     "allowUserPrice": false,
     "messaging": true,
-    "allowSubjectAdding": true,
-    "instagram": true
+    "allowSubjectAdding": true
   },
   "adMob": {
-    "appId": "ca-app-pub-2402742761850779~4175768516",
-    "appOpen": "ca-app-pub-2402742761850779/9162399097",
+    "appId": "",
+    "appOpen": "",
     "classClick": "",
     "subjectClick": "",
     "menuOpen": "",
@@ -1143,7 +1205,7 @@ const seed = {
   },
   "categories": [
     {
-      "id": "xfgpjvrn",
+      "id": "x6saqndy",
       "name": "General",
       "image": ""
     }
@@ -3732,8 +3794,1040 @@ const seed = {
       ]
     },
     {
+      "state": "Arunachal Pradesh",
+      "districts": [
+        {
+          "district": "Anjaw",
+          "subDistricts": [
+            {
+              "subDistrict": "Chaglagam Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Goiliang Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Hawai Hq",
+              "places": []
+            },
+            {
+              "subDistrict": "Hayuliang Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Kibithoo Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Manchal Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Metengliang Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Walong Circle",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Bichom",
+          "subDistricts": [
+            {
+              "subDistrict": "Bana Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Lada Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Nafra Adc",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Changlang",
+          "subDistricts": [
+            {
+              "subDistrict": "Bordumsa Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Changlang Hq",
+              "places": []
+            },
+            {
+              "subDistrict": "Diyun Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Jairampur Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Kantang Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Kharsang Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Khimiyang Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Lyngok Longtoi Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Manmao Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Miao Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Nampong Sdo",
+              "places": []
+            },
+            {
+              "subDistrict": "Namtok Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Renuk Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Tikhak Rima Putok Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Vijoynagar Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Yatdam Circle",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Dibang Valley",
+          "subDistricts": [
+            {
+              "subDistrict": "Anelih",
+              "places": []
+            },
+            {
+              "subDistrict": "Anini",
+              "places": []
+            },
+            {
+              "subDistrict": "Dambuen Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Etalin",
+              "places": []
+            },
+            {
+              "subDistrict": "Kronli (Arzoo Circle)",
+              "places": []
+            },
+            {
+              "subDistrict": "Mipi",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "East Kameng",
+          "subDistricts": [
+            {
+              "subDistrict": "Bameng Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Chayangtajo Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Debeyar Co Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Gyawe Purang Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Khenawa Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Pakoti Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Pipu Dipu Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Richukrong Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Sawa Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Seppa Hq",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "East Siang",
+          "subDistricts": [
+            {
+              "subDistrict": "Bilat Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Mebo Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Namsing Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Oyan Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Pasighat Hq",
+              "places": []
+            },
+            {
+              "subDistrict": "Ruksin Adc",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Kamle",
+          "subDistricts": [
+            {
+              "subDistrict": "Dollungmukh Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Gepen Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Kamporijo Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Puchi Geko Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Raga Adc",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Keyi Panyor",
+          "subDistricts": [
+            {
+              "subDistrict": "Deed Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Pistana Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Yachuli Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Yazali Circle",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Kra Daadi",
+          "subDistricts": [
+            {
+              "subDistrict": "Chambang Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Gangte Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Palin Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Pipsorang Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Tali Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Tarak Lengdi Cicle",
+              "places": []
+            },
+            {
+              "subDistrict": "Yangte Circle",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Kurung Kumey",
+          "subDistricts": [
+            {
+              "subDistrict": "Damin Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Koloriang Hq",
+              "places": []
+            },
+            {
+              "subDistrict": "Nyapin Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Nyobia Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Patuk Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Phassang Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Polosang Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Sangram Sdo",
+              "places": []
+            },
+            {
+              "subDistrict": "Sarli Circle",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Leparada",
+          "subDistricts": [
+            {
+              "subDistrict": "Basar Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Daring Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Sago",
+              "places": []
+            },
+            {
+              "subDistrict": "Tirbin Eac",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Lohit",
+          "subDistricts": [
+            {
+              "subDistrict": "Sunpura Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Tezu Hq",
+              "places": []
+            },
+            {
+              "subDistrict": "Wakro Circle",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Longding",
+          "subDistricts": [
+            {
+              "subDistrict": "Kanubari Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Lawnu Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Longding Hq",
+              "places": []
+            },
+            {
+              "subDistrict": "Pangchao Sdo",
+              "places": []
+            },
+            {
+              "subDistrict": "Pumao Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Wakka Sdo",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Lower Dibang Valley",
+          "subDistricts": [
+            {
+              "subDistrict": "Dambuk Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Desali Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Hunli Sdo",
+              "places": []
+            },
+            {
+              "subDistrict": "Koronu Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Parbuk Sdo",
+              "places": []
+            },
+            {
+              "subDistrict": "Roing Hq",
+              "places": []
+            },
+            {
+              "subDistrict": "Tinali Paglam Circle",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Lower Siang",
+          "subDistricts": [
+            {
+              "subDistrict": "Gensi Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Kangku Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Kora Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Koyu Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Likabali Sdo",
+              "places": []
+            },
+            {
+              "subDistrict": "Nari Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "New Seren Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Sibe Circle",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Lower Subansiri",
+          "subDistricts": [
+            {
+              "subDistrict": "Old Ziro Sdo",
+              "places": []
+            },
+            {
+              "subDistrict": "Ziro Hq",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Namsai",
+          "subDistricts": [
+            {
+              "subDistrict": "Chongkham Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Lathao Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Lekang Mahadevpur Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Namsai Hq",
+              "places": []
+            },
+            {
+              "subDistrict": "Piyong Circle",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Pakke Kessang",
+          "subDistricts": [
+            {
+              "subDistrict": "Dissing Passo Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Pakke Kessang Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Passa Valley Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Pizirang Veo Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Seijosa Adc",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Papum Pare",
+          "subDistricts": [
+            {
+              "subDistrict": "Balijan Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Banderdewa Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Borum",
+              "places": []
+            },
+            {
+              "subDistrict": "Doimukh Sdo",
+              "places": []
+            },
+            {
+              "subDistrict": "Gumto Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Itanagar Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Kakoi Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Kimin Sdo",
+              "places": []
+            },
+            {
+              "subDistrict": "Leporiang Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Mengio Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Naharlagun Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Parang Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Sagalee Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Sangdupota Basar Nello Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Silsango Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Taraso Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Toru Circle",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Shi Yomi",
+          "subDistricts": [
+            {
+              "subDistrict": "Mechuka Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Monigong Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Pidi Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Tato Eac",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Siang",
+          "subDistricts": [
+            {
+              "subDistrict": "Boleng Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Jomlo Mobuk Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Kaying Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Kebang Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Pangin Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Payum Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Rebo Perging Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Riga Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Rumgong Adc",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Tawang",
+          "subDistricts": [
+            {
+              "subDistrict": "Bongkhar Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Dudunghar Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Jang Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Kitpi Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Lhou Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Lumla Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Mukto Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Tawang Hq",
+              "places": []
+            },
+            {
+              "subDistrict": "Thingbu Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Zemithang Circle",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Tirap",
+          "subDistricts": [
+            {
+              "subDistrict": "Bari Basip Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Borduria Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Dadam Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Deomali Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Khonsa Hq",
+              "places": []
+            },
+            {
+              "subDistrict": "Laju Sdo",
+              "places": []
+            },
+            {
+              "subDistrict": "Longo Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Soha Circle",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Upper Siang",
+          "subDistricts": [
+            {
+              "subDistrict": "Geku Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Gelling Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Jengging Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Katan Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Mariyang Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Migging Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Mopom Adipasi Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Palling Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Singa Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Tuting Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Yingkiong Circle",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Upper Subansiri",
+          "subDistricts": [
+            {
+              "subDistrict": "Baririjo Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Chetam Peer Yapu Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Daporijo Hq",
+              "places": []
+            },
+            {
+              "subDistrict": "Dumporijo Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Giba Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Gite Ripa Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Limeking Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Maro Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Nacho Sdo",
+              "places": []
+            },
+            {
+              "subDistrict": "Nilling Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Payeng Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Segi Gusar Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Siyum Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Taksing Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Taliha Adc",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "West Kameng",
+          "subDistricts": [
+            {
+              "subDistrict": "Balemu Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhalukpong Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Bomdila Hq",
+              "places": []
+            },
+            {
+              "subDistrict": "Buragaon Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Dirang Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Jamiri Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Kalaktang Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Kamengbari Doimara Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Rupa Sdo",
+              "places": []
+            },
+            {
+              "subDistrict": "Shergaon Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Singchung Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Thembang Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Thrizino Adc",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "West Siang",
+          "subDistricts": [
+            {
+              "subDistrict": "Aalo Hq",
+              "places": []
+            },
+            {
+              "subDistrict": "Bagra Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Darak Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Kamba Adc",
+              "places": []
+            },
+            {
+              "subDistrict": "Kombo Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Liromoba Eac",
+              "places": []
+            },
+            {
+              "subDistrict": "Nikte Kodum Circle",
+              "places": []
+            },
+            {
+              "subDistrict": "Yomcha Adc",
+              "places": []
+            }
+          ]
+        }
+      ]
+    },
+    {
       "state": "Assam",
       "districts": [
+        {
+          "district": "Lakhimpur",
+          "subDistricts": [
+            {
+              "subDistrict": "North Lakhimpur",
+              "places": [
+                {
+                  "name": "Balijan",
+                  "schools": [
+                    "Morning Glory Higher Secondary School"
+                  ]
+                },
+                {
+                  "name": "14 mile",
+                  "schools": [
+                    "sankardev shishu niketan"
+                  ]
+                },
+                {
+                  "name": "Bosasuk",
+                  "schools": [
+                    "Morning Glory Higher Secondary School"
+                  ]
+                },
+                {
+                  "name": "Boginadi",
+                  "schools": []
+                }
+              ]
+            },
+            {
+              "subDistrict": "Bihpuria",
+              "places": []
+            },
+            {
+              "subDistrict": "Dhakuakhana (Pt-I)",
+              "places": []
+            },
+            {
+              "subDistrict": "Kadam",
+              "places": []
+            },
+            {
+              "subDistrict": "Naobaicha",
+              "places": []
+            },
+            {
+              "subDistrict": "Narayanpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Subansiri (Pt-I)",
+              "places": []
+            }
+          ]
+        },
         {
           "district": "Bajali",
           "subDistricts": [
@@ -3998,14 +5092,7 @@ const seed = {
             },
             {
               "subDistrict": "Dibrugarh West",
-              "places": [
-                {
-                  "name": "Balijan",
-                  "schools": [
-                    "Mg balijan"
-                  ]
-                }
-              ]
+              "places": []
             },
             {
               "subDistrict": "Moran",
@@ -4268,70 +5355,11 @@ const seed = {
           ]
         },
         {
-          "district": "Lakhimpur",
-          "subDistricts": [
-            {
-              "subDistrict": "Bihpuria",
-              "places": []
-            },
-            {
-              "subDistrict": "Dhakuakhana (Pt-I)",
-              "places": []
-            },
-            {
-              "subDistrict": "Kadam",
-              "places": []
-            },
-            {
-              "subDistrict": "Naobaicha",
-              "places": []
-            },
-            {
-              "subDistrict": "Narayanpur",
-              "places": []
-            },
-            {
-              "subDistrict": "North Lakhimpur",
-              "places": [
-                {
-                  "name": "Balijan",
-                  "schools": [
-                    "Morning Glory Higher Secondary School"
-                  ]
-                },
-                {
-                  "name": "14 mile",
-                  "schools": [
-                    "sankardev shishu niketan"
-                  ]
-                },
-                {
-                  "name": "Bosasuk",
-                  "schools": [
-                    "Morning Glory Higher Secondary School"
-                  ]
-                }
-              ]
-            },
-            {
-              "subDistrict": "Subansiri (Pt-I)",
-              "places": []
-            }
-          ]
-        },
-        {
           "district": "Majuli",
           "subDistricts": [
             {
               "subDistrict": "Majuli",
-              "places": [
-                {
-                  "name": "Majuli Town",
-                  "schools": [
-                    "Majuli Lp School"
-                  ]
-                }
-              ]
+              "places": []
             },
             {
               "subDistrict": "Ujani Majuli Circle",
@@ -4582,6 +5610,974 @@ const seed = {
             },
             {
               "subDistrict": "Baithalangso",
+              "places": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "state": "Delhi",
+      "districts": [
+        {
+          "district": "Central",
+          "subDistricts": [
+            {
+              "subDistrict": "Karol Bagh",
+              "places": []
+            },
+            {
+              "subDistrict": "Patel Nagar",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Central North",
+          "subDistricts": [
+            {
+              "subDistrict": "Model Town",
+              "places": []
+            },
+            {
+              "subDistrict": "Shakur Basti",
+              "places": []
+            },
+            {
+              "subDistrict": "Shalimar Bagh",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "East",
+          "subDistricts": [
+            {
+              "subDistrict": "Gandhi Nagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Patparganj",
+              "places": []
+            },
+            {
+              "subDistrict": "Vishwas Nagar",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "New Delhi",
+          "subDistricts": [
+            {
+              "subDistrict": "Delhi Cantonment",
+              "places": []
+            },
+            {
+              "subDistrict": "New Delhi",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "North",
+          "subDistricts": [
+            {
+              "subDistrict": "Adarsh Nagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Badli",
+              "places": []
+            },
+            {
+              "subDistrict": "Burari",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "North East",
+          "subDistricts": [
+            {
+              "subDistrict": "Karawal Nagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Gokal Puri",
+              "places": []
+            },
+            {
+              "subDistrict": "Yamuna Vihar",
+              "places": []
+            },
+            {
+              "subDistrict": "Shahdara",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "North West",
+          "subDistricts": [
+            {
+              "subDistrict": "Kirari",
+              "places": []
+            },
+            {
+              "subDistrict": "Nangloi Jat",
+              "places": []
+            },
+            {
+              "subDistrict": "Rohini",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Old Delhi",
+          "subDistricts": [
+            {
+              "subDistrict": "Chandni Chowk",
+              "places": []
+            },
+            {
+              "subDistrict": "Sadar Bazar",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Outer North",
+          "subDistricts": [
+            {
+              "subDistrict": "Bawana",
+              "places": []
+            },
+            {
+              "subDistrict": "Mundka",
+              "places": []
+            },
+            {
+              "subDistrict": "Narela",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "South",
+          "subDistricts": [
+            {
+              "subDistrict": "Chhatarpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Deoli",
+              "places": []
+            },
+            {
+              "subDistrict": "Malviya Nagar",
+              "places": []
+            },
+            {
+              "subDistrict": "Mehrauli",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "South East",
+          "subDistricts": [
+            {
+              "subDistrict": "Badarpur",
+              "places": []
+            },
+            {
+              "subDistrict": "Jangpura",
+              "places": []
+            },
+            {
+              "subDistrict": "Kalkaji",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "South West",
+          "subDistricts": [
+            {
+              "subDistrict": "Bijwasan",
+              "places": []
+            },
+            {
+              "subDistrict": "Dwarka",
+              "places": []
+            },
+            {
+              "subDistrict": "Matiala",
+              "places": []
+            },
+            {
+              "subDistrict": "Najafgarh",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "West",
+          "subDistricts": [
+            {
+              "subDistrict": "Janakpuri",
+              "places": []
+            },
+            {
+              "subDistrict": "Rajouri Garden",
+              "places": []
+            },
+            {
+              "subDistrict": "Vikaspuri",
+              "places": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "state": "Mizoram",
+      "districts": [
+        {
+          "district": "Aizawl",
+          "subDistricts": [
+            {
+              "subDistrict": "Aibawk",
+              "places": []
+            },
+            {
+              "subDistrict": "Darlawn",
+              "places": []
+            },
+            {
+              "subDistrict": "Thingsulthliah",
+              "places": []
+            },
+            {
+              "subDistrict": "Tlangnuam",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Champhai",
+          "subDistricts": [
+            {
+              "subDistrict": "Champhai",
+              "places": []
+            },
+            {
+              "subDistrict": "Khawbung",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Hnahthial",
+          "subDistricts": [
+            {
+              "subDistrict": "Hnahthial",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Khawzawl",
+          "subDistricts": [
+            {
+              "subDistrict": "Khawzawl",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Kolasib",
+          "subDistricts": [
+            {
+              "subDistrict": "Bilkhawthlir",
+              "places": []
+            },
+            {
+              "subDistrict": "Thingdawl",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Lawngtlai",
+          "subDistricts": [
+            {
+              "subDistrict": "Bungtlang South",
+              "places": []
+            },
+            {
+              "subDistrict": "Chawngte",
+              "places": []
+            },
+            {
+              "subDistrict": "Lawngtlai",
+              "places": []
+            },
+            {
+              "subDistrict": "Sangau",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Lunglei",
+          "subDistricts": [
+            {
+              "subDistrict": "Bunghmun",
+              "places": []
+            },
+            {
+              "subDistrict": "Lunglei",
+              "places": []
+            },
+            {
+              "subDistrict": "Lungsen",
+              "places": []
+            },
+            {
+              "subDistrict": "Tlabung",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Mamit",
+          "subDistricts": [
+            {
+              "subDistrict": "Kawrtethawveng",
+              "places": []
+            },
+            {
+              "subDistrict": "Reiek",
+              "places": []
+            },
+            {
+              "subDistrict": "West Phaileng",
+              "places": []
+            },
+            {
+              "subDistrict": "Zawlnuam",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Saitual",
+          "subDistricts": [
+            {
+              "subDistrict": "Ngopa",
+              "places": []
+            },
+            {
+              "subDistrict": "Phullen",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Serchhip",
+          "subDistricts": [
+            {
+              "subDistrict": "East Lungdar",
+              "places": []
+            },
+            {
+              "subDistrict": "Serchhip",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Siaha",
+          "subDistricts": [
+            {
+              "subDistrict": "Siaha",
+              "places": []
+            },
+            {
+              "subDistrict": "Tipa",
+              "places": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "state": "Nagaland",
+      "districts": [
+        {
+          "district": "Chumoukedima",
+          "subDistricts": [
+            {
+              "subDistrict": "Chumukedima",
+              "places": []
+            },
+            {
+              "subDistrict": "Dhansiripar",
+              "places": []
+            },
+            {
+              "subDistrict": "Medziphema",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Dimapur",
+          "subDistricts": [
+            {
+              "subDistrict": "Dimapur Sadar",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Kiphire",
+          "subDistricts": [
+            {
+              "subDistrict": "Amahator",
+              "places": []
+            },
+            {
+              "subDistrict": "Khongsa",
+              "places": []
+            },
+            {
+              "subDistrict": "Kiphire Sadar",
+              "places": []
+            },
+            {
+              "subDistrict": "Kiusam",
+              "places": []
+            },
+            {
+              "subDistrict": "Longmatra",
+              "places": []
+            },
+            {
+              "subDistrict": "Pungro",
+              "places": []
+            },
+            {
+              "subDistrict": "Seyochung",
+              "places": []
+            },
+            {
+              "subDistrict": "Sitimi",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Kohima",
+          "subDistricts": [
+            {
+              "subDistrict": "Botsa",
+              "places": []
+            },
+            {
+              "subDistrict": "Chiephobozou",
+              "places": []
+            },
+            {
+              "subDistrict": "Jakhama",
+              "places": []
+            },
+            {
+              "subDistrict": "Kezocha",
+              "places": []
+            },
+            {
+              "subDistrict": "Kohima Sadar",
+              "places": []
+            },
+            {
+              "subDistrict": "Sechu-Zubza",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Longleng",
+          "subDistricts": [
+            {
+              "subDistrict": "Longleng",
+              "places": []
+            },
+            {
+              "subDistrict": "Namsang",
+              "places": []
+            },
+            {
+              "subDistrict": "Sakshi",
+              "places": []
+            },
+            {
+              "subDistrict": "Tamlu",
+              "places": []
+            },
+            {
+              "subDistrict": "Yongnyah",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Meluri",
+          "subDistricts": [
+            {
+              "subDistrict": "Meluri",
+              "places": []
+            },
+            {
+              "subDistrict": "Phokhungri",
+              "places": []
+            },
+            {
+              "subDistrict": "Phor",
+              "places": []
+            },
+            {
+              "subDistrict": "Weziho",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Mokokchung",
+          "subDistricts": [
+            {
+              "subDistrict": "Alongkima",
+              "places": []
+            },
+            {
+              "subDistrict": "Changtongya",
+              "places": []
+            },
+            {
+              "subDistrict": "Chuchuyimlang",
+              "places": []
+            },
+            {
+              "subDistrict": "Kubolong",
+              "places": []
+            },
+            {
+              "subDistrict": "Longchem",
+              "places": []
+            },
+            {
+              "subDistrict": "Mangkolemba",
+              "places": []
+            },
+            {
+              "subDistrict": "Merangmen",
+              "places": []
+            },
+            {
+              "subDistrict": "Ongpangkong",
+              "places": []
+            },
+            {
+              "subDistrict": "Ongpangkong (N)",
+              "places": []
+            },
+            {
+              "subDistrict": "Tsurangkong",
+              "places": []
+            },
+            {
+              "subDistrict": "Tuli",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Mon",
+          "subDistricts": [
+            {
+              "subDistrict": "Aboi",
+              "places": []
+            },
+            {
+              "subDistrict": "Angjangyang",
+              "places": []
+            },
+            {
+              "subDistrict": "Chen",
+              "places": []
+            },
+            {
+              "subDistrict": "Hunta",
+              "places": []
+            },
+            {
+              "subDistrict": "Longshen",
+              "places": []
+            },
+            {
+              "subDistrict": "Mon Sadar",
+              "places": []
+            },
+            {
+              "subDistrict": "Monyakshu",
+              "places": []
+            },
+            {
+              "subDistrict": "Mopong",
+              "places": []
+            },
+            {
+              "subDistrict": "Naginimora",
+              "places": []
+            },
+            {
+              "subDistrict": "Phomching",
+              "places": []
+            },
+            {
+              "subDistrict": "Shangnyu",
+              "places": []
+            },
+            {
+              "subDistrict": "Tizit",
+              "places": []
+            },
+            {
+              "subDistrict": "Tobu",
+              "places": []
+            },
+            {
+              "subDistrict": "Wakching",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Niuland",
+          "subDistricts": [
+            {
+              "subDistrict": "Aquqhnaqua",
+              "places": []
+            },
+            {
+              "subDistrict": "Kuhoboto",
+              "places": []
+            },
+            {
+              "subDistrict": "Nihokhu",
+              "places": []
+            },
+            {
+              "subDistrict": "Niuland",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Noklak",
+          "subDistricts": [
+            {
+              "subDistrict": "Nokhu",
+              "places": []
+            },
+            {
+              "subDistrict": "Noklak",
+              "places": []
+            },
+            {
+              "subDistrict": "Panso",
+              "places": []
+            },
+            {
+              "subDistrict": "Thonoknyu",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Peren",
+          "subDistricts": [
+            {
+              "subDistrict": "Athibung",
+              "places": []
+            },
+            {
+              "subDistrict": "Jalukie",
+              "places": []
+            },
+            {
+              "subDistrict": "Kebai Khelma",
+              "places": []
+            },
+            {
+              "subDistrict": "Nsong",
+              "places": []
+            },
+            {
+              "subDistrict": "Pedi (Ngwalwa)",
+              "places": []
+            },
+            {
+              "subDistrict": "Peren",
+              "places": []
+            },
+            {
+              "subDistrict": "Tening",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Phek",
+          "subDistricts": [
+            {
+              "subDistrict": "Chetheba",
+              "places": []
+            },
+            {
+              "subDistrict": "Chizami",
+              "places": []
+            },
+            {
+              "subDistrict": "Chozuba",
+              "places": []
+            },
+            {
+              "subDistrict": "Khezhakeno",
+              "places": []
+            },
+            {
+              "subDistrict": "Khuza",
+              "places": []
+            },
+            {
+              "subDistrict": "Kikruma",
+              "places": []
+            },
+            {
+              "subDistrict": "Pfutsero",
+              "places": []
+            },
+            {
+              "subDistrict": "Phek Sadar",
+              "places": []
+            },
+            {
+              "subDistrict": "Razieba",
+              "places": []
+            },
+            {
+              "subDistrict": "Sakraba",
+              "places": []
+            },
+            {
+              "subDistrict": "Sekruzu",
+              "places": []
+            },
+            {
+              "subDistrict": "Zuketsa",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Shamator",
+          "subDistricts": [
+            {
+              "subDistrict": "Chessore",
+              "places": []
+            },
+            {
+              "subDistrict": "Mangko",
+              "places": []
+            },
+            {
+              "subDistrict": "Shamator",
+              "places": []
+            },
+            {
+              "subDistrict": "Sotokur",
+              "places": []
+            },
+            {
+              "subDistrict": "Tsurungto",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Tseminyu",
+          "subDistricts": [
+            {
+              "subDistrict": "Chunlikha",
+              "places": []
+            },
+            {
+              "subDistrict": "Tseminyu",
+              "places": []
+            },
+            {
+              "subDistrict": "Tsogin",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Tuensang",
+          "subDistricts": [
+            {
+              "subDistrict": "Chare",
+              "places": []
+            },
+            {
+              "subDistrict": "Chingmei",
+              "places": []
+            },
+            {
+              "subDistrict": "Longkhim",
+              "places": []
+            },
+            {
+              "subDistrict": "Ngoungchung",
+              "places": []
+            },
+            {
+              "subDistrict": "Noksen",
+              "places": []
+            },
+            {
+              "subDistrict": "Sangsangnyu",
+              "places": []
+            },
+            {
+              "subDistrict": "Tuensang Sadar",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Wokha",
+          "subDistricts": [
+            {
+              "subDistrict": "Aitepyong",
+              "places": []
+            },
+            {
+              "subDistrict": "Baghty",
+              "places": []
+            },
+            {
+              "subDistrict": "Bhandari",
+              "places": []
+            },
+            {
+              "subDistrict": "Changpang",
+              "places": []
+            },
+            {
+              "subDistrict": "Chukitong",
+              "places": []
+            },
+            {
+              "subDistrict": "Englan",
+              "places": []
+            },
+            {
+              "subDistrict": "Lotsu",
+              "places": []
+            },
+            {
+              "subDistrict": "Ralan",
+              "places": []
+            },
+            {
+              "subDistrict": "Sanis",
+              "places": []
+            },
+            {
+              "subDistrict": "Sungro",
+              "places": []
+            },
+            {
+              "subDistrict": "Wokha Sadar",
+              "places": []
+            },
+            {
+              "subDistrict": "Wozhuro",
+              "places": []
+            }
+          ]
+        },
+        {
+          "district": "Zunheboto",
+          "subDistricts": [
+            {
+              "subDistrict": "Aghunato",
+              "places": []
+            },
+            {
+              "subDistrict": "Akuhaito",
+              "places": []
+            },
+            {
+              "subDistrict": "Akuluto",
+              "places": []
+            },
+            {
+              "subDistrict": "Asuto",
+              "places": []
+            },
+            {
+              "subDistrict": "Atoizu",
+              "places": []
+            },
+            {
+              "subDistrict": "Ghathashi",
+              "places": []
+            },
+            {
+              "subDistrict": "Pughoboto",
+              "places": []
+            },
+            {
+              "subDistrict": "Saptiqa",
+              "places": []
+            },
+            {
+              "subDistrict": "Satakha",
+              "places": []
+            },
+            {
+              "subDistrict": "Satoi",
+              "places": []
+            },
+            {
+              "subDistrict": "Suruhuto",
+              "places": []
+            },
+            {
+              "subDistrict": "Tokiye",
+              "places": []
+            },
+            {
+              "subDistrict": "V.K.",
+              "places": []
+            },
+            {
+              "subDistrict": "Zunheboto Sadar",
               "places": []
             }
           ]
