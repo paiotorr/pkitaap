@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
 <meta name="theme-color" content="#16a34a"/>
 <meta name="google-site-verification" content="4ta1Nf4vjaHpRLbLyc0uHx-Z8bkMQyAQ4S_NwWgpl1w" />
+<meta name="description" content="Buy and sell used books across India on PKiTAAP. Free marketplace for school textbooks, general books and more, with no commission or listing fees. ( pkitaap )">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PKiTAAP — Find &amp; sell used school books near you">
+<meta property="og:description" content="Buy and sell used books across India on PKiTAAP. Free marketplace for school textbooks, general books and more, with no commission or listing fees. ( pkitaap )">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="PKiTAAP">
+<meta name="twitter:description" content="Buy and sell used books across India on PKiTAAP. Free marketplace for school textbooks, general books and more, with no commission or listing fees. ( pkitaap )">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7928260464252096" crossorigin="anonymous"></script>
 <title>PKiTAAP</title>
 <!-- ═══ Firebase SDKs (compat v10) ═══ -->
@@ -394,6 +401,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
     <button data-page="messages" id="menuMessages" style="display:none;">Messages</button>
     <button type="button" id="menuAccount" style="display:none;">👤 Account Details</button>
     <button type="button" id="menuLogout" style="display:none;color:#dc2626;">🚪 Log Out</button>
+    
   </div>
 </header>
 <div class="shell">
@@ -449,6 +457,12 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
           <div class="result-list" id="matchList"></div>
         </div>
       </div>
+      
+      <section id="aboutSection" style="background:#ffffff;border:1.5px solid var(--border);border-radius:14px;padding:22px 20px;margin:24px 0 12px;box-shadow:0 2px 8px rgba(0,0,0,.04);">
+        <h2 style="margin:0 0 14px;font-size:22px;font-weight:900;color:var(--text);letter-spacing:-0.2px;">What is PKiTAAP?  - pkitaap</h2>
+        <p style="margin:0 0 12px;line-height:1.65;color:var(--text);font-size:14.5px;font-weight:500;">PKiTAAP ( pkitaap ) is India&#39;s free marketplace for buying and selling used school textbooks. Built for students of Class 9 to Class 12 across all major boards — CBSE, SEBA, AHSEC and more — in English, Assamese and Hindi medium.</p><p style="margin:0 0 12px;line-height:1.65;color:var(--text);font-size:14.5px;font-weight:500;">Sell your old books in under a minute. Find affordable textbooks from sellers near you. Chat directly with buyers and sellers through our built-in messaging system. No commissions, no middlemen, no listing fees.</p><p style="margin:0 0 12px;line-height:1.65;color:var(--text);font-size:14.5px;font-weight:500;">PKiTAAP is designed for students across India, with state, district and locality-based search to help buyers find books from nearby sellers. Whether you&#39;re starting a new academic year and need cheap textbooks, or you&#39;ve finished your class and want to recover the cost of your old books, PKiTAAP is the easiest place to do both.</p><p style="margin:0 0 12px;line-height:1.65;color:var(--text);font-size:14.5px;font-weight:500;">Save money on books. Give your old textbooks a second life. Help fellow Indian students afford their education.</p>
+        
+      </section>
     </section>
     <section class="page" id="sellPage">
       <div class="page-head">
@@ -33601,11 +33615,9 @@ function goHome() {
 }
 
 window.pkitaapAndroidBack = function() {
-  // 1. Close any open native <dialog> (signup, login, account, etc.)
   const dialog = document.querySelector('dialog[open]');
   if (dialog) { try { dialog.close(); } catch(_){} return true; }
 
-  // 2. Close hamburger menu panel if open
   const menuPanel = document.getElementById('menuPanel');
   if (menuPanel && menuPanel.classList.contains('open')) {
     document.getElementById('menuBtn')?.classList.remove('open');
@@ -33614,7 +33626,6 @@ window.pkitaapAndroidBack = function() {
     return true;
   }
 
-  // 3. If a chat is open, back to message list
   const shell = document.getElementById('messagesShell');
   if (_activeChatId && shell && shell.classList.contains('chat-open')) {
     _activeChatId = '';
@@ -33624,14 +33635,12 @@ window.pkitaapAndroidBack = function() {
     return true;
   }
 
-  // 4. If on any page other than the catalog/home (buyPage), navigate to home
   const buy = document.getElementById('buyPage');
   if (buy && !buy.classList.contains('active')) {
     goHome();
     return true;
   }
 
-  // 5. On home (buyPage). Walk catalog levels back one step at a time.
   if (selectedBookId) {
     selectedBookId = '';
     const _ml = document.querySelector('#matchList');
@@ -33663,18 +33672,11 @@ window.pkitaapAndroidBack = function() {
     return true;
   }
 
-  // 6. Truly at home (classes index, nothing selected). Let the next back
-  //    press exit the app/page normally — don't re-push the sentinel.
+  // Truly at home — let the next back press exit the app/page normally
   return false;
 };
 
 // ── MOBILE BROWSER / ANDROID BACK BUTTON SUPPORT ──────────────────
-// On mobile browsers, the hardware/gesture back button normally closes
-// the tab or leaves the page. Inside the APK, the device back button
-// is wired to webView.goBack() which triggers popstate. Both routes
-// converge here: keep a "sentinel" history entry so back-press always
-// fires popstate, route it through pkitaapAndroidBack, and re-push the
-// sentinel ONLY if there was still in-app state to navigate back to.
 (function() {
   history.pushState({ pkitaap: 1 }, '');
 
@@ -33682,11 +33684,8 @@ window.pkitaapAndroidBack = function() {
     var handled = false;
     try { handled = !!(window.pkitaapAndroidBack && window.pkitaapAndroidBack()); } catch(e) {}
     if (handled) {
-      // Still navigable in-app — keep the sentinel for the next press.
       history.pushState({ pkitaap: 1 }, '');
     }
-    // If not handled, the user was at the home view. Let the browser /
-    // WebView consume the next back press and actually exit.
   });
 })();
 // ────────────────────────────────────────────────────────────────
