@@ -174,8 +174,8 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
 .auth-form { padding: 24px 28px 28px; display: flex; flex-direction: column; gap: 14px; }
 .auth-field { display: flex; flex-direction: column; gap: 6px; }
 .auth-field label { color: #374151; font-size: 13px; font-weight: 900; }
-.auth-field input, .auth-field select { background: #f9fafb; border: 2px solid var(--line); border-radius: 12px; font-size: 15px; font-weight: 600; min-height: 48px; outline: none; padding: 10px 14px; width: 100%; transition: border-color 0.15s, background 0.15s; }
-.auth-field input:focus, .auth-field select:focus { border-color: var(--red); background: white; }
+.auth-field input, .auth-field select { background: #f9fafb; border: 2px solid var(--line); border-radius: 12px; font-size: 15px; font-weight: 600; min-height: 48px; outline: none; padding: 10px 14px; width: 100%; transition: border-color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease; }
+.auth-field input:focus, .auth-field select:focus { border-color: var(--red); background: white; box-shadow: 0 0 0 3px rgba(220,38,38,0.10); }
 .auth-field.is-locked { opacity: 0.62; }
 .auth-field.is-locked label { color: #9ca3af; }
 .auth-field input:disabled, .auth-field select:disabled { background: #f3f4f6; border-color: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
@@ -270,14 +270,17 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
 .pw-wrap input:disabled ~ .pw-eye { pointer-events: none; color: #d1d5db; }
 .ac-wrap { position: relative; }
 .ac-wrap input { min-height: 56px; padding-right: 58px; }
-.ac-ok { position: absolute; right: 8px; top: 28px; transform: translateY(-50%); background: var(--red); color: white; border: none; border-radius: 9px; font-size: 12px; font-weight: 900; padding: 6px 12px; cursor: pointer; display: none; z-index: 5; transition: background 0.15s; white-space: nowrap; }
+.ac-ok { position: absolute; right: 8px; top: 28px; transform: translateY(-50%); background: var(--red); color: white; border: none; border-radius: 9px; font-size: 12px; font-weight: 900; padding: 6px 12px; cursor: pointer; display: none; z-index: 5; transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease; white-space: nowrap; }
 .ac-ok:hover { background: var(--red-dark); }
 .ac-wrap input:disabled { background: #f3f4f6; color: #aaa; cursor: not-allowed; border-color: #e5e7eb; }
-.ac-list { background: #fff; border: 2px solid var(--line); border-radius: 14px; box-shadow: 0 10px 26px rgba(0,0,0,0.12); display: none; margin-top: 8px; max-height: 230px; overflow-y: auto; position: relative; z-index: 200; }
-.ac-item { padding: 13px 14px; font-size: 15px; font-weight: 800; cursor: pointer; border-bottom: 1px solid var(--line); color: var(--text); line-height: 1.35; transition: background 0.1s; white-space: normal; word-break: break-word; }
+.ac-list { background: #fff; border: 2px solid var(--line); border-radius: 14px; box-shadow: 0 10px 26px rgba(0,0,0,0.12); display: none; margin-top: 8px; max-height: 230px; overflow-y: auto; position: relative; z-index: 200; animation: acListIn 0.22s cubic-bezier(0.16,1,0.3,1); }
+@keyframes acListIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.ac-item { padding: 13px 14px; font-size: 15px; font-weight: 800; cursor: pointer; border-bottom: 1px solid var(--line); color: var(--text); line-height: 1.35; transition: background 0.15s ease, color 0.15s ease, padding-left 0.15s ease; white-space: normal; word-break: break-word; }
 .ac-item:last-child { border-bottom: none; }
-.ac-item:hover { background: var(--red-light); color: var(--red); }
+.ac-item:hover { background: var(--red-light); color: var(--red); padding-left: 18px; }
 .ac-empty { color: var(--muted); font-size: 13px; font-weight: 800; line-height: 1.45; padding: 13px 14px; }
+.ac-hint { background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 10px; padding: 8px 11px; font-size: 12px; font-weight: 700; line-height: 1.5; color: #92590b; margin-bottom: 2px; }
+.ac-hint strong { color: #b45309; }
 .locked-control { opacity: 0.5; pointer-events: none; }
 .home-link { color: var(--red) !important; font-weight: 900 !important; }
 .messages-shell { display: grid; gap: 12px; grid-template-columns: minmax(220px, 0.9fr) minmax(280px, 1.4fr); min-height: 560px; }
@@ -712,6 +715,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
         <div class="auth-row profile-stack">
           <div class="auth-field profile-wide">
             <label>Place / Town <span style="color:#ef4444;font-size:11px;"> *required</span></label>
+            <div class="ac-hint">💡 Start typing your place. If it appears in the list, tap it. If your place is <strong>not in the list</strong>, just type the full name — an <strong>OK</strong> button will appear; tap it to save and move on.</div>
             <div class="ac-wrap" id="placeAcWrap">
               <div class="input-preview-bubble" id="placeBubble"></div>
               <input type="text" id="signupPlace" autocomplete="off" placeholder="Select sub-district first"
@@ -725,6 +729,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
           </div>
           <div class="auth-field profile-wide">
             <label>School / College <span style="color:#ef4444;font-size:11px;"> *required</span></label>
+            <div class="ac-hint">💡 Start typing your school / college. If it appears in the list, tap it. If it's <strong>not in the list</strong>, just type the full name — an <strong>OK</strong> button will appear; tap it to save and finish.</div>
             <div class="ac-wrap" id="schoolAcWrap">
               <div class="input-preview-bubble" id="schoolBubble"></div>
               <input type="text" id="signupSchool" autocomplete="off" placeholder="Enter place first"
@@ -36050,7 +36055,7 @@ function updateSignupDistricts() {
   const pInp  = document.getElementById('signupPlace');
   const sInp  = document.getElementById('signupSchool');
   if (!dSel) return;
-  dSel.innerHTML = '<option value="">— District —</option>' + _getDistricts(stateName).map(d => '<option value="' + d.district + '">' + d.district + '</option>').join('');
+  dSel.innerHTML = '<option value="">— District —</option>' + _getDistricts(stateName).slice().sort((a,b)=>String(a.district||'').localeCompare(String(b.district||''))).map(d => '<option value="' + d.district + '">' + d.district + '</option>').join('');
   if (sdSel) sdSel.innerHTML = '<option value="">— Sub-District —</option>';
   if (pInp) { pInp.value = ''; pInp.disabled = true; pInp.placeholder = 'Select sub-district first'; }
   if (sInp) { sInp.value = ''; sInp.disabled = true; sInp.placeholder = 'Enter place first'; }
@@ -36069,7 +36074,7 @@ function updateSignupSubDistricts() {
   const sInp  = document.getElementById('signupSchool');
   if (!sdSel) return;
   sdSel.innerHTML = '<option value="">— Sub-District —</option>' +
-    _getSubDistricts(stateName, district).map(sd =>
+    _getSubDistricts(stateName, district).slice().sort((a,b)=>String(a.subDistrict||'').localeCompare(String(b.subDistrict||''))).map(sd =>
       '<option value="' + sd.subDistrict + '">' + sd.subDistrict + '</option>'
     ).join('');
   if (pInp) { pInp.value = ''; pInp.disabled = true; pInp.placeholder = 'Select sub-district first'; }
@@ -36151,9 +36156,11 @@ function filterPlaceSuggestions(val) {
   const list = document.getElementById('placeAcList');
   if (!list) return;
   const q = val.trim().toLowerCase();
+  // Show nothing until the user types. When typing, match places whose
+  // name STARTS WITH the typed text, sorted alphabetically.
   const filtered = q
-    ? (window._placeOptions || []).filter(p => p.toLowerCase().includes(q))
-    : (window._placeOptions || []);
+    ? (window._placeOptions || []).filter(p => p.toLowerCase().startsWith(q)).slice().sort((a,b)=>a.localeCompare(b))
+    : [];
   _renderAcList(list, filtered, val, 'selectPlaceSuggestion', 'placeOkBtn');
 }
 
@@ -36184,9 +36191,11 @@ function filterSchoolSuggestions(val) {
   const list = document.getElementById('schoolAcList');
   if (!list) return;
   const q = val.trim().toLowerCase();
+  // Show nothing until the user types. When typing, match schools whose
+  // name STARTS WITH the typed text, sorted alphabetically.
   const filtered = q
-    ? (window._schoolOptions || []).filter(s => s.toLowerCase().includes(q))
-    : (window._schoolOptions || []);
+    ? (window._schoolOptions || []).filter(s => s.toLowerCase().startsWith(q)).slice().sort((a,b)=>a.localeCompare(b))
+    : [];
   _renderAcList(list, filtered, val, 'selectSchoolSuggestion', 'schoolOkBtn');
   // Lazily load community schools when user starts typing school
   const place = (document.getElementById('signupPlace')?.value || '').trim();
@@ -36220,8 +36229,9 @@ function _renderAcList(listEl, items, inputVal, selectFn, okBtnId) {
       listEl.innerHTML = '<div class="ac-empty">No saved ' + (isPlace ? 'place' : 'school / college') + ' found. Check the spelling, or tap OK to use this new name.</div>';
       listEl.style.display = 'block';
     } else {
-      listEl.innerHTML = '<div class="ac-empty">No saved ' + (isPlace ? 'places' : 'schools / colleges') + ' found yet for this selection. Type the full name and tap OK.</div>';
-      listEl.style.display = 'block';
+      // Box is empty — keep the suggestion list hidden until the user types.
+      listEl.innerHTML = '';
+      listEl.style.display = 'none';
     }
     return;
   }
@@ -36259,7 +36269,7 @@ window.confirmPlaceInput = function() {
   const okBtn = document.getElementById('placeOkBtn');
   if (okBtn) okBtn.style.display = 'none';
   updateSignupSchools();   // this also unlocks school if place is filled
-  setTimeout(() => document.getElementById('signupSchool')?.focus(), 80);
+  _smoothFocus('signupSchool');
 };
 window.confirmSchoolInput = function() {
   const inp = document.getElementById('signupSchool');
@@ -36283,7 +36293,7 @@ window.selectPlaceSuggestion = function(val) {
   const okBtn = document.getElementById('placeOkBtn');
   if (okBtn) okBtn.style.display = 'none';
   updateSignupSchools();
-  setTimeout(() => document.getElementById('signupSchool')?.focus(), 80);
+  _smoothFocus('signupSchool');
 };
 
 window.selectSchoolSuggestion = function(val) {
@@ -36295,12 +36305,20 @@ window.selectSchoolSuggestion = function(val) {
   const okBtn = document.getElementById('schoolOkBtn');
   if (okBtn) okBtn.style.display = 'none';
   _checkUnlockPassword();
-  setTimeout(() => document.getElementById('signupContinue')?.focus(), 80);
+  _smoothFocus('signupContinue');
 };
 
 function hideSuggestions(id) {
   const el = document.getElementById(id);
   if (el) { el.style.display = 'none'; }
+}
+// Smoothly scroll a field into view, then focus it. Used when advancing
+// from Place → School → Create Account so the move feels smooth.
+function _smoothFocus(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(_) {}
+  setTimeout(() => { try { el.focus({ preventScroll: true }); } catch(_) { try { el.focus(); } catch(__){} } }, 140);
 }
 function hideAllAcSuggestions() {
   hideSuggestions('placeAcList');
