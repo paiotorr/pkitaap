@@ -670,7 +670,6 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
             <option value="Male">Male</option>
             <option value="Female">Female</option>
             <option value="Other">Other</option>
-            <option value="Prefer not to say">Prefer not to say</option>
           </select>
         </div>
         <div class="auth-field">
@@ -767,7 +766,6 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
           <option value="Male">Male</option>
           <option value="Female">Female</option>
           <option value="Other">Other</option>
-          <option value="Prefer not to say">Prefer not to say</option>
         </select>
       </div>
       <div class="auth-field">
@@ -35139,8 +35137,18 @@ function _saveLocalChats(chats) {
 function _chatLastMs(chat) {
   chat = chat || {};
   const msgs = Array.isArray(chat.messages) ? chat.messages : [];
-  const last = msgs.length ? msgs[msgs.length - 1] : null;
-  return Number((last && last.createdAtMs) || chat.updatedAtMs || Date.parse(chat.updatedAt || chat.lastMessageAt || '') || 0) || 0;
+  // Use the MAXIMUM timestamp across all messages — never trust array order,
+  // because an out-of-order array (or a stale updatedAtMs fallback) could make
+  // "read up to" land below an already-seen message and keep the red dot stuck.
+  let maxMs = 0;
+  for (let i = 0; i < msgs.length; i++) {
+    const m = msgs[i] || {};
+    const ms = Number(m.createdAtMs || Date.parse(m.createdAt || '')) || 0;
+    if (ms > maxMs) maxMs = ms;
+  }
+  const chatMs = Number(chat.updatedAtMs || Date.parse(chat.updatedAt || chat.lastMessageAt || '') || 0) || 0;
+  if (chatMs > maxMs) maxMs = chatMs;
+  return maxMs;
 }
 function _chatReadKey() {
   return CHAT_READ_STORE_KEY + '_' + (_myChatUid() || 'guest');
