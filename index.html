@@ -540,81 +540,6 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
         </div>
       </div>
     </section>
-
-    <dialog id="editListingDialog">
-      <div class="auth-card" style="max-width:480px;">
-        <button class="auth-close" type="button" onclick="document.getElementById('editListingDialog').close()">×</button>
-        <div class="auth-title">✏️ Edit Listing</div>
-        <div class="auth-tagline" style="font-size:12px;">Update the details below. To change the book itself, remove this listing and add a new one.</div>
-        <div class="auth-fields" style="display:flex;flex-direction:column;gap:14px;">
-          <div id="editListingBookInfo" style="background:var(--gm);border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:13px;font-weight:700;color:var(--text);">Book info</div>
-
-          <div class="auth-field">
-            <label>Details</label>
-            <textarea id="editListingDetails" rows="3" placeholder="Edition, notes, marks, missing pages, pickup timing" style="width:100%;font-family:inherit;padding:10px;border:2px solid var(--border);border-radius:10px;font-size:14px;"></textarea>
-          </div>
-          <div class="auth-field">
-            <label>Condition</label>
-            <select id="editListingCondition">
-              <option>Like new</option>
-              <option>Good</option>
-              <option>Usable</option>
-            </select>
-          </div>
-          <div class="auth-field" id="editListingPriceWrap" style="display:none;">
-            <label>Price (₹)</label>
-            <input type="number" id="editListingPrice" min="1" placeholder="Your asking price">
-            <span id="editListingPriceHelp" style="color:var(--muted);font-size:11px;font-weight:800;margin-top:4px;display:block;"></span>
-          </div>
-          <div class="auth-field" id="editListingWhatsappWrap" style="display:none;">
-            <label>WhatsApp Number</label>
-            <input type="tel" id="editListingWhatsapp" maxlength="10" placeholder="10-digit number">
-          </div>
-          <div class="auth-field">
-            <label>Medium</label>
-            <select id="editListingMedium">
-              <option value="">— Medium —</option>
-            </select>
-          </div>
-          <div class="auth-field">
-            <label>State</label>
-            <select id="editListingState" onchange="_updateEditListingMediums();_updateEditListingDistricts()">
-              <option value="">— State —</option>
-            </select>
-          </div>
-          <div class="auth-row">
-            <div class="auth-field">
-              <label>District</label>
-              <select id="editListingDistrict" onchange="_updateEditListingSubDistricts()">
-                <option value="">— District —</option>
-              </select>
-            </div>
-            <div class="auth-field">
-              <label>Sub-District</label>
-              <select id="editListingSubDistrict" onchange="_updateEditListingPlaces()">
-                <option value="">— Sub-District —</option>
-              </select>
-            </div>
-          </div>
-          <div class="auth-row">
-            <div class="auth-field">
-              <label>Place / Town</label>
-              <input type="text" id="editListingPlace" list="editListingPlaceOptions" onchange="_updateEditListingSchools()" placeholder="Place / town">
-              <datalist id="editListingPlaceOptions"></datalist>
-              <select id="editListingPlaceFallback" onchange="document.getElementById('editListingPlace').value=this.value;_updateEditListingSchools()" style="margin-top:6px;"><option value="">— Select Place —</option></select>
-            </div>
-            <div class="auth-field">
-              <label>School / College</label>
-              <input type="text" id="editListingSchool" list="editListingSchoolOptions" placeholder="School / college">
-              <datalist id="editListingSchoolOptions"></datalist>
-              <select id="editListingSchoolFallback" onchange="document.getElementById('editListingSchool').value=this.value" style="margin-top:6px;"><option value="">— Select School —</option></select>
-            </div>
-          </div>
-
-          <button class="auth-btn" id="editListingSaveBtn" type="button" onclick="saveEditedListing()">💾 Save Changes</button>
-        </div>
-      </div>
-    </dialog>
     <section class="page" id="messagesPage">
       <div class="page-head">
         <h1>Messages</h1>
@@ -35017,86 +34942,54 @@ async function removeMyListing(id) {
 }
 
 // ── EDIT LISTING ─────────────────────────────────────────────────
-// Opens a focused edit dialog pre-filled with the listing's current
-// values. Book identity (className/board/stream/title) is shown but
-// locked — if the user wants to sell a different book, they should
-// remove + re-list to keep search/chat references consistent.
+// Reuses the Sell page UI. When user clicks Edit on a listing card,
+// we navigate to the Sell page with all catalog state set to point
+// at the listing's book, pre-fill every form field, and flip the
+// sellForm submit handler into edit mode via window._editingListingId.
+// On submit, the sell handler detects edit mode and UPDATES the
+// existing listing instead of creating a new one.
 function editMyListing(id) {
   if (!id) return;
   const lis = (state.listings || []).find(l => l.id === id);
   if (!lis) { toast('Listing not found.'); return; }
   if (!_isMineListing(lis)) { toast('You can only edit your own listings.'); return; }
+
   window._editingListingId = id;
+  // Mark on body so CSS could optionally hide the catalog browse during edit
+  document.body.classList.add('editing-listing');
 
-  const b = _listingBook(lis);
-  const title = lis.title || lis.bookTitle || (b && b.title) || 'Book';
-  const meta = [lis.className, lis.board, lis.stream].filter(Boolean).join(' / ');
-  const infoEl = document.getElementById('editListingBookInfo');
-  if (infoEl) {
-    infoEl.innerHTML =
-      '<div style="font-size:14px;font-weight:900;color:var(--text);margin-bottom:4px;">' + _acEsc(title) + '</div>' +
-      (meta ? '<div style="font-size:12px;font-weight:700;color:var(--muted);">' + _acEsc(meta) + '</div>' : '');
-  }
+  // Point the sell-page catalog state at the listing's book so the
+  // sellFormCard renders for the right book.
+  try {
+    if (typeof selectedClass  !== 'undefined') selectedClass  = lis.className || '';
+    if (typeof selectedBoard  !== 'undefined') selectedBoard  = lis.board     || '';
+    if (typeof selectedStream !== 'undefined') selectedStream = lis.stream    || '';
+    if (typeof selectedBookId !== 'undefined') selectedBookId = lis.bookId    || '';
+    if (typeof sellCatalogStep !== 'undefined') sellCatalogStep = 'books';
+  } catch(_) {}
 
-  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
-  setVal('editListingDetails', lis.details);
-  setVal('editListingCondition', lis.condition || 'Good');
-
-  const priceWrap = document.getElementById('editListingPriceWrap');
-  const priceHelp = document.getElementById('editListingPriceHelp');
-  if (priceWrap) {
-    if (state.settings && state.settings.allowUserPrice) {
-      priceWrap.style.display = '';
-      setVal('editListingPrice', lis.price || '');
-      if (priceHelp) priceHelp.textContent = lis.adminPrice ? ('Max allowed: ₹' + lis.adminPrice) : '';
-    } else {
-      priceWrap.style.display = 'none';
+  // Navigate to the sell page
+  try {
+    if (typeof nav === 'function') nav('sell');
+    else {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('sellPage')?.classList.add('active');
     }
+  } catch(_) {}
+
+  if (typeof renderSellCatalog === 'function') {
+    try { renderSellCatalog(); } catch(_) {}
   }
 
-  const waWrap = document.getElementById('editListingWhatsappWrap');
-  if (waWrap) {
-    if (state.settings && state.settings.whatsapp) {
-      waWrap.style.display = '';
-      setVal('editListingWhatsapp', lis.whatsapp || '');
-    } else {
-      waWrap.style.display = 'none';
-    }
-  }
-
-  // Build State dropdown from the admin's state catalog
-  const stateSel = document.getElementById('editListingState');
-  if (stateSel) {
-    const states = (state.locations || []).map(l => l.state).filter((v, i, a) => v && a.indexOf(v) === i).sort();
-    stateSel.innerHTML = '<option value="">— State —</option>' +
-      states.map(s => '<option value="' + _acEsc(s) + '">' + _acEsc(s) + '</option>').join('');
-    stateSel.value = lis.state || '';
-    _ensureSelectOption(stateSel, lis.state);
-  }
-
-  // Cascade through district → sub-district → place → school, populating
-  // each step with the saved values from the listing. _ensureSelectOption
-  // guarantees the listing's saved value is selectable even if the admin
-  // has since removed it from the master catalog — so users can always
-  // edit existing listings without losing data.
-  _updateEditListingMediums();
-  _ensureSelectOption(document.getElementById('editListingMedium'), lis.medium);
-  _updateEditListingDistricts();
-  _ensureSelectOption(document.getElementById('editListingDistrict'), lis.district);
-  _updateEditListingSubDistricts();
-  _ensureSelectOption(document.getElementById('editListingSubDistrict'), lis.subDistrict);
-  _updateEditListingPlaces();
-  setVal('editListingPlace', lis.place);
-  _updateEditListingSchools();
-  setVal('editListingSchool', lis.school);
-
-  document.getElementById('editListingDialog').showModal();
+  // Pre-fill all form fields after one tick so the sellFormCard has rendered
+  setTimeout(() => _prefillSellFormFromListing(lis), 50);
 }
 
-// Append-and-select: if 'value' isn't already an option in 'sel', add it.
-// Then set it as the selected value. Lets us round-trip saved listing
-// values even when the admin's location/medium catalog no longer holds them.
-function _ensureSelectOption(sel, value) {
+// Inject-and-select for sell-form dropdowns: if 'value' isn't already an
+// option in the select with id 'selId', append it, then select it. Lets
+// edit-mode round-trip saved values even when the admin catalog dropped them.
+function _ensureSellSelOption(selId, value) {
+  const sel = document.getElementById(selId);
   if (!sel || !value) return;
   if (!Array.from(sel.options).some(o => o.value === value)) {
     const opt = document.createElement('option');
@@ -35107,146 +35000,113 @@ function _ensureSelectOption(sel, value) {
   sel.value = value;
 }
 
-function _updateEditListingMediums() {
-  const st = document.getElementById('editListingState')?.value || '';
-  const sel = document.getElementById('editListingMedium');
-  if (!sel) return;
-  const meds = (state.mediumsByState && state.mediumsByState[st]) || state.mediums || [];
-  const keep = sel.value;
-  sel.innerHTML = '<option value="">— Medium —</option>' +
-    meds.map(m => '<option value="' + _acEsc(m) + '">' + _acEsc(m) + '</option>').join('');
-  if (keep && meds.indexOf(keep) !== -1) sel.value = keep;
-}
+// Pre-fill the sellForm fields with the listing's current values.
+// Cascades state → district → sub-district → place → school so each
+// dropdown's options are populated before its value is set. Handles
+// both school subjects and custom-subject listings.
+function _prefillSellFormFromListing(lis) {
+  const setVal = (i, v) => { const el = document.getElementById(i); if (el) el.value = v == null ? '' : String(v); };
 
-function _updateEditListingDistricts() {
-  const st = document.getElementById('editListingState')?.value || '';
-  const d = document.getElementById('editListingDistrict');
-  const sd = document.getElementById('editListingSubDistrict');
-  if (d) d.innerHTML = '<option value="">— District —</option>' +
-    _getDistricts(st).map(x => '<option value="' + _acEsc(x.district) + '">' + _acEsc(x.district) + '</option>').join('');
-  if (sd) sd.innerHTML = '<option value="">— Sub-District —</option>';
-  _fillChoiceControl('editListingPlace', 'editListingPlaceOptions', '— Place —', [], x => x.name, '');
-  _fillChoiceControl('editListingSchool', 'editListingSchoolOptions', '— School —', [], null, '');
-  _fillFallbackSelect('editListingPlaceFallback', '— Select Place —', [], x => x.name, '');
-  _fillFallbackSelect('editListingSchoolFallback', '— Select School —', [], null, '');
-}
+  // If sellFormCard isn't visible yet, force it visible — the user came
+  // here via Edit, not via picking a book, so the normal show trigger
+  // (book click) hasn't run.
+  const card = document.getElementById('sellFormCard');
+  if (card) card.style.display = '';
 
-function _updateEditListingSubDistricts() {
-  const st = document.getElementById('editListingState')?.value || '';
-  const d = document.getElementById('editListingDistrict')?.value || '';
-  const sd = document.getElementById('editListingSubDistrict');
-  if (sd) sd.innerHTML = '<option value="">— Sub-District —</option>' +
-    _getSubDistricts(st, d).map(x => '<option value="' + _acEsc(x.subDistrict) + '">' + _acEsc(x.subDistrict) + '</option>').join('');
-  _fillChoiceControl('editListingPlace', 'editListingPlaceOptions', '— Place —', [], x => x.name, '');
-  _fillChoiceControl('editListingSchool', 'editListingSchoolOptions', '— School —', [], null, '');
-  _fillFallbackSelect('editListingPlaceFallback', '— Select Place —', [], x => x.name, '');
-  _fillFallbackSelect('editListingSchoolFallback', '— Select School —', [], null, '');
-}
-
-function _updateEditListingPlaces() {
-  const st = document.getElementById('editListingState')?.value || '';
-  const d = document.getElementById('editListingDistrict')?.value || '';
-  const sd = document.getElementById('editListingSubDistrict')?.value || '';
-  const places = _getPlaces(st, d, sd);
-  const keep = document.getElementById('editListingPlace')?.value || '';
-  _fillChoiceControl('editListingPlace', 'editListingPlaceOptions', '— Place —', places, x => x.name, keep);
-  _fillFallbackSelect('editListingPlaceFallback', '— Select Place —', places, x => x.name, keep);
-  _fillChoiceControl('editListingSchool', 'editListingSchoolOptions', '— School —', [], null, '');
-  _fillFallbackSelect('editListingSchoolFallback', '— Select School —', [], null, '');
-  _loadCommunityPlaces(st, d, sd).then(() => {
-    const updated = _getPlaces(st, d, sd);
-    const k = document.getElementById('editListingPlace')?.value || keep;
-    _fillChoiceControl('editListingPlace', 'editListingPlaceOptions', '— Place —', updated, x => x.name, k);
-    _fillFallbackSelect('editListingPlaceFallback', '— Select Place —', updated, x => x.name, k);
-  });
-}
-
-function _updateEditListingSchools() {
-  const st = document.getElementById('editListingState')?.value || '';
-  const d = document.getElementById('editListingDistrict')?.value || '';
-  const sd = document.getElementById('editListingSubDistrict')?.value || '';
-  const p = document.getElementById('editListingPlace')?.value || '';
-  const schools = _getSchools(st, d, sd, p);
-  const keep = document.getElementById('editListingSchool')?.value || '';
-  _fillChoiceControl('editListingSchool', 'editListingSchoolOptions', '— School —', schools, null, keep);
-  _fillFallbackSelect('editListingSchoolFallback', '— Select School —', schools, null, keep);
-  if (p) _loadCommunitySchools(st, d, sd, p).then(() => {
-    const updated = _getSchools(st, d, sd, p);
-    const k = document.getElementById('editListingSchool')?.value || keep;
-    _fillChoiceControl('editListingSchool', 'editListingSchoolOptions', '— School —', updated, null, k);
-    _fillFallbackSelect('editListingSchoolFallback', '— Select School —', updated, null, k);
-  });
-}
-
-async function saveEditedListing() {
-  const id = window._editingListingId;
-  if (!id) return;
-  const lis = (state.listings || []).find(l => l.id === id);
-  if (!lis) { toast('Listing not found.'); return; }
-  if (!_isMineListing(lis)) { toast('You can only edit your own listings.'); return; }
-
-  const g = (n) => (document.getElementById(n)?.value || '').trim();
-  const newState       = g('editListingState');
-  const newDistrict    = g('editListingDistrict');
-  const newSubDistrict = g('editListingSubDistrict');
-  const newPlace       = g('editListingPlace');
-  const newSchool      = g('editListingSchool');
-  const newMedium      = g('editListingMedium');
-
-  if (!newState || !newDistrict || !newSubDistrict || !newPlace || !newSchool) {
-    toast('Please fill state, district, sub-district, place and school');
-    return;
+  // Custom-subject fields, if applicable
+  if (lis.customSubject) {
+    const titleWrap = document.getElementById('sellCustomTitleWrap');
+    if (titleWrap) titleWrap.style.display = '';
+    setVal('sellCustomTitle', lis.title);
+    const priceWrap = document.getElementById('sellCustomPriceWrap');
+    if (priceWrap) priceWrap.style.display = '';
+    setVal('sellCustomPrice', lis.price);
   }
 
-  const newDetails = g('editListingDetails');
-  const newCondition = g('editListingCondition') || 'Good';
+  // Location: state → cascading
+  setVal('sellState', lis.state);
+  if (typeof updateSellDistricts === 'function') { try { updateSellDistricts(); } catch(_) {} }
+  _ensureSellSelOption('sellDistrict', lis.district);
+  if (typeof updateSellSubDistricts === 'function') { try { updateSellSubDistricts(); } catch(_) {} }
+  _ensureSellSelOption('sellSubDistrict', lis.subDistrict);
+  if (typeof updateSellPlaces === 'function') { try { updateSellPlaces(); } catch(_) {} }
+  setVal('sellPlace', lis.place);
+  if (typeof updateSellSchools === 'function') { try { updateSellSchools(); } catch(_) {} }
+  setVal('sellSchool', lis.school);
 
-  // Price validation only if user-pricing is enabled and a value was typed
-  if (state.settings && state.settings.allowUserPrice) {
-    const newPrice = parseInt(g('editListingPrice') || '') || 0;
-    if (newPrice > 0) {
-      if (lis.adminPrice && newPrice > lis.adminPrice) {
-        toast('Price cannot exceed admin price of ₹' + lis.adminPrice);
-        return;
-      }
-      lis.price = newPrice;
-      lis.priceMode = 'seller';
-    }
-  }
+  // Medium dropdown — depends on selected state; if listing's medium
+  // isn't in the catalog any more, inject it as a one-off option.
+  _ensureSellSelOption('sellMedium', lis.medium);
 
-  if (state.settings && state.settings.whatsapp) {
-    const wa = g('editListingWhatsapp');
-    if (wa && !/^[0-9]{10}$/.test(wa)) {
-      toast('WhatsApp must be a 10-digit number');
-      return;
-    }
-    lis.whatsapp = wa;
-  }
+  setVal('sellCondition', lis.condition || 'Good');
+  setVal('sellWhatsapp', lis.whatsapp);
+  setVal('sellPrice', lis.price);
 
-  lis.details     = newDetails;
-  lis.condition   = newCondition;
-  lis.state       = newState;
-  lis.district    = newDistrict;
-  lis.subDistrict = newSubDistrict;
-  lis.place       = newPlace;
-  lis.school      = newSchool;
-  lis.medium      = newMedium;
-  lis.updatedAt   = new Date().toISOString().slice(0, 10);
+  // Add the edit-mode banner above the form and switch button text
+  _showEditModeUI(lis);
 
-  save();
-  if (_db) {
-    try { await _db.collection('listings').doc(id).set(lis); }
-    catch(e) {
-      console.warn('[PKITAAP] Edit listing save failed:', e);
-      toast('Saved locally, but Firebase save failed. Check connection.');
-    }
-  }
-  _saveCommunityLocation(lis.state, lis.district, lis.subDistrict, lis.place, lis.school);
+  // Scroll the form into view
+  try {
+    document.getElementById('sellFormCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch(_) {}
+}
 
-  try { document.getElementById('editListingDialog').close(); } catch(_){}
+// Adds a yellow "Editing your listing" banner above the form, changes
+// the submit button text to "Save Changes", and adds a Cancel button.
+function _showEditModeUI(lis) {
+  const card = document.getElementById('sellFormCard');
+  if (!card) return;
+  const cardBody = card.querySelector('.card-body');
+  if (!cardBody) return;
+
+  // Remove any old banner first
+  document.getElementById('editModeBanner')?.remove();
+
+  const title = lis.title || 'this listing';
+  const banner = document.createElement('div');
+  banner.id = 'editModeBanner';
+  banner.style.cssText = 'background:#fef9c3;border:2px solid #facc15;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;flex-direction:column;gap:8px;';
+  banner.innerHTML =
+    '<div style="font-weight:900;color:#854d0e;font-size:14px;">✏️ Editing your listing</div>' +
+    '<div style="font-size:13px;font-weight:700;color:#854d0e;">' + _acEsc(title) + '</div>' +
+    '<button type="button" class="btn btn-danger" style="font-size:12px;align-self:flex-start;" onclick="cancelEditListing()">✖ Cancel edit</button>';
+  cardBody.insertBefore(banner, cardBody.firstChild);
+
+  const submitBtn = document.querySelector('#sellForm button[type="submit"]');
+  if (submitBtn) submitBtn.textContent = '💾 Save Changes';
+}
+
+// Hides the edit-mode banner and restores the submit button text. Called
+// from cancelEditListing AND from the sellForm submit handler after a
+// successful update.
+function _hideEditModeUI() {
+  document.getElementById('editModeBanner')?.remove();
+  const submitBtn = document.querySelector('#sellForm button[type="submit"]');
+  if (submitBtn) submitBtn.textContent = 'List for Sale';
+  document.body.classList.remove('editing-listing');
+}
+
+// Cancel: drops the edit-in-progress and navigates back to My Listings.
+function cancelEditListing() {
+  if (!window._editingListingId) return;
   window._editingListingId = '';
-  toast('✅ Listing updated!');
-  renderMyListings(true);
+  _hideEditModeUI();
+  // Reset sell page transient state
+  try {
+    if (typeof selectedBookId !== 'undefined') selectedBookId = '';
+    ['sellCustomTitle','sellCustomPrice','sellDetails'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    if (typeof sellCatalogStep !== 'undefined') sellCatalogStep = 'classes';
+    if (typeof renderSellCatalog === 'function') renderSellCatalog();
+  } catch(_) {}
+  // Go to My Listings
+  try {
+    if (typeof nav === 'function') nav('myListings');
+    else {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('myListingsPage')?.classList.add('active');
+    }
+  } catch(_) {}
+  toast('Edit cancelled');
 }
 // ── Location helpers (State → District → Place → School) ──────────────────
 const CHAT_STORE_KEY = 'pkitaap_chats_v1';
@@ -36915,6 +36775,53 @@ function bindSellForm() {
       }));
     }
     _saveCommunityLocation(listing.state, listing.district, listing.subDistrict, listing.place, listing.school);
+
+    // ── EDIT MODE BRANCH ────────────────────────────────────────────
+    // If the user got here via Edit on My Listings, update the existing
+    // listing in place instead of pushing a brand new one.
+    if (window._editingListingId) {
+      const editId = window._editingListingId;
+      const existingIdx = (state.listings || []).findIndex(l => l && l.id === editId);
+      if (existingIdx === -1) {
+        toast('Could not find listing to update — saving as new instead.');
+        state.listings.push(listing);
+      } else {
+        const existing = state.listings[existingIdx];
+        if (!_isMineListing(existing)) {
+          toast('You can only edit your own listings.');
+          return;
+        }
+        // Preserve identity + creation info
+        listing.id          = existing.id;
+        listing.createdAt   = existing.createdAt || listing.createdAt;
+        listing.userId      = existing.userId      || listing.userId;
+        listing.sellerUserId = existing.sellerUserId || listing.sellerUserId;
+        listing.ownerId     = existing.ownerId     || listing.ownerId;
+        listing.sellerName  = existing.sellerName  || listing.sellerName;
+        listing.sellerEmail = existing.sellerEmail || listing.sellerEmail;
+        listing.updatedAt   = new Date().toISOString().slice(0, 10);
+        state.listings[existingIdx] = listing;
+      }
+      save();
+      if (_db) {
+        try { await _db.collection('listings').doc(listing.id).set(listing); }
+        catch(e) { toast('Saved locally, but Firebase sync failed.'); console.warn('[PKITAAP] Edit save failed:', e); }
+      }
+      window._editingListingId = '';
+      if (typeof _hideEditModeUI === 'function') _hideEditModeUI();
+      toast('✅ Listing updated!');
+      // Reset sell-page transient state
+      selectedBookId = '';
+      ['sellCustomTitle','sellCustomPrice','sellDetails'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      sellCatalogStep = 'classes';
+      try {
+        if (typeof nav === 'function') nav('myListings');
+        else { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById('myListingsPage')?.classList.add('active'); }
+      } catch(_) {}
+      renderMyListings(true);
+      return;
+    }
+
     state.listings.push(listing);
     save();
     // Also save to Firestore
