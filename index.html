@@ -36693,9 +36693,28 @@ async function _saveCommunityLocation(state, district, subDistrict, place, schoo
     }
   } catch(e) { console.warn('[PKITAAP] _saveCommunityLocation error:', e); }
 }
+function _scrollCatalogTop() {
+  // Scroll the catalog back to the top so newly-shown content (boards of the
+  // clicked class, streams, books, etc.) is visible instead of leaving the
+  // user scrolled down where they tapped. Scrolls the main pane and window.
+  try {
+    const main = document.querySelector('.main');
+    if (main) { if (typeof main.scrollTo === 'function') main.scrollTo({ top: 0, behavior: 'smooth' }); else main.scrollTop = 0; }
+  } catch(_) {}
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(_) { try { window.scrollTo(0, 0); } catch(__){} }
+}
+let _lastCatalogViewKey = null;
 function render() {
   updateAccessControls();
   updateBuyLocationMode();
+  // If the catalog view changed (class/board/stream/book/category navigation
+  // or Back), scroll to the top. Typing in search doesn't change this key,
+  // so it won't cause an unwanted scroll.
+  const _viewKey = [catalogStep, selectedClass, selectedBoard, selectedStream, selectedBookId, selectedCategory].join('|');
+  if (_lastCatalogViewKey !== null && _lastCatalogViewKey !== _viewKey) {
+    _scrollCatalogTop();
+  }
+  _lastCatalogViewKey = _viewKey;
   const selected = null;
   const _catTitleEl = document.querySelector("#catalogTitle");
   const _mediumFilterEl = document.getElementById("booksMediumFilter");
