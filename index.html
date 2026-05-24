@@ -33999,7 +33999,13 @@ function renderBoards() {
   }
   boardGrid.innerHTML = bds.map(name => '<button class="stream-card" data-board="' + name + '"><strong>' + name + '</strong></button>').join("");
   document.querySelectorAll("[data-board]").forEach(card => {
-    card.onclick = () => { selectedBoard = card.dataset.board; selectedStream=""; selectedBookId=""; catalogStep="books"; render(); };
+    card.onclick = () => {
+      selectedBoard = card.dataset.board;
+      selectedStream = "";
+      selectedBookId = "";
+      catalogStep = (selectedClass === "Class 11" || selectedClass === "Class 12") ? "streams" : "books";
+      render();
+    };
   });
 }
 function renderStreams() {
@@ -34091,7 +34097,7 @@ function renderBooks() {
     const _valStyle = 'font-size:13px;color:var(--text);font-weight:700;';
     const cards = groups[place].map(l => {
       const title = l.title || l.bookTitle || l.subject || 'Book';
-      const seller = l.sellerName || l.seller || l.userName || 'Seller';
+      const seller = 'Seller';
       const rows = [];
       rows.push('<span style="' + _rowStyle + '">Seller: <span style="' + _valStyle + '">' + _acEsc(seller) + '</span></span>');
       if (l.condition) rows.push('<span style="' + _rowStyle + '">Condition: <span style="' + _valStyle + '">' + _acEsc(l.condition) + '</span></span>');
@@ -34137,11 +34143,18 @@ function _loadBrowseListings() {
   if (_listingsUnsub) return;
   _listingsUnsub = _db.collection('listings')
     .onSnapshot(snap => {
-      state.listings = snap.docs.map(doc => Object.assign({ id: doc.id }, doc.data()));
+      state.listings = snap.docs.map(doc => _publicListingCopy(Object.assign({ id: doc.id }, doc.data())));
       save();
       if (catalogStep === "books") renderBooks();
       if (typeof renderMyListings === 'function') renderMyListings(true);
     }, e => console.warn('[PKITAAP] Browse listings live load failed:', e));
+}
+function _publicListingCopy(raw) {
+  const l = Object.assign({}, raw || {});
+  ['sellerEmail','email','mobile','sellerMobile','phone','whatsapp','userName'].forEach(k => delete l[k]);
+  l.seller = 'Seller';
+  l.sellerName = 'Seller';
+  return l;
 }
 
 // ── AUTO FIND SELLERS ─────────────────────────────────────────────
@@ -34527,36 +34540,8 @@ function _updateAccountSaveState() {
 // Called automatically by saveAccountDetails() whenever the user's name changes.
 // Updates both the local state.listings array and every matching Firestore document.
 async function _syncSellerNameInListings(uid, newName) {
-  if (!uid || !newName) return;
-  // 1. Update local cache so UI reflects the new name immediately
-  let localUpdated = 0;
-  (state.listings || []).forEach(l => {
-    const lUid = String(l.userId || l.sellerUserId || l.ownerId || '').trim();
-    if (lUid && lUid === uid) {
-      l.seller     = newName;
-      l.sellerName = newName;
-      localUpdated++;
-    }
-  });
-  if (localUpdated) save();   // persist to localStorage
-  // 2. Update Firebase listings so other users see the new name when they search
-  if (!_db) return;
-  try {
-    const snaps = await Promise.all([
-      _db.collection('listings').where('userId', '==', uid).get(),
-      _db.collection('listings').where('sellerUserId', '==', uid).get()
-    ]);
-    const batch = _db.batch();
-    const seen = new Set();
-    snaps.forEach(snap => snap.docs.forEach(doc => {
-      if (seen.has(doc.ref.path)) return;
-      seen.add(doc.ref.path);
-      batch.update(doc.ref, { seller: newName, sellerName: newName });
-    }));
-    if (seen.size) await batch.commit();
-  } catch(e) {
-    console.warn('[PKITAAP] Could not sync seller name in listings:', e);
-  }
+  // Privacy hardening: public listing documents must not store user names.
+  return;
 }
 async function _fetchCurrentUserName(uid, fallback) {
   uid = String(uid || '').trim();
@@ -34786,7 +34771,7 @@ function renderMatches(bookId) {
   if (list) list.innerHTML = '<p style="color:#888;font-size:13px;font-weight:800;padding:8px 0;">Searching sellers...</p>';
   if (_db) {
     _db.collection('listings').get().then(async snap => {
-      const remoteListings = snap.docs.map(doc => Object.assign({id:doc.id}, doc.data()));
+      const remoteListings = snap.docs.map(doc => _publicListingCopy(Object.assign({id:doc.id}, doc.data())));
       state.listings = remoteListings;
       save();
       // Fetch each seller's CURRENT name/status live from /users so profile changes/deleted users are reflected.
@@ -34869,7 +34854,7 @@ function _renderMatchList(bId, query, sellerNameMap, removedSellerUids, sourceLi
     const location = [l.place,l.subDistrict,l.district,l.state].filter(Boolean).join(', ');
     // FIX: prefer the live name fetched from /users over the stale stored name
     const lUid = String(l.userId || l.sellerUserId || '').trim();
-    const displayName = (sellerNameMap && lUid && sellerNameMap[lUid]) || l.sellerName || l.seller || 'Seller';
+    const displayName = 'Seller';
     const listingTitle = l.title || l.bookTitle || book()?.title || 'Book';
     const listingPrice = l.price ? ('â‚¹' + l.price) : 'Price not added';
     return '<div class="result-card" data-open-listing="' + _acEsc(l.id) + '"><strong>' + _acEsc(displayName) + '</strong>' +
@@ -34883,7 +34868,6 @@ function _renderMatchList(bId, query, sellerNameMap, removedSellerUids, sourceLi
       (l.details ? '<span>Details: ' + _acEsc(l.details) + '</span>' : '') +
       '<div class="contact-row">' +
       (state.settings.messaging!==false?'<button class="btn btn-primary" type="button" style="font-size:12px;" data-message-listing="' + _acEsc(l.id) + '">Message Seller</button>':'') +
-      (state.settings.whatsapp&&l.whatsapp?'<a href="https://wa.me/91'+encodeURIComponent(l.whatsapp)+'" target="_blank" class="btn btn-primary" style="font-size:12px;">WhatsApp</a>':'') +
       '</div></div>';
   }).join("") : '<p style="color:#888;font-size:13px;font-weight:700;padding:8px 0;">No sellers found in ' + _acEsc(query.subDistrict || query.place || 'this area') + ' for this book yet.</p>';
   if (matches.length) {
@@ -34920,7 +34904,7 @@ async function _loadMyListingsFromFirestore() {
     const snap = await _db.collection('listings').where('userId','==',u.uid || u.id).get();
     let changed = false;
     snap.docs.forEach(doc => {
-      const data = Object.assign({ id: doc.id }, doc.data());
+      const data = _publicListingCopy(Object.assign({ id: doc.id }, doc.data()));
       const idx = (state.listings || []).findIndex(x => x.id === data.id);
       if (idx >= 0) state.listings[idx] = Object.assign({}, state.listings[idx], data);
       else { state.listings.push(data); changed = true; }
@@ -35435,37 +35419,14 @@ async function _syncChatMessageToFirestore(chat, msg) {
 async function _resolveSellerUidForListing(listing) {
   listing = listing || {};
   const direct = String(listing.userId || listing.sellerUserId || listing.ownerId || '').trim();
-  const email = String(listing.sellerEmail || listing.email || '').trim();
-  const mobile = String(listing.mobile || listing.sellerMobile || '').replace(/\D/g,'').slice(-10);
   if (_db) {
     try {
-      const docIds = [direct, mobile, mobile ? 'u' + mobile : ''].filter(Boolean);
+      const docIds = [direct].filter(Boolean);
       for (const id of docIds) {
         const doc = await _db.collection('users').doc(id).get();
         if (doc.exists) {
           const u = doc.data() || {};
           return String(u.uid || doc.id || direct || '').trim();
-        }
-      }
-      if (email) {
-        const snap = await _db.collection('users').where('email','==',email).limit(1).get();
-        if (!snap.empty) {
-          const u = snap.docs[0].data() || {};
-          return String(u.uid || snap.docs[0].id || direct || '').trim();
-        }
-      }
-      if (mobile) {
-        const snap = await _db.collection('users').where('mobile','==',mobile).limit(1).get();
-        if (!snap.empty) {
-          const u = snap.docs[0].data() || {};
-          return String(u.uid || snap.docs[0].id || direct || '').trim();
-        }
-      }
-      if (mobile) {
-        const snap = await _db.collection('users').where('phone','==','+91' + mobile).limit(1).get();
-        if (!snap.empty) {
-          const u = snap.docs[0].data() || {};
-          return String(u.uid || snap.docs[0].id || direct || '').trim();
         }
       }
     } catch(e) { console.warn('[PKITAAP] Seller UID lookup failed:', e); }
@@ -35631,8 +35592,7 @@ async function startListingChat(listingId) {
   const me = _myChatUid();
   const sellerUid = await _resolveSellerUidForListing(listing);
   if (!me || !sellerUid) { toast('Could not open chat for this seller.'); return; }
-  const sellerName = await _fetchCurrentUserName(sellerUid, listing.sellerName || listing.seller || 'Seller');
-  if (!sellerName) { toast('This seller profile is no longer available.'); return; }
+  const sellerName = 'Seller';
   const chatId = _chatIdFor(listing, me, sellerUid);
   const hidden = _getHiddenChatMap();
   if (hidden[chatId]) {
@@ -36768,7 +36728,7 @@ function render() {
   } else {
     if (_catTitleEl) {
       _catTitleEl.style.display = "";
-      _catTitleEl.textContent = catalogStep === "classes" ? "Classes" : catalogStep === "boards" ? "Boards" : "Streams";
+      _catTitleEl.textContent = catalogStep === "classes" ? "Classes" : catalogStep === "boards" ? "Boards" : catalogStep === "streams" ? "Streams" : "Subjects";
     }
     if (_mediumFilterEl) _mediumFilterEl.style.display = "none";
   }
@@ -36891,13 +36851,11 @@ function bindSellForm() {
       className: selected ? selected.className : "",
       board    : selected ? selected.board : "",
       stream   : selected ? selected.stream : "",
-      seller   : u ? u.name : "You",
-      sellerName: u ? u.name : "You",
+      seller   : "Seller",
+      sellerName: "Seller",
       userId   : (_auth && _auth.currentUser && _auth.currentUser.uid) || (u ? (u.uid||u.id) : ""),
       sellerUserId: (_auth && _auth.currentUser && _auth.currentUser.uid) || (u ? (u.uid||u.id) : ""),
       ownerId  : (_auth && _auth.currentUser && _auth.currentUser.uid) || (u ? (u.uid||u.id) : ""),
-      sellerEmail: u ? (u.email || "") : "",
-      mobile   : u ? (u.mobile || "") : "",
       state    : listingState,
       medium   : listingMedium,
       district : listingDistrict,
@@ -36907,7 +36865,6 @@ function bindSellForm() {
       condition: document.getElementById("sellCondition").value,
       details  : (document.getElementById("sellDetails")?.value || "").trim(),
       customSubject: customSubject,
-      whatsapp : document.getElementById("sellWhatsapp")?.value || "",
       price    : listingPrice,
       adminPrice: adminPrice,
       priceMode: customSubject ? "custom" : (state.settings.allowUserPrice === true && typedPrice ? "seller" : "admin"),
@@ -36945,8 +36902,8 @@ function bindSellForm() {
         listing.userId      = existing.userId      || listing.userId;
         listing.sellerUserId = existing.sellerUserId || listing.sellerUserId;
         listing.ownerId     = existing.ownerId     || listing.ownerId;
-        listing.sellerName  = existing.sellerName  || listing.sellerName;
-        listing.sellerEmail = existing.sellerEmail || listing.sellerEmail;
+        listing.seller      = 'Seller';
+        listing.sellerName  = 'Seller';
         listing.updatedAt   = new Date().toISOString().slice(0, 10);
         state.listings[existingIdx] = listing;
       }
