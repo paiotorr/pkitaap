@@ -1019,6 +1019,7 @@ async function _saveUserToFirestore(userData) {
     name: String(userData.name || userData.fullName || userData.displayName || '').trim(),
     email: String(userData.email || (_auth && _auth.currentUser && _auth.currentUser.email) || '').trim(),
     mobile: mobile,
+    gender: String(userData.gender || '').trim(),
     userName: String(userData.userName || userData.username || '').trim(),
     dateOfBirth: String(userData.dateOfBirth || userData.dob || userData.birthDate || '').trim(),
     className: String(userData.className || userData.class || '').trim(),
@@ -1077,6 +1078,9 @@ async function _saveUserToFirestore(userData) {
       const existing = snap.data() || {};
       cleanUser.status = existing.status || cleanUser.status || 'active';
       cleanUser.role = existing.role || 'user';
+      // Preserve previously-saved gender if this write (e.g. a plain login)
+      // didn't carry one — otherwise the merge would blank it out.
+      if (!cleanUser.gender && existing.gender) cleanUser.gender = existing.gender;
       await ref.set(cleanUser, {merge:true});
     }
 
