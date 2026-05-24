@@ -895,6 +895,7 @@ let _auth = null;   // Auth instance
 //    name       : string
 //    mobile     : string   (10-digit, no country code)
 //    phone      : string   (E.164, e.g. "+919876543210")
+//    gender     : string
 //    dateOfBirth: string   (YYYY-MM-DD)
 //    className  : string
 //    state      : string
@@ -945,6 +946,9 @@ function _profileUpdatedMs(u) {
     return !isNaN(ts) && ts > max ? ts : max;
   }, 0);
 }
+function _userGenderValue(u) {
+  return String((u && (u.gender || u.Gender || u.sex)) || '').trim();
+}
 function _mergeUserProfiles(localUser, remoteUser) {
   const localMs = _profileUpdatedMs(localUser);
   const remoteMs = _profileUpdatedMs(remoteUser);
@@ -965,6 +969,8 @@ function _mergeUserProfiles(localUser, remoteUser) {
     delete merged.dobMonth;
     delete merged.dobYear;
   }
+  const genderValue = _userGenderValue(primaryUser) || _userGenderValue(secondaryUser) || _userGenderValue(merged);
+  if (genderValue) merged.gender = genderValue;
   return merged;
 }
 // Fetch a user profile from Firestore by Firebase UID
@@ -976,7 +982,7 @@ async function _getUserFromFirestore(uid) {
     const snap = await _db.collection('users').doc(uid).get();
     const remoteUser = snap.exists ? snap.data() : null;
     let foundUser = remoteUser;
-    if (!getUserDobValue(foundUser)) {
+    if (!getUserDobValue(foundUser) || !_userGenderValue(foundUser)) {
       try {
         const qs = await _db.collection('users').where('uid','==',uid).limit(1).get();
         if (!qs.empty) {
@@ -987,7 +993,7 @@ async function _getUserFromFirestore(uid) {
         }
       } catch(e) {}
     }
-    if (!getUserDobValue(foundUser) && authUser.email) {
+    if ((!getUserDobValue(foundUser) || !_userGenderValue(foundUser)) && authUser.email) {
       try {
         const qs = await _db.collection('users').where('email','==',authUser.email).limit(1).get();
         if (!qs.empty) {
@@ -1019,7 +1025,7 @@ async function _saveUserToFirestore(userData) {
     name: String(userData.name || userData.fullName || userData.displayName || '').trim(),
     email: String(userData.email || (_auth && _auth.currentUser && _auth.currentUser.email) || '').trim(),
     mobile: mobile,
-    gender: String(userData.gender || '').trim(),
+    gender: _userGenderValue(userData),
     userName: String(userData.userName || userData.username || '').trim(),
     dateOfBirth: String(userData.dateOfBirth || userData.dob || userData.birthDate || '').trim(),
     className: String(userData.className || userData.class || '').trim(),
@@ -34401,7 +34407,7 @@ async function openAccountDetails() {
   const googleEmail = u.email || (_auth && _auth.currentUser && _auth.currentUser.email) || '';
   set('accName', u.name);
   set('accMobile', u.mobile || (u.phone ? String(u.phone).replace(/\D/g,'').slice(-10) : ''));
-  set('accGender', u.gender || '');
+  set('accGender', _userGenderValue(u));
   set('accEmail', googleEmail);
   setDobValue('acc', getUserDobValue(u));
   set('accClass', u.className);
@@ -34430,6 +34436,7 @@ function _accountSnapshot(u) {
     name: u.name || '',
     mobile,
     phone: u.phone || (mobile ? '+91' + mobile : ''),
+    gender: _userGenderValue(u),
     email: u.email || '',
     dateOfBirth: getUserDobValue(u),
     className: u.className || '',
@@ -34443,6 +34450,7 @@ function _accountSnapshot(u) {
 function _accountChangeLog(before, after) {
   const labels = {
     name: 'Full Name', mobile: 'Mobile Number', phone: 'Phone',
+    gender: 'Gender',
     email: 'Google Email', dateOfBirth: 'Date of Birth',
     className: 'Class',
     state: 'State', district: 'District', subDistrict: 'Sub-District',
@@ -34462,6 +34470,7 @@ function _accountFormSnapshot() {
   return {
     name: val('accName'),
     mobile: val('accMobile').replace(/\D/g,''),
+    gender: val('accGender'),
     email: val('accEmail'),
     dateOfBirth: getDobValue('acc'),
     className: val('accClass'),
@@ -34474,7 +34483,7 @@ function _accountFormSnapshot() {
 }
 function _sameAccountSnapshot(a, b) {
   a = a || {}; b = b || {};
-  const keys = ['name','mobile','email','dateOfBirth','className','state','district','subDistrict','place','school'];
+  const keys = ['name','mobile','gender','email','dateOfBirth','className','state','district','subDistrict','place','school'];
   return keys.every(k => String(a[k] || '') === String(b[k] || ''));
 }
 function _accountCooldownUntil(u) {
@@ -36445,13 +36454,13 @@ function _collectSignupDraft() {
 
 function _hasSignupDraftValues(draft) {
   const d = draft || _collectSignupDraft();
-  return !!(d.fullName || d.mobile || d.dateOfBirth || d.dobDay || d.dobMonth || d.dobYear || d.className || d.state || d.district || d.subDistrict || d.place || d.school || d.passport);
+  return !!(d.fullName || d.mobile || d.gender || d.dateOfBirth || d.dobDay || d.dobMonth || d.dobYear || d.className || d.state || d.district || d.subDistrict || d.place || d.school || d.passport);
 }
 
 function _isSignupProfileComplete() {
   const d = _collectSignupDraft();
   const passportRequired = state.settings && state.settings.passport;
-  return !!(d.fullName && /^[0-9]{10}$/.test(d.mobile) && d.dateOfBirth && d.className && d.state && d.district && d.subDistrict && d.place && d.school && d.placeConfirmed && d.schoolConfirmed && (!passportRequired || d.passport));
+  return !!(d.fullName && /^[0-9]{10}$/.test(d.mobile) && d.gender && d.dateOfBirth && d.className && d.state && d.district && d.subDistrict && d.place && d.school && d.placeConfirmed && d.schoolConfirmed && (!passportRequired || d.passport));
 }
 
 function _saveSignupDraftNow() {
@@ -36498,6 +36507,7 @@ function _restoreSignupDraft() {
     };
     setIf('signupFullName', draft.fullName);
     setIf('signupMobile', draft.mobile);
+    setIf('signupGender', draft.gender);
     setDobValue('signup', draft.dateOfBirth || '');
     setIf('signupDobDay', draft.dobDay);
     setIf('signupDobMonth', draft.dobMonth);
@@ -37044,7 +37054,7 @@ function fillSignupLocations() {
   if (sdSel) sdSel.onchange = () => { updateSignupPlaces(); _checkUnlockPassword(); };
   initDobSelectors('signup');
   initDobSelectors('acc');
-  ['signupFullName','signupMobile','signupDobDay','signupDobMonth','signupDobYear','signupClass','signupState','signupDistrict','signupSubDistrict','signupPlace','signupSchool','signupPassport'].forEach(id => {
+  ['signupFullName','signupMobile','signupGender','signupDobDay','signupDobMonth','signupDobYear','signupClass','signupState','signupDistrict','signupSubDistrict','signupPlace','signupSchool','signupPassport'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     el.addEventListener('input', _checkUnlockPassword);
@@ -37331,7 +37341,7 @@ function init() {
   // Account details dialog save + close
   const accSave = document.getElementById('accSaveBtn');
   if (accSave) accSave.onclick = saveAccountDetails;
-  ['accName','accMobile','accDobDay','accDobMonth','accDobYear','accClass','accState','accDistrict','accSubDistrict','accPlace','accSchool'].forEach(id => {
+  ['accName','accMobile','accGender','accDobDay','accDobMonth','accDobYear','accClass','accState','accDistrict','accSubDistrict','accPlace','accSchool'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     el.addEventListener('input', _updateAccountSaveState);
