@@ -982,7 +982,7 @@ async function _getUserFromFirestore(uid) {
     const snap = await _db.collection('users').doc(uid).get();
     const remoteUser = snap.exists ? snap.data() : null;
     let foundUser = remoteUser;
-    if (!getUserDobValue(foundUser) || !_userGenderValue(foundUser)) {
+    if (!getUserDobValue(foundUser)) {
       try {
         const qs = await _db.collection('users').where('uid','==',uid).limit(1).get();
         if (!qs.empty) {
@@ -993,7 +993,7 @@ async function _getUserFromFirestore(uid) {
         }
       } catch(e) {}
     }
-    if ((!getUserDobValue(foundUser) || !_userGenderValue(foundUser)) && authUser.email) {
+    if (!getUserDobValue(foundUser) && authUser.email) {
       try {
         const qs = await _db.collection('users').where('email','==',authUser.email).limit(1).get();
         if (!qs.empty) {
