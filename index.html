@@ -64,8 +64,11 @@ button, input, select, textarea { font: inherit; }
   border-radius: 20px; box-shadow: 0 28px 70px rgba(15,23,42,0.28);
   display: none; gap: 10px; left: 50%; width: min(92vw,390px);
   padding: 18px; position: fixed; top: 78px; transform: translateX(-50%); z-index: 90;
-  max-height: calc(100vh - 104px); overflow-y: auto;
+  max-height: calc(100vh - 104px); overflow-y: auto; overscroll-behavior: contain;
 }
+/* Freeze the page behind the menu while it's open (restored on close). */
+html.menu-open, body.menu-open { overflow: hidden !important; }
+.menu-backdrop { touch-action: none; }
 .menu-backdrop { background: rgba(15,23,42,0.42); backdrop-filter: blur(4px); display: none; inset: 58px 0 0; position: fixed; z-index: 85; }
 .menu-backdrop.open { display: block; }
 .menu-panel.open { display: flex; flex-direction: column; }
@@ -36771,6 +36774,23 @@ function bindMenu() {
   const btn = document.getElementById("menuBtn");
   const panel = document.getElementById("menuPanel");
   const backdrop = document.getElementById("menuBackdrop");
+  // Single source of truth for background scroll lock: whenever the menu
+  // panel gains/loses the "open" class (via ANY code path), freeze/unfreeze
+  // the page behind it. Using a MutationObserver means we don't have to patch
+  // every place that opens or closes the menu.
+  const _applyMenuScrollLock = () => {
+    const open = !!(panel && panel.classList.contains("open"));
+    document.documentElement.classList.toggle("menu-open", open);
+    document.body.classList.toggle("menu-open", open);
+  };
+  if (panel && typeof MutationObserver !== "undefined") {
+    try {
+      new MutationObserver(_applyMenuScrollLock).observe(panel, { attributes: true, attributeFilter: ["class"] });
+    } catch(_) {}
+  }
+  _applyMenuScrollLock();
+  // On mobile, stop touches on the dimmed backdrop from scrolling the page behind.
+  backdrop?.addEventListener("touchmove", e => { e.preventDefault(); }, { passive: false });
   const closeMenu = () => { btn.classList.remove("open"); panel.classList.remove("open"); backdrop?.classList.remove("open"); };
   btn.onclick = () => {
     const opening = !panel.classList.contains("open");
