@@ -160,22 +160,6 @@ label { color: #444; display: grid; font-size: 13px; font-weight: 900; gap: 5px;
 .seller-subject-card:hover { background: var(--red-light); border-color: var(--red); transform: translateY(-1px); }
 .seller-subject-card strong { color: var(--text); font-size: 16px; font-weight: 950; }
 .seller-subject-card span { color: var(--muted); font-size: 12px; font-weight: 850; line-height: 1.35; }
-.seller-profile-card { align-items: center; background: #fff; border: 2px solid var(--line); border-radius: 14px; cursor: pointer; display: grid; gap: 10px; grid-template-columns: 58px 1fr; min-height: 96px; padding: 14px; text-align: left; transition: background .15s, border-color .15s, transform .15s; width: 100%; }
-.seller-profile-card:hover { background: var(--red-light); border-color: var(--red); transform: translateY(-1px); }
-.seller-avatar { align-items: center; aspect-ratio: 1; background: var(--gm); border: 2px solid var(--line); border-radius: 50%; color: var(--gd); display: grid; font-size: 18px; font-weight: 950; justify-content: center; overflow: hidden; text-transform: uppercase; }
-.seller-avatar img { height: 100%; object-fit: cover; width: 100%; }
-.seller-profile-card strong { color: var(--text); display: block; font-size: 17px; font-weight: 950; line-height: 1.2; overflow-wrap: anywhere; }
-.seller-profile-card span { color: var(--muted); display: block; font-size: 12px; font-weight: 850; line-height: 1.35; margin-top: 3px; }
-.seller-books-panel { display: grid; gap: 12px; grid-column: 1 / -1; }
-.seller-books-head { align-items: center; background: #fff; border: 2px solid var(--line); border-radius: 14px; display: flex; gap: 12px; justify-content: space-between; padding: 12px; }
-.seller-book-choice { align-items: flex-start; background: #fff; border: 2px solid var(--line); border-radius: 14px; cursor: pointer; display: grid; gap: 10px; grid-template-columns: 26px 1fr; padding: 12px; }
-.seller-book-choice.selected { background: var(--red-light); border-color: var(--red); }
-.seller-book-choice input { accent-color: var(--red); height: 18px; margin-top: 2px; width: 18px; }
-.seller-book-choice strong { color: var(--text); display: block; font-size: 15px; font-weight: 950; line-height: 1.25; overflow-wrap: anywhere; }
-.seller-book-choice span { color: var(--muted); display: block; font-size: 12px; font-weight: 850; line-height: 1.35; margin-top: 3px; }
-.seller-buy-panel { background: #fff; border: 2px solid var(--line); border-radius: 14px; display: grid; gap: 10px; padding: 12px; }
-.seller-buy-panel textarea { border: 2px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 14px; font-weight: 700; min-height: 72px; padding: 10px 12px; resize: vertical; width: 100%; }
-.seller-selection-summary { color: var(--muted); font-size: 13px; font-weight: 900; }
 .brand-footer { border-top: 1px solid var(--line); color: var(--muted); display: flex; flex-wrap: wrap; font-size: 13px; font-weight: 900; gap: 8px 14px; justify-content: center; line-height: 1.5; margin: 8px auto 28px; max-width: 980px; padding: 18px 14px 0; text-align: center; }
 .brand-footer a { color: var(--red); font-weight: 950; }
 .brand-footer span { white-space: nowrap; }
@@ -1688,8 +1672,7 @@ const seed = {
     "passport": false,
     "allowUserPrice": false,
     "messaging": true,
-    "allowSubjectAdding": true,
-    "profilePhotos": false
+    "allowSubjectAdding": true
   },
   "adMob": {
     "appId": "",
@@ -33601,8 +33584,6 @@ try {
 } catch(e) {}
 state.listings = [];
 let selectedClass = "", selectedBoard = "", selectedStream = "", selectedBookId = "", selectedCategory = "";
-let selectedBrowseSellerUid = "";
-let selectedBrowseListingIds = new Set();
 let search = "", catalogStep = "classes";
 let _browseListingsLoadedAt = 0;
 let _listingsUnsub = null;
@@ -33664,8 +33645,6 @@ function goHome() {
   document.getElementById('menuPanel')?.classList.remove('open');
   document.getElementById('menuBackdrop')?.classList.remove('open');
   selectedClass = selectedBoard = selectedStream = selectedBookId = selectedCategory = '';
-  selectedBrowseSellerUid = '';
-  selectedBrowseListingIds = new Set();
   catalogStep = 'classes';
   render();
 }
@@ -33694,13 +33673,6 @@ window.pkitaapAndroidBack = function() {
   const buy = document.getElementById('buyPage');
   if (buy && !buy.classList.contains('active')) {
     goHome();
-    return true;
-  }
-
-  if (selectedBrowseSellerUid) {
-    selectedBrowseSellerUid = '';
-    selectedBrowseListingIds = new Set();
-    render();
     return true;
   }
 
@@ -33855,7 +33827,7 @@ function normalizeState(input) {
   next.appName    = seed.appName    || next.appName    || 'PKiTAAP';
   next.appTagline = seed.appTagline || next.appTagline || '';
   // Settings: seed is the base; any user-level overrides sit on top
-  next.settings    = { general:false,whatsapp:false,passport:false,allowUserPrice:false,messaging:true,allowSubjectAdding:true,profilePhotos:false, ...seed.settings, ...(next.settings || {}) };
+  next.settings    = { ...seed.settings,   ...(next.settings    || {}) };
   next.adMob       = { ...(seed.adMob || {}), ...(next.adMob || {}) };
   next.classThumbs = { ...seed.classThumbs, ...(next.classThumbs || {}) };
   // ── Admin-controlled config: seed is used for fast first render only.
@@ -33995,7 +33967,7 @@ function renderClasses() {
   grid.style.display = catalogStep === "classes" ? "grid" : "none";
   grid.innerHTML = all.map(name => '<button class="class-card ' + (name===selectedClass?"active":"") + '" data-class="' + name + '"><img src="' + imageForClass(name) + '" alt="' + name + '"/><div class="card-info"><strong>' + name + '</strong></div></button>').join("");
   document.querySelectorAll(".class-card").forEach(card => {
-    card.onclick = () => { if(!requireLogin()) return; triggerAdMob("classClick"); selectedClass = card.dataset.class; selectedBoard=""; selectedStream=""; selectedBookId=""; selectedCategory=""; selectedBrowseSellerUid=""; selectedBrowseListingIds=new Set(); catalogStep = selectedClass === "General" ? "books" : "boards"; const _ml=document.querySelector("#matchList"); if(_ml) _ml.innerHTML=""; render(); };
+    card.onclick = () => { if(!requireLogin()) return; triggerAdMob("classClick"); selectedClass = card.dataset.class; selectedBoard=""; selectedStream=""; selectedBookId=""; selectedCategory=""; catalogStep = selectedClass === "General" ? "books" : "boards"; const _ml=document.querySelector("#matchList"); if(_ml) _ml.innerHTML=""; render(); };
   });
 }
 function renderCategories() {
@@ -34007,7 +33979,7 @@ function renderCategories() {
   if (!show) return;
   grid.innerHTML = allCats.map(cat => '<button class="class-card" data-catid="' + cat.id + '"><img src="' + (cat.image||placeholder(cat.name)) + '" alt="' + cat.name + '"/><div class="card-info"><strong>' + cat.name + '</strong></div></button>').join("");
   document.querySelectorAll("[data-catid]").forEach(card => {
-    card.onclick = () => { if(!requireLogin()) return; selectedClass = "General"; selectedCategory = card.dataset.catid; selectedBrowseSellerUid=""; selectedBrowseListingIds=new Set(); search = ""; document.querySelector("#searchInput").value = ""; document.querySelector("#clearSearch").style.display = "none"; catalogStep = "books"; render(); };
+    card.onclick = () => { if(!requireLogin()) return; selectedClass = "General"; selectedCategory = card.dataset.catid; search = ""; document.querySelector("#searchInput").value = ""; document.querySelector("#clearSearch").style.display = "none"; catalogStep = "books"; render(); };
   });
 }
 function renderBoards() {
@@ -34031,8 +34003,6 @@ function renderBoards() {
       selectedBoard = card.dataset.board;
       selectedStream = "";
       selectedBookId = "";
-      selectedBrowseSellerUid = "";
-      selectedBrowseListingIds = new Set();
       catalogStep = (selectedClass === "Class 11" || selectedClass === "Class 12") ? "streams" : "books";
       render();
     };
@@ -34053,87 +34023,12 @@ function renderStreams() {
   // Fall back to all streams if none found (safety)
   const toShow = activeStreams.length ? activeStreams : streams;
   grid.innerHTML = toShow.map(name => '<button class="stream-card" data-stream="' + name + '"><strong>' + name + '</strong></button>').join("");
-  document.querySelectorAll("[data-stream]").forEach(card => { card.onclick = () => { selectedStream=card.dataset.stream; selectedBookId=""; selectedBrowseSellerUid=""; selectedBrowseListingIds=new Set(); catalogStep="books"; render(); }; });
+  document.querySelectorAll("[data-stream]").forEach(card => { card.onclick = () => { selectedStream=card.dataset.stream; selectedBookId=""; catalogStep="books"; render(); }; });
 }
 function onBooksMediumFilterChange(val) {
   if (typeof renderBooks === 'function') renderBooks();
 }
 window.onBooksMediumFilterChange = onBooksMediumFilterChange;
-
-function _listingSellerUid(l) {
-  return String((l && (l.userId || l.sellerUserId || l.ownerId || l.uid)) || '').trim();
-}
-function _listingTitle(l) {
-  if (!l) return 'Book';
-  if (l.title) return String(l.title);
-  if (l.bookTitle) return String(l.bookTitle);
-  if (l.subject) return String(l.subject);
-  if (l.bookId) {
-    const b = (state.books || []).find(x => String(x.id) === String(l.bookId));
-    if (b && b.title) return String(b.title);
-  }
-  return 'Book';
-}
-function _listingPriceValue(l) {
-  const n = Number(String((l && l.price) || '').replace(/[^d.]/g, ''));
-  return Number.isFinite(n) && n > 0 ? n : 0;
-}
-function _listingPriceLabel(l) {
-  const n = _listingPriceValue(l);
-  return n ? ('&#8377;' + n) : 'Price not added';
-}
-function _sellerPublicNameFromListing(l) {
-  const name = String((l && (l.sellerName || l.sellerDisplayName || l.seller)) || '').trim();
-  return name || 'Seller';
-}
-function _sellerInitials(name) {
-  const parts = String(name || 'Seller').trim().split(/s+/).filter(Boolean);
-  const letters = (parts[0]?.[0] || 'S') + (parts.length > 1 ? parts[parts.length - 1][0] : '');
-  return letters.toUpperCase().slice(0, 2);
-}
-function _sellerAvatarHtml(seller) {
-  const allowPhoto = state.settings && state.settings.profilePhotos === true;
-  const photo = allowPhoto ? String((seller && seller.photoUrl) || '').trim() : '';
-  if (photo) return '<div class="seller-avatar"><img src="' + _acEsc(photo) + '" alt=""></div>';
-  return '<div class="seller-avatar" aria-hidden="true">' + _acEsc(_sellerInitials(seller && seller.name)) + '</div>';
-}
-function _browseSellerGroups(matches) {
-  const groups = {};
-  (matches || []).forEach(l => {
-    const uid = _listingSellerUid(l);
-    if (!uid) return;
-    if (!groups[uid]) {
-      groups[uid] = {
-        uid,
-        name: _sellerPublicNameFromListing(l),
-        photoUrl: l.sellerPhotoURL || l.profilePhotoURL || '',
-        listings: [],
-        score: 0,
-        latest: ''
-      };
-    }
-    groups[uid].listings.push(l);
-    groups[uid].score = Math.max(groups[uid].score || 0, Number(l._score || 0));
-    groups[uid].latest = String([groups[uid].latest, l.createdAtMs || l.createdAt || ''].sort().pop() || '');
-    if (groups[uid].name === 'Seller') groups[uid].name = _sellerPublicNameFromListing(l);
-    if (!groups[uid].photoUrl) groups[uid].photoUrl = l.sellerPhotoURL || l.profilePhotoURL || '';
-  });
-  return Object.values(groups).sort((a,b) =>
-    (b.score - a.score) ||
-    String(b.latest || '').localeCompare(String(a.latest || '')) ||
-    String(a.name || '').localeCompare(String(b.name || ''))
-  );
-}
-function _updateSellerSelectionSummary(sellerUid) {
-  const selected = [...selectedBrowseListingIds];
-  const listings = (state.listings || []).filter(l => selected.includes(String(l.id || '')) && _listingSellerUid(l) === sellerUid);
-  const count = listings.length;
-  const total = listings.reduce((sum, l) => sum + _listingPriceValue(l), 0);
-  const summary = document.getElementById('sellerSelectionSummary');
-  if (summary) summary.textContent = count ? (count + ' selected' + (total ? ' · Total: ' + String.fromCharCode(8377) + total : '')) : 'Select one or more books';
-  const btn = document.getElementById('sellerBooksBuyBtn');
-  if (btn) btn.disabled = !count || state.settings.messaging === false;
-}
 
 function renderBooks() {
   const grid = document.querySelector("#bookGrid");
@@ -34167,25 +34062,14 @@ function renderBooks() {
     return '';
   };
 
+  const myPlace = String(window._currentUser?.place || '').trim();
   const matches = (state.listings || [])
     .filter(l => _listingMatchesBrowse(l, district, subDistrict))
     .filter(l => !_filterMedium || _sameText(l.medium || '', _filterMedium))
     .filter(l => !_q || _titleOf(l).toLowerCase().includes(_q))
-    .filter(l => !_isMineListing(l))
-    .filter(l => !!_listingSellerUid(l))
-    .map(l => Object.assign({_score:_locScore(l, {
-      state: selectedState || window._currentUser?.state || '',
-      district,
-      subDistrict,
-      place: window._currentUser?.place || '',
-      school: window._currentUser?.school || '',
-      medium: _filterMedium
-    })}, l))
     .sort((a,b) => String(b.createdAtMs || b.createdAt || '').localeCompare(String(a.createdAtMs || a.createdAt || '')));
 
   if (!matches.length) {
-    selectedBrowseSellerUid = "";
-    selectedBrowseListingIds = new Set();
     grid.innerHTML = _q
       ? '<div>No books matching “' + _acEsc(search) + '” found in this area.</div>'
       : (_filterMedium
@@ -34194,97 +34078,47 @@ function renderBooks() {
     return;
   }
 
-  const sellers = _browseSellerGroups(matches);
-  if (selectedBrowseSellerUid && !sellers.some(s => s.uid === selectedBrowseSellerUid)) {
-    selectedBrowseSellerUid = "";
-    selectedBrowseListingIds = new Set();
-  }
+  const groups = {};
+  matches.forEach(l => {
+    const place = String(l.place || 'Place not added').trim();
+    (groups[place] = groups[place] || []).push(l);
+  });
 
-  if (!selectedBrowseSellerUid) {
-    grid.innerHTML = sellers.map(seller => {
-      const count = seller.listings.length;
-      const total = seller.listings.reduce((sum, l) => sum + _listingPriceValue(l), 0);
-      const places = [...new Set(seller.listings.map(l => String(l.place || '').trim()).filter(Boolean))].slice(0, 2).join(', ');
-      return '<button class="seller-profile-card" type="button" data-open-seller="' + _acEsc(seller.uid) + '">' +
-        _sellerAvatarHtml(seller) +
-        '<span><strong>' + _acEsc(seller.name || 'Seller') + '</strong>' +
-        '<span>' + count + ' book' + (count !== 1 ? 's' : '') + (total ? ' · Total listed: &#8377;' + total : '') + '</span>' +
-        (places ? '<span>' + _acEsc(places) + '</span>' : '') +
-        '</span></button>';
+  const places = Object.keys(groups).sort((a,b) => {
+    const aMine = myPlace && _sameText(a, myPlace);
+    const bMine = myPlace && _sameText(b, myPlace);
+    if (aMine !== bMine) return aMine ? -1 : 1;
+    return a.localeCompare(b);
+  });
+
+  grid.innerHTML = places.map(place => {
+    const heading = '<div class="seller-place-heading"><strong>' + _acEsc(place) + '</strong></div>';
+    const _rowStyle = 'font-size:13px;line-height:1.55;color:var(--muted);font-weight:600;';
+    const _valStyle = 'font-size:13px;color:var(--text);font-weight:700;';
+    const cards = groups[place].map(l => {
+      const title = l.title || l.bookTitle || l.subject || 'Book';
+      const seller = 'Seller';
+      const rows = [];
+      rows.push('<span style="' + _rowStyle + '">Seller: <span style="' + _valStyle + '">' + _acEsc(seller) + '</span></span>');
+      if (l.condition) rows.push('<span style="' + _rowStyle + '">Condition: <span style="' + _valStyle + '">' + _acEsc(l.condition) + '</span></span>');
+      if (l.school)    rows.push('<span style="' + _rowStyle + '">School: <span style="' + _valStyle + '">' + _acEsc(l.school) + '</span></span>');
+      rows.push('<span style="' + _rowStyle + '">Place: <span style="' + _valStyle + '">' + _acEsc(place) + '</span></span>');
+      if (l.price)     rows.push('<span style="' + _rowStyle + '">Price ₹: <span style="' + _valStyle + '">' + _acEsc(String(l.price)) + '</span></span>');
+      return '<button class="seller-subject-card" type="button" data-message-listing="' + _acEsc(l.id) + '">' +
+        '<strong style="border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:4px;color:var(--text);font-size:16px;font-weight:950;line-height:1.3;">' + _acEsc(title) + '</strong>' +
+        rows.join('') +
+        '</button>';
     }).join('');
-    grid.querySelectorAll('[data-open-seller]').forEach(card => {
-      card.onclick = () => {
-        selectedBrowseSellerUid = card.getAttribute('data-open-seller') || '';
-        selectedBrowseListingIds = new Set();
-        renderBooks();
-      };
-    });
-    return;
-  }
+    return '<div class="seller-place-group">' + heading + cards + '</div>';
+  }).join('');
 
-  const seller = sellers.find(s => s.uid === selectedBrowseSellerUid);
-  if (!seller) {
-    selectedBrowseSellerUid = "";
-    selectedBrowseListingIds = new Set();
-    renderBooks();
-    return;
-  }
-  const validIds = new Set(seller.listings.map(l => String(l.id || '')));
-  selectedBrowseListingIds = new Set([...selectedBrowseListingIds].filter(id => validIds.has(String(id))));
-  const total = seller.listings.reduce((sum, l) => sum + _listingPriceValue(l), 0);
-  grid.innerHTML = '<div class="seller-books-panel">' +
-    '<div class="seller-books-head">' +
-      '<div style="display:flex;align-items:center;gap:10px;">' + _sellerAvatarHtml(seller) +
-        '<div><strong style="display:block;font-size:17px;font-weight:950;">' + _acEsc(seller.name || 'Seller') + '</strong>' +
-        '<span style="color:var(--muted);font-size:12px;font-weight:850;">' + seller.listings.length + ' available book' + (seller.listings.length !== 1 ? 's' : '') + (total ? ' · &#8377;' + total + ' total' : '') + '</span></div>' +
-      '</div>' +
-      '<button class="btn btn-ghost btn-sm" type="button" data-back-sellers>Back</button>' +
-    '</div>' +
-    seller.listings.map(l => {
-      const id = String(l.id || '');
-      const selectedClassName = selectedBrowseListingIds.has(id) ? ' selected' : '';
-      const checked = selectedBrowseListingIds.has(id) ? ' checked' : '';
-      const meta = [l.className, l.board, l.stream, l.medium].filter(Boolean).join(' / ');
-      return '<label class="seller-book-choice' + selectedClassName + '">' +
-        '<input type="checkbox" data-select-seller-book="' + _acEsc(id) + '"' + checked + '>' +
-        '<span><strong>' + _acEsc(_listingTitle(l)) + '</strong>' +
-        (meta ? '<span>' + _acEsc(meta) + '</span>' : '') +
-        '<span>Price: ' + _listingPriceLabel(l) + (l.condition ? ' · Condition: ' + _acEsc(l.condition) : '') + '</span>' +
-        (l.school ? '<span>School/College: ' + _acEsc(l.school) + '</span>' : '') +
-        (l.place ? '<span>Place: ' + _acEsc(l.place) + '</span>' : '') +
-        (l.details ? '<span>' + _acEsc(l.details) + '</span>' : '') +
-        '</span></label>';
-    }).join('') +
-    '<div class="seller-buy-panel">' +
-      '<div class="seller-selection-summary" id="sellerSelectionSummary">Select one or more books</div>' +
-      '<textarea id="sellerBookExtraMessage" placeholder="Extra message, for example: Is it available?"></textarea>' +
-      '<button class="btn btn-primary" type="button" id="sellerBooksBuyBtn" disabled>Buy</button>' +
-    '</div>' +
-  '</div>';
-
-  grid.querySelector('[data-back-sellers]')?.addEventListener('click', () => {
-    selectedBrowseSellerUid = "";
-    selectedBrowseListingIds = new Set();
-    renderBooks();
+  grid.querySelectorAll('[data-message-listing]').forEach(card => {
+    card.onclick = () => {
+      triggerAdMob("subjectClick");
+      if(!requireLogin()) return;
+      startListingChat(card.getAttribute('data-message-listing'));
+    };
   });
-  grid.querySelectorAll('[data-select-seller-book]').forEach(chk => {
-    chk.addEventListener('change', () => {
-      const id = chk.getAttribute('data-select-seller-book') || '';
-      if (chk.checked) selectedBrowseListingIds.add(id);
-      else selectedBrowseListingIds.delete(id);
-      const row = chk.closest('.seller-book-choice');
-      if (row) row.classList.toggle('selected', chk.checked);
-      _updateSellerSelectionSummary(seller.uid);
-    });
-  });
-  const buyBtn = document.getElementById('sellerBooksBuyBtn');
-  if (buyBtn) buyBtn.onclick = () => {
-    const selectedIds = [...selectedBrowseListingIds].filter(id => validIds.has(String(id)));
-    if (!selectedIds.length) { toast('Select at least one book'); return; }
-    const extra = document.getElementById('sellerBookExtraMessage')?.value || '';
-    startSellerBooksChat(seller.uid, selectedIds, extra);
-  };
-  _updateSellerSelectionSummary(seller.uid);
 }
 
 function _listingMatchesBrowse(l, district, subDistrict) {
@@ -34318,13 +34152,8 @@ function _loadBrowseListings() {
 function _publicListingCopy(raw) {
   const l = Object.assign({}, raw || {});
   ['sellerEmail','email','mobile','sellerMobile','phone','whatsapp','userName'].forEach(k => delete l[k]);
-  const publicName = String(l.sellerName || l.sellerDisplayName || l.seller || '').trim() || 'Seller';
-  l.seller = publicName;
-  l.sellerName = publicName;
-  if (!(state.settings && state.settings.profilePhotos === true)) {
-    delete l.sellerPhotoURL;
-    delete l.profilePhotoURL;
-  }
+  l.seller = 'Seller';
+  l.sellerName = 'Seller';
   return l;
 }
 
@@ -35755,70 +35584,6 @@ function _autosizeMessageInput() {
   input.style.height = 'auto';
   input.style.height = Math.min(input.scrollHeight + 4, 140) + 'px';
 }
-function _sellerBooksChatId(buyerUid, sellerUid) {
-  return ['chat', 'seller_books', buyerUid, sellerUid].map(v => String(v || '').replace(/[^a-zA-Z0-9_-]/g,'_')).join('__');
-}
-function _composeSelectedBooksDraft(listings, extraMessage) {
-  const selected = Array.isArray(listings) ? listings : [];
-  const multi = selected.length > 1;
-  const lines = selected.map((l, i) => {
-    const price = _listingPriceValue(l);
-    return (i + 1) + '. ' + _listingTitle(l) + (price ? ' - ' + String.fromCharCode(8377) + price : '');
-  });
-  const total = selected.reduce((sum, l) => sum + _listingPriceValue(l), 0);
-  const extra = String(extraMessage || '').trim() || 'Is it available?';
-  return 'Hi, I want to buy ' + (multi ? 'these books' : 'this book') + ':
-
-' +
-    lines.join('
-') +
-    (total ? '
-
-Total: ' + String.fromCharCode(8377) + total : '') +
-    '
-
-' + extra;
-}
-async function startSellerBooksChat(sellerUid, listingIds, extraMessage) {
-  if (!requireLogin()) return;
-  const ids = (listingIds || []).map(v => String(v || '')).filter(Boolean);
-  const listings = (state.listings || []).filter(l => ids.includes(String(l.id || '')) && _listingSellerUid(l) === sellerUid);
-  if (!listings.length) { toast('Select at least one book'); return; }
-  if (listings.some(_isMineListing)) { toast('This is your own listed book.'); return; }
-  const me = _myChatUid();
-  if (!me || !sellerUid) { toast('Could not open chat for this seller.'); return; }
-  const sellerName = _sellerPublicNameFromListing(listings[0]);
-  const chatId = _sellerBooksChatId(me, sellerUid);
-  const hidden = _getHiddenChatMap();
-  if (hidden[chatId]) {
-    delete hidden[chatId];
-    _saveHiddenChatMap(hidden);
-  }
-  const existing = _getLocalChats().find(c => c.id === chatId) || {};
-  const bookTitle = listings.length === 1 ? _listingTitle(listings[0]) : (listings.length + ' selected books');
-  const chat = Object.assign({}, existing, {
-    id: chatId,
-    listingId: listings.map(l => l.id || '').filter(Boolean).join(','),
-    bookId: listings.map(l => l.bookId || '').filter(Boolean).join(','),
-    bookTitle: bookTitle,
-    participants: [me, sellerUid],
-    buyerUid: me,
-    sellerUid: sellerUid,
-    buyerName: window._currentUser?.name || 'Buyer',
-    sellerName: sellerName,
-    updatedAt: new Date().toISOString(),
-    messages: Array.isArray(existing.messages) ? existing.messages : []
-  });
-  _upsertLocalChat(chat);
-  const synced = await _saveChatToFirestore(chat);
-  if (!synced && _db) toast('Chat opened locally. Online sync is not enabled yet.');
-  _showMessagesPage();
-  renderMessages(true);
-  openChat(chatId);
-  const input = document.getElementById('messageInput');
-  if (input) input.value = _composeSelectedBooksDraft(listings, extraMessage);
-  _autosizeMessageInput();
-}
 async function startListingChat(listingId) {
   if (!requireLogin()) return;
   const listing = (state.listings || []).find(l => String(l.id) === String(listingId));
@@ -35827,7 +35592,7 @@ async function startListingChat(listingId) {
   const me = _myChatUid();
   const sellerUid = await _resolveSellerUidForListing(listing);
   if (!me || !sellerUid) { toast('Could not open chat for this seller.'); return; }
-  const sellerName = _sellerPublicNameFromListing(listing);
+  const sellerName = 'Seller';
   const chatId = _chatIdFor(listing, me, sellerUid);
   const hidden = _getHiddenChatMap();
   if (hidden[chatId]) {
@@ -35856,7 +35621,7 @@ async function startListingChat(listingId) {
   renderMessages(true);
   openChat(chatId);
   const input = document.getElementById('messageInput');
-  if (input && !input.value) input.value = _composeSelectedBooksDraft([listing], 'Is it available?');
+  if (input && !input.value) input.value = 'Hi, I found your ' + bookTitle + ' on PKiTAAP. Is it still available?';
   _autosizeMessageInput();
 }
 function deleteChatForMe(chatId) {
@@ -36276,8 +36041,6 @@ function updateBrowseDistricts(resetSubDistrict) {
 function updateBrowseSubDistricts(shouldRender = true) {
   const stateName = selectedState || window._currentUser?.state || document.getElementById('buyState')?.value || '';
   if (!stateName) { _syncTopLocationFilters('', '', '', ''); if (shouldRender) renderBooks(); return; }
-  selectedBrowseSellerUid = "";
-  selectedBrowseListingIds = new Set();
   const district = document.getElementById('browseDistrict')?.value || '';
   const subDistrict = document.getElementById('browseSubDistrict')?.value || '';
   _syncTopLocationFilters('', stateName, district, subDistrict);
@@ -36933,7 +36696,7 @@ function render() {
   // If the catalog view changed (class/board/stream/book/category navigation
   // or Back), scroll to the top. Typing in search doesn't change this key,
   // so it won't cause an unwanted scroll.
-  const _viewKey = [catalogStep, selectedClass, selectedBoard, selectedStream, selectedBookId, selectedCategory, selectedBrowseSellerUid].join('|');
+  const _viewKey = [catalogStep, selectedClass, selectedBoard, selectedStream, selectedBookId, selectedCategory].join('|');
   if (_lastCatalogViewKey !== null && _lastCatalogViewKey !== _viewKey) {
     _scrollCatalogTop();
   }
@@ -37021,12 +36784,6 @@ function bindSearch() {
   if(back) back.onclick = () => {
     selectedCategory = "";
     if (catalogStep === "books") {
-      if (selectedBrowseSellerUid) {
-        selectedBrowseSellerUid = "";
-        selectedBrowseListingIds = new Set();
-        render();
-        return;
-      }
       if (selectedStream) catalogStep = "streams";
       else if (selectedBoard) catalogStep = selectedClass === "General" ? "classes" : "boards";
       else catalogStep = "classes";
@@ -37039,8 +36796,8 @@ function bindSearch() {
     if (_ml) _ml.innerHTML = "";
     render();
   };
-  inp.oninput = () => { if(!requireLogin()){ inp.value=''; return; } search = inp.value; selectedBrowseSellerUid=""; selectedBrowseListingIds=new Set(); clr.style.display = search ? "grid" : "none"; if(search) catalogStep="books"; else catalogStep="classes"; render(); };
-  clr.onclick = () => { inp.value=""; search=""; selectedCategory=""; selectedBrowseSellerUid=""; selectedBrowseListingIds=new Set(); clr.style.display="none"; catalogStep="classes"; selectedClass=selectedBoard=selectedStream=selectedBookId=""; const _ml=document.querySelector("#matchList"); if(_ml) _ml.innerHTML=""; render(); };
+  inp.oninput = () => { if(!requireLogin()){ inp.value=''; return; } search = inp.value; clr.style.display = search ? "grid" : "none"; if(search) catalogStep="books"; else catalogStep="classes"; render(); };
+  clr.onclick = () => { inp.value=""; search=""; selectedCategory=""; clr.style.display="none"; catalogStep="classes"; selectedClass=selectedBoard=selectedStream=selectedBookId=""; const _ml=document.querySelector("#matchList"); if(_ml) _ml.innerHTML=""; render(); };
 }
 function bindBuyForm() {
   const frm = document.querySelector("#buyForm");
@@ -37083,7 +36840,6 @@ function bindSellForm() {
     const listingPlace = (document.getElementById("sellPlace")?.value || "").trim();
     const listingSchool = (document.getElementById("sellSchool")?.value || "").trim();
     const listingMedium = (document.getElementById("sellMedium")?.value || "").trim();
-    const sellerPublicName = String((u && (u.name || u.displayName)) || '').trim() || 'Seller';
     if(!listingState || (!selectedCategory && !listingMedium) || !listingDistrict || !listingSubDistrict || !listingPlace || !listingSchool){
       toast("Please fill state" + (!selectedCategory ? ", medium" : "") + ", district, sub-district, place and school");
       return;
@@ -37095,8 +36851,8 @@ function bindSellForm() {
       className: selected ? selected.className : "",
       board    : selected ? selected.board : "",
       stream   : selected ? selected.stream : "",
-      seller   : sellerPublicName,
-      sellerName: sellerPublicName,
+      seller   : "Seller",
+      sellerName: "Seller",
       userId   : (_auth && _auth.currentUser && _auth.currentUser.uid) || (u ? (u.uid||u.id) : ""),
       sellerUserId: (_auth && _auth.currentUser && _auth.currentUser.uid) || (u ? (u.uid||u.id) : ""),
       ownerId  : (_auth && _auth.currentUser && _auth.currentUser.uid) || (u ? (u.uid||u.id) : ""),
@@ -37146,8 +36902,8 @@ function bindSellForm() {
         listing.userId      = existing.userId      || listing.userId;
         listing.sellerUserId = existing.sellerUserId || listing.sellerUserId;
         listing.ownerId     = existing.ownerId     || listing.ownerId;
-        listing.seller      = sellerPublicName;
-        listing.sellerName  = sellerPublicName;
+        listing.seller      = 'Seller';
+        listing.sellerName  = 'Seller';
         listing.updatedAt   = new Date().toISOString().slice(0, 10);
         state.listings[existingIdx] = listing;
       }
@@ -37481,7 +37237,7 @@ function onStateFilterChange(stateVal) {
   }
   selectedState = stateVal;
   // Reset board/stream selection when state changes
-  selectedBoard = ""; selectedStream = ""; selectedBookId = ""; selectedBrowseSellerUid = ""; selectedBrowseListingIds = new Set();
+  selectedBoard = ""; selectedStream = ""; selectedBookId = "";
   if (catalogStep === "boards" || catalogStep === "streams" || catalogStep === "books") {
     catalogStep = selectedClass ? "boards" : "classes";
   }
@@ -37503,7 +37259,7 @@ function onStateFilterChange2(stateVal) {
     return;
   }
   selectedState = stateVal;
-  selectedBoard = ""; selectedStream = ""; selectedBookId = ""; selectedBrowseSellerUid = ""; selectedBrowseListingIds = new Set();
+  selectedBoard = ""; selectedStream = ""; selectedBookId = "";
   if (catalogStep === "boards" || catalogStep === "streams" || catalogStep === "books") {
     catalogStep = selectedClass ? "boards" : "classes";
   }
