@@ -36763,43 +36763,28 @@ function bindMenu() {
   const panel = document.getElementById("menuPanel");
   const backdrop = document.getElementById("menuBackdrop");
   if (!btn || !panel) return;
-  // Single source of truth for background scroll lock: whenever the menu
-  // panel gains/loses the "open" class (via ANY code path), freeze/unfreeze
-  // the page behind it — WITHOUT shifting the layout. Setting overflow:hidden
-  // removes the scrollbar, which would shove the page sideways; we add an
-  // equal padding-right to compensate, so nothing visibly moves.
-  const _applyMenuScrollLock = () => {
+  // Keep menu button state in sync without locking page scroll.
+  const _syncMenuState = () => {
     const open = !!(panel && panel.classList.contains("open"));
-    const locked = document.body.classList.contains("menu-open");
     btn.setAttribute("aria-expanded", open ? "true" : "false");
-    if (open && !locked) {
-      const sbw = window.innerWidth - document.documentElement.clientWidth; // scrollbar width
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
-      if (sbw > 0) document.body.style.paddingRight = sbw + "px";
-      document.documentElement.classList.add("menu-open");
-      document.body.classList.add("menu-open");
-    } else if (!open && locked) {
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
-      document.body.style.paddingRight = "";
-      document.documentElement.classList.remove("menu-open");
-      document.body.classList.remove("menu-open");
-    }
+    // Force-unlock in case an older build left scroll lock styles/classes behind.
+    document.documentElement.style.overflow = "";
+    document.body.style.overflow = "";
+    document.body.style.paddingRight = "";
+    document.documentElement.classList.remove("menu-open");
+    document.body.classList.remove("menu-open");
   };
   if (panel && typeof MutationObserver !== "undefined") {
     try {
-      new MutationObserver(_applyMenuScrollLock).observe(panel, { attributes: true, attributeFilter: ["class"] });
+      new MutationObserver(_syncMenuState).observe(panel, { attributes: true, attributeFilter: ["class"] });
     } catch(_) {}
   }
-  _applyMenuScrollLock();
-  // On mobile, stop touches on the dimmed backdrop from scrolling the page behind.
-  backdrop?.addEventListener("touchmove", e => { e.preventDefault(); }, { passive: false });
+  _syncMenuState();
   const closeMenu = () => {
     btn.classList.remove("open");
     panel.classList.remove("open");
     backdrop?.classList.remove("open");
-    _applyMenuScrollLock();
+    _syncMenuState();
   };
   btn.onclick = () => {
     const opening = !panel.classList.contains("open");
@@ -36807,7 +36792,7 @@ function bindMenu() {
     btn.classList.toggle("open", opening);
     panel.classList.toggle("open", opening);
     backdrop?.classList.toggle("open", opening);
-    _applyMenuScrollLock();
+    _syncMenuState();
   };
   backdrop?.addEventListener("click", closeMenu);
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeMenu(); });
