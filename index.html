@@ -53,7 +53,7 @@ button, input, select, textarea { font: inherit; }
 .menu-btn {
   background: rgba(255,255,255,0.2); border: 0; border-radius: 10px;
   cursor: pointer; display: grid; gap: 4px; height: 40px; padding: 10px;
-  position: relative; width: 44px;
+  position: relative; width: 44px; z-index: 130;
 }
 .menu-btn span { background: white; border-radius: 99px; display: block; height: 3px; transition: transform 0.2s ease, opacity 0.2s ease; transform-origin: center; }
 .menu-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
@@ -62,17 +62,22 @@ button, input, select, textarea { font: inherit; }
 .menu-panel {
   background: #fff; border: 1px solid rgba(15,23,42,0.08);
   border-radius: 20px; box-shadow: 0 28px 70px rgba(15,23,42,0.28);
-  display: none; gap: 10px; left: 50%; width: min(92vw,390px);
-  padding: 18px; position: fixed; top: 78px; transform: translateX(-50%); z-index: 90;
-  max-height: calc(100vh - 104px); overflow-y: auto; overscroll-behavior: contain;
+  box-sizing: border-box; display: none; gap: 10px; left: 50%;
+  max-height: calc(100vh - 96px);
+  max-height: min(640px, calc(100dvh - 96px)); max-width: calc(100vw - 24px);
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+  padding: 18px; position: fixed; top: calc(58px + 12px);
+  transform: translateX(-50%); width: min(92vw,390px); z-index: 120;
 }
 /* Scroll lock when the menu is open is applied in JS (bindMenu) with
    scrollbar-width compensation so the page doesn't shift sideways. */
 .menu-backdrop { touch-action: none; }
-.menu-backdrop { background: rgba(15,23,42,0.42); backdrop-filter: blur(4px); display: none; inset: 58px 0 0; position: fixed; z-index: 85; }
+.menu-backdrop { background: rgba(15,23,42,0.42); backdrop-filter: blur(4px); display: none; inset: 58px 0 0; position: fixed; z-index: 110; }
 .menu-backdrop.open { display: block; }
 .menu-panel.open { display: flex; flex-direction: column; }
-.menu-panel > button { align-items: center; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 14px; color: var(--text); cursor: pointer; display: flex; font-size: 15px; font-weight: 900; justify-content: flex-start; min-height: 54px; padding: 0 16px; text-align: left; width: 100%; box-shadow: 0 1px 0 rgba(15,23,42,0.03); transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease; }
+.menu-panel > button { align-items: center; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 14px; color: var(--text); cursor: pointer; display: flex; font-size: 15px; font-weight: 900; gap: 10px; justify-content: flex-start; line-height: 1.25; min-height: 54px; min-width: 0; overflow: hidden; overflow-wrap: anywhere; padding: 0 16px; text-align: left; white-space: normal; width: 100%; box-shadow: 0 1px 0 rgba(15,23,42,0.03); transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease; }
+.menu-panel a { max-width: 100%; min-width: 0; overflow: hidden; overflow-wrap: anywhere; }
+.menu-panel a span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .menu-title { align-items: center; color: var(--text); display: flex; font-size: 19px; font-weight: 900; justify-content: space-between; margin: 0 2px 4px; }
 .menu-title::after { background: var(--red-light); border-radius: 999px; color: var(--red); content: 'PKiTAAP'; font-size: 11px; font-weight: 900; padding: 5px 9px; }
 .menu-panel > button:hover { background: var(--red-light); border-color: rgba(22,163,74,0.28); color: var(--red); transform: translateY(-1px); }
@@ -80,6 +85,15 @@ button, input, select, textarea { font: inherit; }
 #menuMessages { position: relative; }
 #menuMessages.has-unread::after { background: #ef4444; border: 2px solid #fff; border-radius: 999px; box-shadow: 0 0 0 3px rgba(239,68,68,.14); content: ''; height: 10px; position: absolute; right: 14px; top: 10px; width: 10px; }
 #menuLogout { background: #fef2f2 !important; color: #dc2626 !important; }
+@media (max-width: 520px) {
+  .menu-panel {
+    border-radius: 16px; left: 12px; max-height: calc(100vh - 82px);
+    max-height: calc(100dvh - 82px);
+    max-width: none; padding: 14px; right: 12px; top: 70px;
+    transform: none; width: auto;
+  }
+  .menu-panel > button { min-height: 50px; padding: 0 14px; }
+}
 .menu-login-card {
   background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
   border: 1px solid #dcfce7; border-radius: 16px;
@@ -390,7 +404,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
 <header class="topbar">
   <div class="topbar-left"><div class="logo">PKiTAAP</div></div>
   <div class="topbar-right">
-    <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu"><span></span><span></span><span></span></button>
+    <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-controls="menuPanel" aria-expanded="false"><span></span><span></span><span></span></button>
   </div>
   <div class="menu-backdrop" id="menuBackdrop"></div>
   <div class="menu-panel" id="menuPanel">
@@ -413,7 +427,7 @@ body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity:
     
     <div style="margin-top:14px;padding-top:14px;border-top:1.5px solid var(--border);">
       <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;padding:0 4px 8px;">Connect with us</div>
-      <a href="https://youtube.com/@pkitaap" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:var(--text);text-decoration:none;font-weight:700;font-size:14px;margin-bottom:4px;transition:background .15s;" onmouseover="this.style.background='var(--gm)'" onmouseout="this.style.background=''"><svg viewBox="0 0 24 24" width="20" height="20" fill="#FF0000" style="flex:0 0 auto;" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg><span>YouTube</span></a><a href="https://www.instagram.com/pkitaap" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:var(--text);text-decoration:none;font-weight:700;font-size:14px;margin-bottom:4px;transition:background .15s;" onmouseover="this.style.background='var(--gm)'" onmouseout="this.style.background=''"><svg viewBox="0 0 24 24" width="20" height="20" fill="#E4405F" style="flex:0 0 auto;" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg><span>Instagram</span></a>
+      <a href="https://youtube.com/@pkitaap" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:10px;min-width:0;max-width:100%;overflow:hidden;padding:10px 12px;border-radius:10px;color:var(--text);text-decoration:none;font-weight:700;font-size:14px;margin-bottom:4px;transition:background .15s;" onmouseover="this.style.background='var(--gm)'" onmouseout="this.style.background=''"><svg viewBox="0 0 24 24" width="20" height="20" fill="#FF0000" style="flex:0 0 auto;" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">YouTube</span></a><a href="https://www.instagram.com/pkitaap" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:10px;min-width:0;max-width:100%;overflow:hidden;padding:10px 12px;border-radius:10px;color:var(--text);text-decoration:none;font-weight:700;font-size:14px;margin-bottom:4px;transition:background .15s;" onmouseover="this.style.background='var(--gm)'" onmouseout="this.style.background=''"><svg viewBox="0 0 24 24" width="20" height="20" fill="#E4405F" style="flex:0 0 auto;" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Instagram</span></a>
     </div>
   </div>
 </header>
@@ -36748,6 +36762,7 @@ function bindMenu() {
   const btn = document.getElementById("menuBtn");
   const panel = document.getElementById("menuPanel");
   const backdrop = document.getElementById("menuBackdrop");
+  if (!btn || !panel) return;
   // Single source of truth for background scroll lock: whenever the menu
   // panel gains/loses the "open" class (via ANY code path), freeze/unfreeze
   // the page behind it — WITHOUT shifting the layout. Setting overflow:hidden
@@ -36756,6 +36771,7 @@ function bindMenu() {
   const _applyMenuScrollLock = () => {
     const open = !!(panel && panel.classList.contains("open"));
     const locked = document.body.classList.contains("menu-open");
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
     if (open && !locked) {
       const sbw = window.innerWidth - document.documentElement.clientWidth; // scrollbar width
       document.documentElement.style.overflow = "hidden";
@@ -36779,17 +36795,30 @@ function bindMenu() {
   _applyMenuScrollLock();
   // On mobile, stop touches on the dimmed backdrop from scrolling the page behind.
   backdrop?.addEventListener("touchmove", e => { e.preventDefault(); }, { passive: false });
-  const closeMenu = () => { btn.classList.remove("open"); panel.classList.remove("open"); backdrop?.classList.remove("open"); };
+  const closeMenu = () => {
+    btn.classList.remove("open");
+    panel.classList.remove("open");
+    backdrop?.classList.remove("open");
+    _applyMenuScrollLock();
+  };
   btn.onclick = () => {
     const opening = !panel.classList.contains("open");
     if (opening) triggerAdMob("menuOpen");
     btn.classList.toggle("open", opening);
     panel.classList.toggle("open", opening);
     backdrop?.classList.toggle("open", opening);
+    _applyMenuScrollLock();
   };
   backdrop?.addEventListener("click", closeMenu);
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeMenu(); });
-  document.addEventListener("click", e => { if (!btn.contains(e.target) && !panel.contains(e.target) && !backdrop?.contains(e.target)) closeMenu(); });
+  panel.addEventListener("click", e => {
+    const link = e.target && e.target.closest ? e.target.closest("a") : null;
+    if (link && panel.contains(link)) closeMenu();
+  });
+  document.addEventListener("click", e => {
+    if (!panel.classList.contains("open")) return;
+    if (!btn.contains(e.target) && !panel.contains(e.target) && !backdrop?.contains(e.target)) closeMenu();
+  });
 }
 function bindSearch() {
   const inp = document.querySelector("#searchInput");
