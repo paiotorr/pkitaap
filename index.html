@@ -85,18 +85,14 @@ button, input, select, textarea { font: inherit; }
 #menuMessages { position: relative; }
 #menuMessages.has-unread::after { background: #ef4444; border: 2px solid #fff; border-radius: 999px; box-shadow: 0 0 0 3px rgba(239,68,68,.14); content: ''; height: 10px; position: absolute; right: 14px; top: 10px; width: 10px; }
 #menuLogout { background: #fef2f2 !important; color: #dc2626 !important; }
-@media (max-width: 700px) {
-  .menu-backdrop { inset: 58px 0 0; }
+@media (max-width: 520px) {
   .menu-panel {
-    border: 0; border-left: 1px solid rgba(15,23,42,0.08);
-    border-radius: 18px 0 0 0; bottom: 0; box-shadow: -18px 0 50px rgba(15,23,42,0.24);
-    height: calc(100vh - 58px); height: calc(100dvh - 58px);
-    left: auto; max-height: none; max-width: calc(100vw - 44px);
-    padding: 18px 16px max(18px, env(safe-area-inset-bottom));
-    right: 0; top: 58px; transform: none; width: min(86vw, 360px);
+    border-radius: 16px; left: 12px; max-height: calc(100vh - 82px);
+    max-height: calc(100dvh - 82px);
+    max-width: none; padding: 14px; right: 12px; top: 70px;
+    transform: none; width: auto;
   }
-  .menu-panel > button { border-radius: 12px; min-height: 50px; padding: 0 14px; }
-  .menu-title { font-size: 18px; position: sticky; top: -18px; z-index: 1; background: #fff; padding: 2px 0 10px; }
+  .menu-panel > button { min-height: 50px; padding: 0 14px; }
 }
 .menu-login-card {
   background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
