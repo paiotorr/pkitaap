@@ -33756,6 +33756,23 @@ function updateAccessControls() {
   });
 }
 
+function _hasStateOptionData(map) {
+  return !!(map && typeof map === 'object' && Object.keys(map).some(key =>
+    Array.isArray(map[key]) && map[key].some(item => String(item || '').trim())
+  ));
+}
+function _mergeStateOptionData(base, incoming) {
+  const out = Object.assign({}, base || {});
+  if (!incoming || typeof incoming !== 'object') return out;
+  Object.keys(incoming).forEach(key => {
+    const items = Array.isArray(incoming[key])
+      ? incoming[key].map(item => String(item || '').trim()).filter(Boolean)
+      : [];
+    if (items.length) out[key] = items;
+  });
+  return out;
+}
+
 async function loadRemoteAppData() {
   if (!_db) return;
   try {
@@ -33787,7 +33804,11 @@ async function loadRemoteAppData() {
     ref.doc('boards').onSnapshot(snap => {
       if (!snap.exists || snap.metadata.fromCache) return;
       const d = snap.data();
-      if (d.byState) state.boardsByState = d.byState;
+      if (_hasStateOptionData(d.byState)) {
+        state.boardsByState = _mergeStateOptionData(seed.boardsByState || {}, d.byState);
+      } else if (_hasStateOptionData(seed.boardsByState)) {
+        state.boardsByState = seed.boardsByState || {};
+      }
       save(); render();
     }, err => console.warn('[PKITAAP] boards listener:', err));
 
@@ -33795,7 +33816,11 @@ async function loadRemoteAppData() {
     ref.doc('mediums').onSnapshot(snap => {
       if (!snap.exists || snap.metadata.fromCache) return;
       const d = snap.data();
-      if (d.byState) state.mediumsByState = d.byState;
+      if (_hasStateOptionData(d.byState)) {
+        state.mediumsByState = _mergeStateOptionData(seed.mediumsByState || {}, d.byState);
+      } else if (_hasStateOptionData(seed.mediumsByState)) {
+        state.mediumsByState = seed.mediumsByState || {};
+      }
       save(); render();
     }, err => console.warn('[PKITAAP] mediums listener:', err));
 
@@ -33856,8 +33881,8 @@ function normalizeState(input) {
   //    these with live Firestore data — deleted items never return from cache.
   next.classes        = seed.classes        || ["Class 9","Class 10","Class 11","Class 12"];
   next.streams        = seed.streams        || ["Science","Commerce","Arts"];
-  next.boardsByState  = seed.boardsByState  || {};
-  next.mediumsByState = seed.mediumsByState || {};
+  next.boardsByState  = _mergeStateOptionData(seed.boardsByState || {}, next.boardsByState || {});
+  next.mediumsByState = _mergeStateOptionData(seed.mediumsByState || {}, next.mediumsByState || {});
   next.categories     = seed.categories     || [];
   next.locations      = seed.locations      || [];
   next.books = (seed.books || []).map(item => {
@@ -33923,7 +33948,9 @@ function getBoardsForState(st) {
   return key ? ((state.boardsByState || {})[key] || []) : [];
 }
 function getMediumsForState(st) {
-  return (state.mediumsByState||{})[st] || [];
+  const wanted = String(st || '').trim().toLowerCase();
+  const key = Object.keys(state.mediumsByState || {}).find(k => String(k || '').trim().toLowerCase() === wanted);
+  return key ? ((state.mediumsByState || {})[key] || []) : [];
 }
 function _normStateBoard(value) {
   return String(value || '').trim().toLowerCase();
