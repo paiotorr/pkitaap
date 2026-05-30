@@ -33607,6 +33607,7 @@ state.listings = [];
 let selectedClass = "", selectedBoard = "", selectedStream = "", selectedBookId = "", selectedCategory = "";
 let search = "", catalogStep = "classes";
 let _browseListingsLoadedAt = 0;
+let _lastBrowseSig = '';
 let _listingsUnsub = null;
 let _remoteDataLoaded = false;
 
@@ -34222,33 +34223,44 @@ function renderBooks() {
       };
       _doRender(sName);
       if (_db && (sName === 'Seller' || !sName)) {
-        _db.collection('users').doc(uid).get().then(function(snap) {
-          if (snap.exists && snap.data() && snap.data().name) {
-            sName = snap.data().name;
-            _doRender(sName);
-          }
+        _db.collection('public_users').doc(uid).get().then(function(snap) {
+          if (!snap.exists) return;
+          var d = snap.data() || {};
+          if ((d.status || 'active') === 'banned') return;
+          var nm = _sellerNameCandidate(d.name || d.fullName || d.displayName);
+          if (nm && nm !== sName) { sName = nm; _rememberGlobalSellerName({ id: uid, uid: uid }, nm); _doRender(sName); }
         }).catch(function(){});
       }
 
     };
   });
-  // Auto-fetch real seller names for cards showing generic "Seller"
+  // Resolve seller names from the PUBLIC profile collection and cache them so
+  // the name shows correctly on first paint (no blink) on every later view.
   if (_db) {
-    var _nameCards = grid.querySelectorAll('[data-seller-uid]');
-    var _namesSeen = {};
-    _nameCards.forEach(function(nc) {
-      var u = nc.getAttribute('data-seller-uid');
+    var _seenUid = {};
+    var _toFetch = [];
+    grid.querySelectorAll('[data-seller-uid]').forEach(function(nc) {
+      var u = String(nc.getAttribute('data-seller-uid') || '').trim();
+      if (!u || _seenUid[u] || u.indexOf('anon_') === 0) return;
+      _seenUid[u] = true;
       var ne = nc.querySelector('.seller-card-name');
-      if (!ne || _namesSeen[u]) return;
-      var nm = (ne.textContent || '').trim();
-      if (nm === 'Seller' || nm === '') {
-        _namesSeen[u] = true;
-        _db.collection('users').doc(u).get().then(function(sn) {
-          if (sn.exists && sn.data() && sn.data().name) {
-            ne.textContent = sn.data().name;
-          }
-        }).catch(function(){});
-      }
+      var cached = _globalSellerName({ id: u, uid: u });
+      if (cached && ne && ne.textContent !== cached) ne.textContent = cached;
+      var current = ne ? (ne.textContent || '').trim() : '';
+      if (!cached || current === 'Seller' || current === '') _toFetch.push(u);
+    });
+    _toFetch.forEach(function(u) {
+      _db.collection('public_users').doc(u).get().then(function(sn) {
+        if (!sn.exists) return;
+        var data = sn.data() || {};
+        if ((data.status || 'active') === 'banned') return;
+        var nm = _sellerNameCandidate(data.name || data.fullName || data.displayName);
+        if (!nm) return;
+        _rememberGlobalSellerName({ id: u, uid: u }, nm);
+        grid.querySelectorAll('[data-seller-uid="' + u + '"] .seller-card-name').forEach(function(el) {
+          if (el.textContent !== nm) el.textContent = nm;
+        });
+      }).catch(function(){});
     });
   }
 
@@ -34278,7 +34290,10 @@ function _loadBrowseListings() {
     .onSnapshot(snap => {
       state.listings = snap.docs.map(doc => _publicListingCopy(Object.assign({ id: doc.id }, doc.data())));
       save();
-      if (catalogStep === "books") renderBooks();
+      if (catalogStep === "books") {
+        var _sig = state.listings.map(function(l){ return (l.id||'') + '~' + (l.sellerName||'') + '~' + (l.price||''); }).join('|');
+        if (_sig !== _lastBrowseSig) { _lastBrowseSig = _sig; renderBooks(); }
+      }
       if (typeof renderMyListings === 'function') renderMyListings(true);
     }, e => console.warn('[PKITAAP] Browse listings live load failed:', e));
 }
@@ -34410,6 +34425,42 @@ function _knownSellerNameForListing(l) {
   }
   return '';
 }
+// ── Persistent global seller-name cache: keeps known names so the seller
+//    name paints correctly on first render and never blinks on later views. ──
+var _GLOBAL_SELLER_NAMES = null;
+function _loadGlobalSellerNames() {
+  if (_GLOBAL_SELLER_NAMES) return _GLOBAL_SELLER_NAMES;
+  _GLOBAL_SELLER_NAMES = {};
+  try {
+    var raw = localStorage.getItem('pkitaap_seller_names');
+    if (raw) { var obj = JSON.parse(raw); if (obj && typeof obj === 'object') _GLOBAL_SELLER_NAMES = obj; }
+  } catch (e) {}
+  return _GLOBAL_SELLER_NAMES;
+}
+function _persistGlobalSellerNames() {
+  try { localStorage.setItem('pkitaap_seller_names', JSON.stringify(_GLOBAL_SELLER_NAMES || {})); } catch (e) {}
+}
+function _rememberGlobalSellerName(item, name) {
+  var clean = _sellerNameCandidate(name);
+  if (!clean) return false;
+  var cache = _loadGlobalSellerNames();
+  var changed = false;
+  _sellerAliasTokens(item).forEach(function(k) {
+    var key = String(k || '').trim().toLowerCase();
+    if (key && cache[key] !== clean) { cache[key] = clean; changed = true; }
+  });
+  if (changed) _persistGlobalSellerNames();
+  return changed;
+}
+function _globalSellerName(item) {
+  var cache = _loadGlobalSellerNames();
+  var tokens = _sellerAliasTokens(item);
+  for (var i = 0; i < tokens.length; i++) {
+    var hit = _sellerNameCandidate(cache[String(tokens[i] || '').trim().toLowerCase()]);
+    if (hit) return hit;
+  }
+  return '';
+}
 function _sellerDisplayNameForListing(l, sellerNameMap) {
   let mapped = '';
   if (sellerNameMap) {
@@ -34437,7 +34488,7 @@ function _sellerDisplayNameForListing(l, sellerNameMap) {
       }
     }
   }
-  return mapped || _sellerNameCandidate(l && l.sellerName) || _sellerNameCandidate(l && l.seller) || _sellerNameCandidate(l && l.sellerDisplayName) || _knownSellerNameForListing(l) || 'Seller';
+  return mapped || _sellerNameCandidate(l && l.sellerName) || _sellerNameCandidate(l && l.seller) || _sellerNameCandidate(l && l.sellerDisplayName) || _knownSellerNameForListing(l) || _globalSellerName(l) || 'Seller';
 }
 function _publicListingCopy(raw) {
   const l = Object.assign({}, raw || {});
@@ -35105,6 +35156,7 @@ function renderMatches(bookId) {
           if (resolved) {
             l.seller = resolved;
             l.sellerName = resolved;
+            _rememberGlobalSellerName(l, resolved);
           }
         });
       } catch(e) {}
