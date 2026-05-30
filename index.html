@@ -394,6 +394,63 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
   40% { transform: scale(1.2); opacity: 1; }
 }
 body.splash-active .menu-btn { pointer-events: none; user-select: none; opacity: 0.45; }
+
+/* ════════════════════════════════════════════════════════════════
+   TACTILE FEEDBACK — make every tap feel like a real, responsive click.
+   Custom press states replace the muted default highlight so buttons,
+   cards and list rows visibly depress and brighten/dim on touch.
+   ════════════════════════════════════════════════════════════════ */
+.btn, button, [role="button"],
+.class-card, .stream-card, .book-card,
+.seller-card, .seller-subject-card, .seller-listed-book,
+.nav-item, .bottom-item, .thread-item, .ac-item,
+.dob-summary, .google-btn, .pw-eye, .auth-close, #clearSearch, .menu-btn {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform .09s ease, filter .14s ease, box-shadow .15s ease,
+              background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.btn, button, .nav-item, .bottom-item, .google-btn, .dob-summary, .menu-panel > button {
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* Pressed: quick depress + slight dim for a satisfying click feel */
+.btn:active, button:active, [role="button"]:active,
+.class-card:active, .stream-card:active, .book-card:active,
+.seller-card:active, .seller-subject-card:active, .seller-listed-book:active,
+.nav-item:active, .bottom-item:active, .thread-item:active, .ac-item:active,
+.dob-summary:active, .google-btn:active {
+  transform: scale(0.97);
+  filter: brightness(0.96);
+}
+/* Solid action buttons (Buy It, Find sellers, Login…) push down a touch more */
+.btn-primary:active, .auth-btn:active, .menu-login-btn:active, .menu-create-btn:active,
+[data-buy-seller]:active, .btn.wide:active, .ac-ok:active {
+  transform: scale(0.96) translateY(1px);
+  filter: brightness(0.9);
+}
+/* Small round/icon controls */
+.pw-eye:active, .auth-close:active, #clearSearch:active, .menu-btn:active {
+  transform: scale(0.9);
+}
+/* Disabled controls must never look pressable */
+.btn:disabled, button:disabled, .btn[disabled], [aria-disabled="true"],
+input:disabled, select:disabled {
+  cursor: not-allowed !important;
+  transform: none !important;
+  filter: none !important;
+}
+/* Respect users who prefer less motion: keep the feedback, drop the movement */
+@media (prefers-reduced-motion: reduce) {
+  .btn, button, [role="button"], .class-card, .stream-card, .book-card,
+  .seller-card, .seller-subject-card, .seller-listed-book, .nav-item, .bottom-item,
+  .thread-item, .ac-item, .dob-summary, .google-btn {
+    transition: filter .12s ease, background-color .12s ease, border-color .12s ease;
+  }
+  .btn:active, button:active, .class-card:active, .stream-card:active, .book-card:active,
+  .seller-card:active, .seller-subject-card:active, .nav-item:active, .bottom-item:active,
+  .dob-summary:active, .google-btn:active { transform: none; filter: brightness(0.92); }
+}
 </style>
 </head>
 <body>
