@@ -37319,7 +37319,11 @@ function render() {
   } else {
     if (_catTitleEl) {
       _catTitleEl.style.display = "";
-      _catTitleEl.textContent = catalogStep === "classes" ? "Classes" : catalogStep === "boards" ? "Boards" : catalogStep === "streams" ? "Streams" : "Subjects";
+      _catTitleEl.textContent =
+        catalogStep === "classes" ? "Classes"
+        : catalogStep === "boards" ? (selectedClass ? selectedClass + " · Boards" : "Boards")
+        : catalogStep === "streams" ? (selectedBoard ? selectedBoard + " · Streams" : "Streams")
+        : "Subjects";
     }
     if (_mediumFilterEl) _mediumFilterEl.style.display = "none";
   }
