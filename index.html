@@ -22,6 +22,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js"></script>
 <!-- Google Identity Services -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
@@ -951,6 +952,7 @@ let _auth = null;   // Auth instance
     if (!firebase.apps.length) {
       firebase.initializeApp(PKITAAP_FB_CONFIG);
     }
+    try{if(!window._pkAppCheck&&firebase.appCheck){if(location.protocol==='file:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')self.FIREBASE_APPCHECK_DEBUG_TOKEN=true;firebase.appCheck().activate('6LeXagUtAAAAAKrH8FW7zdqeqElFTm2hgRKrRg9_',true);window._pkAppCheck=true;}}catch(e){}
     _db   = firebase.firestore();
     _auth = firebase.auth();
     _db.enablePersistence({ synchronizeTabs: true }).catch(function(){});
@@ -35480,24 +35482,25 @@ async function _loadMyListingsFromFirestore() {
   if (!_fbUid && !u.uid && !u.id && !u.email && !_sellerMobileToken(u)) return;
   try {
     const refs = new Map();
-    const userKeys = [...new Set([
+    // Listings store the owner's uid in userId/sellerUserId/ownerId (enforced by
+    // the security rules), so we match only against the user's uid keys. That's a
+    // tiny, fixed number of reads per load — cheap and steady under heavy traffic.
+    const idKeys = [...new Set([
       String(_fbUid).trim(),
       String(u.uid || '').trim(),
-      String(u.id || '').trim(),
-      String(u.userId || '').trim(),
-      String(u.sellerUserId || '').trim(),
-      String(u.email || '').trim(),
-      _sellerMobileToken(u),
-      _sellerMobileToken(u) ? ('u' + _sellerMobileToken(u)) : ''
+      String(u.id || '').trim()
     ].filter(Boolean))];
-    for (const field of ['userId','sellerUserId','ownerId','uid','sellerEmail','email','mobile','phone']) {
-      for (const key of userKeys) {
-        try {
-          const qs = await _db.collection('listings').where(field, '==', key).get();
-          qs.docs.forEach(doc => refs.set(doc.id, doc));
-        } catch(e) {}
+    const _qPromises = [];
+    for (const field of ['userId','sellerUserId','ownerId']) {
+      for (const key of idKeys) {
+        _qPromises.push(
+          _db.collection('listings').where(field, '==', key).get()
+            .then(qs => qs.docs.forEach(doc => refs.set(doc.id, doc)))
+            .catch(() => {})
+        );
       }
     }
+    await Promise.all(_qPromises);
     const docs = [...refs.values()];
     let changed = false;
     const myName = _sellerNameCandidate(u.name || u.fullName || u.displayName);
@@ -38148,7 +38151,7 @@ init();
       }
       userData = await _saveUserToFirestore(userData) || userData;
       window._currentUser = userData;
-      try { var _mlp = document.getElementById('myListingsPage'); if (_mlp && _mlp.classList.contains('active') && typeof renderMyListings === 'function') renderMyListings(); } catch(e){}
+      try { if (typeof _loadMyListingsFromFirestore === 'function') { _loadMyListingsFromFirestore().then(function(){ var _mlp = document.getElementById('myListingsPage'); if (_mlp && _mlp.classList.contains('active') && typeof renderMyListings === 'function') renderMyListings(true); }); } } catch(e){}
     }
 
     loginDialog.close();
