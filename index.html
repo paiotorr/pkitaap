@@ -35474,11 +35474,14 @@ function _listingBook(l) {
   return state.books.find(b => b.id === l.bookId) || null;
 }
 async function _loadMyListingsFromFirestore() {
-  const u = window._currentUser;
-  if (!_db || !u || !(u.uid || u.id)) return;
+  const u = window._currentUser || {};
+  const _fbUid = (_auth && _auth.currentUser && _auth.currentUser.uid) || '';
+  if (!_db) return;
+  if (!_fbUid && !u.uid && !u.id && !u.email && !_sellerMobileToken(u)) return;
   try {
     const refs = new Map();
     const userKeys = [...new Set([
+      String(_fbUid).trim(),
       String(u.uid || '').trim(),
       String(u.id || '').trim(),
       String(u.userId || '').trim(),
@@ -35530,10 +35533,12 @@ async function renderMyListings(skipFetch) {
     list.innerHTML = '<p style="color:#888;font-size:13px;font-weight:700;padding:8px 0;">Login to see your listed books.</p>';
     return;
   }
-  if (!skipFetch) {
-    _loadMyListingsFromFirestore().then(() => renderMyListings(true));
-  }
   const mine = (state.listings || []).filter(_isMineListing).sort((a,b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+  if (!skipFetch) {
+    if (!mine.length) { list.innerHTML = '<p style="color:#888;font-size:13px;font-weight:700;padding:8px 0;">Loading your listings…</p>'; }
+    _loadMyListingsFromFirestore().then(() => renderMyListings(true));
+    if (!mine.length) return;
+  }
   if (!mine.length) {
     list.innerHTML = '<p style="color:#888;font-size:13px;font-weight:700;padding:8px 0;">No books listed yet.</p>';
     return;
@@ -36929,7 +36934,7 @@ window.confirmSchoolInput = function() {
   _checkUnlockPassword();
 };
 
-function _acEsc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function _acEsc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 window.selectPlaceSuggestion = function(val) {
   const inp = document.getElementById('signupPlace');
@@ -38143,6 +38148,7 @@ init();
       }
       userData = await _saveUserToFirestore(userData) || userData;
       window._currentUser = userData;
+      try { var _mlp = document.getElementById('myListingsPage'); if (_mlp && _mlp.classList.contains('active') && typeof renderMyListings === 'function') renderMyListings(); } catch(e){}
     }
 
     loginDialog.close();
