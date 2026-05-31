@@ -163,6 +163,8 @@ label { color: #444; display: grid; font-size: 13px; font-weight: 900; gap: 5px;
 .seller-books-heading { font-size: 15px; font-weight: 950; color: var(--text); padding: 14px 0 8px; }
 .seller-listed-book { border: 2px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: border-color .15s; background: #fff; }
 .seller-listed-book:active, .seller-listed-book:hover { border-color: var(--red); }
+.seller-listed-book { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.seller-listed-book:has(.seller-book-cb:checked) { border-color: var(--red); background: rgba(22,163,74,0.07); }
 .seller-listed-book input[type="checkbox"] { width: 22px; height: 22px; flex-shrink: 0; margin-top: 2px; accent-color: var(--red); }
 .seller-listed-book-info { flex: 1; min-width: 0; }
 .seller-listed-book-info strong { display: block; font-size: 15px; font-weight: 900; color: var(--text); line-height: 1.35; }
@@ -34279,6 +34281,7 @@ function renderBooks() {
             ? '<button class="btn btn-primary" type="button" data-buy-seller style="width:100%;margin-top:10px;">Buy It</button>'
             : '') + '</div>';
         grid.querySelectorAll('.seller-book-cb').forEach(function(cb) { cb.onchange = _updateBuyTotal; });
+        grid.querySelectorAll('.seller-listed-book').forEach(function(card){ card.addEventListener("click", function(e){ var t=e.target; if(t && t.classList && t.classList.contains("seller-book-cb")) return; if(t && (t.tagName==="A"||t.tagName==="BUTTON"||t.tagName==="INPUT")) return; var cb=card.querySelector(".seller-book-cb"); if(!cb) return; cb.checked=!cb.checked; if(typeof _updateBuyTotal==="function") _updateBuyTotal(); }); });
         const buyBtn2 = grid.querySelector('[data-buy-seller]');
         if (buyBtn2) buyBtn2.onclick = function() { _buySelectedFromSeller(uid); };
       };
