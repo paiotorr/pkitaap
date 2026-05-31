@@ -35605,7 +35605,7 @@ function editMyListing(id) {
     if (typeof selectedClass  !== 'undefined') selectedClass  = lis.className || '';
     if (typeof selectedBoard  !== 'undefined') selectedBoard  = lis.board     || '';
     if (typeof selectedStream !== 'undefined') selectedStream = lis.stream    || '';
-    if (typeof selectedBookId !== 'undefined') selectedBookId = lis.bookId    || '';
+    if (typeof selectedBookId !== 'undefined') selectedBookId = lis.customSubject ? '__custom' : (lis.bookId || '');
     if (typeof sellCatalogStep !== 'undefined') sellCatalogStep = 'books';
   } catch(_) {}
 
