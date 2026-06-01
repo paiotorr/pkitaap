@@ -34608,7 +34608,14 @@ function renderSellCatalog() {
   if (!sellPage || !sellPage.classList.contains('active')) return;
   // Open the new-book details form directly on the subject step — no extra tap.
   // Done here (before the show/hide check below) so the form card is revealed.
-  if (sellCatalogStep === 'books' && state.settings.allowSubjectAdding !== false && !selectedBookId) selectedBookId = '__custom';
+  if (sellCatalogStep === 'books' && state.settings.allowSubjectAdding !== false && !selectedBookId) {
+    selectedBookId = '__custom';
+    // Fresh "Add new book" entry — start with empty title/price/details so the
+    // previous item's values never linger. (Skip during an edit, which prefills.)
+    if (!window._editingListingId) {
+      ['sellCustomTitle','sellCustomPrice','sellDetails','sellMedium','sellCondition'].forEach(function(id){ var el = document.getElementById(id); if (el) el.value = ''; });
+    }
+  }
   const sellSelectedCard = document.getElementById('sellSelectedCard');
   const sellFormCard     = document.getElementById('sellFormCard');
   const catalogTitle = document.getElementById('sellCatalogTitle');
