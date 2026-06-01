@@ -33731,6 +33731,7 @@ function goHome() {
   selectedClass = selectedBoard = selectedStream = selectedBookId = selectedCategory = '';
   catalogStep = 'classes';
   render();
+  try { window.scrollTo(0, 0); } catch(e) {}
 }
 
 window.pkitaapAndroidBack = function() {
@@ -37567,6 +37568,7 @@ function bindPageNav() {
       const pg = btn.dataset.page;
       document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
       document.getElementById(pg+"Page")?.classList.add("active");
+      try { window.scrollTo(0, 0); } catch(e) {}
       // Close menu panel
       document.getElementById('menuBtn')?.classList.remove('open');
       document.getElementById('menuPanel')?.classList.remove('open');
@@ -37889,6 +37891,8 @@ function onStateFilterChange2(stateVal) {
   render();
 }
 function init() {
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch(e) {}
+  try { window.scrollTo(0, 0); } catch(e) {}
   fillSignupLocations();
   render();
   bindMenu();
