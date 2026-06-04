@@ -33671,6 +33671,7 @@ let search = "", catalogStep = "classes";
 let _browseListingsLoadedAt = 0;
 let _lastBrowseSig = '';
 let _listingsUnsub = null;
+let _browseScopeKey = null;
 let _remoteDataLoaded = false;
 
 window.PKITAAP_ADMOB_IDS = state.adMob || {};
@@ -34350,10 +34351,28 @@ function _listingMatchesBrowse(l, district, subDistrict) {
 
 function _loadBrowseListings() {
   if (!_db) return;
-  if (_listingsUnsub) return;
+  // Load ONLY the buyer's selected state + district (not the whole platform).
+  // Re-subscribes whenever the area changes — far fewer reads and scales cleanly.
+  var st   = (selectedState || '').trim();
+  var dist = (document.getElementById('browseDistrict')?.value || window._currentUser?.district || '').trim();
+  if (!st || !dist) return;                              // need both to scope a query
+  var scopeKey = st + '||' + dist;
+  if (_listingsUnsub && _browseScopeKey === scopeKey) return;   // already on this area
+  if (_listingsUnsub) { try { _listingsUnsub(); } catch(e) {} _listingsUnsub = null; }
+  _browseScopeKey = scopeKey;
+  _lastBrowseSig = null;                                  // force a re-render for the new area
   _listingsUnsub = _db.collection('listings')
+    .where('state', '==', st)
+    .where('district', '==', dist)
     .onSnapshot(snap => {
-      state.listings = snap.docs.map(doc => _publicListingCopy(Object.assign({ id: doc.id }, doc.data())));
+      var area = snap.docs.map(doc => _publicListingCopy(Object.assign({ id: doc.id }, doc.data())));
+      // Keep the signed-in user's own listings (which may be in another area) so a
+      // browse refresh never wipes their "My Listings".
+      var own = (state.listings || []).filter(_isMineListing);
+      var seen = {}, merged = [];
+      area.forEach(function(l){ if (l && l.id) { seen[l.id] = 1; merged.push(l); } });
+      own.forEach(function(l){ if (l && l.id && !seen[l.id]) merged.push(l); });
+      state.listings = merged;
       save();
       if (catalogStep === "books") {
         var _sig = state.listings.map(function(l){ return (l.id||'') + '~' + (l.sellerName||'') + '~' + (l.price||''); }).join('|');
