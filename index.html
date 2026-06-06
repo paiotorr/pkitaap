@@ -350,7 +350,7 @@ dialog::backdrop { background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); }
   .messages-shell { grid-template-columns: 1fr; min-height: 0; }
   .thread-list-panel { min-height: calc(100dvh - 210px); }
   .thread-list { max-height: none; overflow-y: visible; padding-bottom: 18px; }
-  .messages-shell.chat-open { min-height: 0; height: calc(100dvh - 110px); }
+  .messages-shell.chat-open { min-height: 0; height: calc(100dvh - 150px); }
   .messages-shell.chat-open .chat-panel { height: 100%; min-height: 0; }
   .messages-shell.chat-open .chat-body { min-height: 0; flex: 1 1 0; }
   body.chat-typing .brand-footer { display: none; }
@@ -33724,6 +33724,7 @@ function requireLogin() {
 }
 
 function goHome() {
+  if (typeof _pendingInquiry !== 'undefined' && _pendingInquiry) _cancelPendingInquiry();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('buyPage')?.classList.add('active');
   document.getElementById('menuBtn')?.classList.remove('open');
@@ -35478,15 +35479,121 @@ async function _openSellerChat(sellerUid, contextListing, prefillMsg, bookCount)
     updatedAt: new Date().toISOString(),
     messages: Array.isArray(existing.messages) ? existing.messages : []
   });
-  _upsertLocalChat(chat);
-  const synced = await _saveChatToFirestore(chat);
-  if (!synced && _db) toast('Chat opened locally. Online sync is not enabled yet.');
+  // Do NOT create or save the chat yet, and do NOT show it in Messages.
+  // Hold it as a pending inquiry; it becomes a real chat only when the buyer
+  // taps Send. The first message is locked (non-editable) so the book names,
+  // prices and total cannot be tampered with.
+  _pendingInquiry = { chatId: chatId, chat: chat, msg: String(prefillMsg || ''), sellerUid: sellerUid };
   _showMessagesPage();
-  renderMessages(true);
-  openChat(chatId);
+  _showChatView();
+  _activeChatId = '';
+  _renderInquiryCompose(chat, _pendingInquiry.msg);
+}
+function _renderInquiryCompose(chat, msg) {
+  const me = _myChatUid();
+  const title = document.getElementById('messageChatTitle');
+  const sub = document.getElementById('messageChatSub');
+  const body = document.getElementById('messageChatBody');
+  if (title) title.textContent = chat.sellerName || 'Seller';
+  if (sub) sub.textContent = chat.bookTitle ? ('About: ' + chat.bookTitle) : 'Book conversation';
+  if (body) {
+    const existing = _getLocalChats().find(c => c.id === chat.id);
+    const msgs = (existing && Array.isArray(existing.messages)) ? existing.messages : [];
+    let hist = msgs.map(function(m){
+      const mine = String(m.senderUid || m.senderId || '') === me;
+      return '<div class="chat-message-row ' + (mine ? 'mine' : 'theirs') + '"><div class="chat-bubble ' + (mine ? 'mine' : 'theirs') + '">' + _acEsc(m.text || '') + '<span class="chat-time">' + _acEsc(_fmtMsgIST(m)) + '</span></div></div>';
+    }).join('');
+    body.innerHTML = hist + '<p style="color:#15803d;font-size:12px;font-weight:800;padding:10px 2px;line-height:1.5;">🔒 This first message is protected and cannot be edited. Tap <b>Send</b> to deliver it — or tap the message to cancel.</p>';
+    _scrollChatToBottom();
+  }
+  const form = document.getElementById('messageForm');
   const input = document.getElementById('messageInput');
-  if (input) { input.value = prefillMsg; input.focus(); }
-  _autosizeMessageInput();
+  if (form) form.style.display = '';
+  if (input) input.style.display = 'none';
+  let prot = document.getElementById('inquiryProtected');
+  if (!prot) {
+    prot = document.createElement('div');
+    prot.id = 'inquiryProtected';
+    if (input && input.parentNode) input.parentNode.insertBefore(prot, input);
+    else if (form) form.insertBefore(prot, form.firstChild);
+  }
+  prot.style.cssText = 'position:relative;flex:1;border:2px solid #16a34a;background:#f0fdf4;border-radius:14px;padding:12px 14px;min-height:44px;max-height:120px;overflow:auto;cursor:pointer;-webkit-user-select:none;user-select:none;';
+  prot.style.display = '';
+  prot.innerHTML =
+    '<div style="white-space:pre-wrap;font-size:14px;font-weight:700;color:#14532d;line-height:1.5;pointer-events:none;">' + _acEsc(msg) + '</div>' +
+    '<div style="position:absolute;inset:0;border-radius:12px;background:linear-gradient(180deg,rgba(22,163,74,0.04),rgba(22,163,74,0.12));display:flex;align-items:flex-start;justify-content:flex-end;padding:6px;pointer-events:none;">' +
+      '<span style="display:inline-flex;align-items:center;gap:4px;background:#16a34a;color:#fff;font-size:10px;font-weight:900;padding:3px 8px;border-radius:999px;box-shadow:0 1px 3px rgba(0,0,0,.15);">🔒 Protected</span>' +
+    '</div>';
+  prot.onclick = function(){ _leaveInquiry(); };
+  setTimeout(function(){ try { window.scrollTo(0, document.documentElement.scrollHeight); } catch(e){} try { var f=document.getElementById('messageForm'); if (f && f.scrollIntoView) f.scrollIntoView({block:'end'}); } catch(e){} }, 60);
+  if (!window._inqKeyHook) {
+    window._inqKeyHook = true;
+    document.addEventListener('keydown', function(e){
+      if (_pendingInquiry && (e.key === 'Backspace' || e.key === 'Delete')) { e.preventDefault(); _leaveInquiry(); }
+    });
+  }
+}
+function _restoreComposeInput() {
+  const prot = document.getElementById('inquiryProtected'); if (prot) prot.style.display = 'none';
+  const input = document.getElementById('messageInput');
+  if (input) { input.style.display = ''; input.removeAttribute('data-inquiry-lock'); input.value = ''; _autosizeMessageInput(); }
+}
+function _cancelPendingInquiry() {
+  _pendingInquiry = null;
+  _restoreComposeInput();
+}
+function _leaveInquiry() {
+  const uid = _pendingInquiry ? _pendingInquiry.sellerUid : '';
+  _cancelPendingInquiry();
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  const bp = document.getElementById('buyPage'); if (bp) bp.classList.add('active');
+  try { if (uid && typeof showSellerListings === 'function') showSellerListings(uid); else render(); }
+  catch(e){ try { render(); } catch(_e){} }
+  try { window.scrollTo(0, 0); } catch(e){}
+}
+async function _sendPendingInquiry() {
+  const p = _pendingInquiry;
+  if (!p) return;
+  if (!_msgQuotaCheck()) return;
+  const chat = p.chat;
+  const hidden = _getHiddenChatMap();
+  if (hidden[p.chatId]) { delete hidden[p.chatId]; _saveHiddenChatMap(hidden); }
+  _upsertLocalChat(chat);
+  await _saveChatToFirestore(chat);
+  const msg = {
+    id: 'm' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
+    senderUid: _myChatUid(),
+    senderId: _myChatUid(),
+    senderName: (window._currentUser && window._currentUser.name) || '',
+    text: p.msg,
+    createdAt: new Date().toISOString(),
+    createdAtMs: Date.now(),
+    deliveredTo: [],
+    readBy: []
+  };
+  if (_db) {
+    try { await _syncChatMessageToFirestore(chat, msg); }
+    catch(e) {
+      console.warn('[PKITAAP] Inquiry send failed:', e);
+      toast('Message failed. Please check your connection and try again.');
+      return;
+    }
+  }
+  const chats = _getLocalChats();
+  const idx = chats.findIndex(c => c.id === p.chatId);
+  if (idx >= 0) {
+    chats[idx].messages = Array.isArray(chats[idx].messages) ? chats[idx].messages : [];
+    chats[idx].messages.push(_normalizeChatMessage(msg));
+    chats[idx].updatedAt = msg.createdAt;
+    chats[idx].updatedAtMs = msg.createdAtMs;
+    _saveLocalChats(chats);
+  }
+  _msgQuotaBump();
+  _pendingInquiry = null;
+  _restoreComposeInput();
+  _activeChatId = p.chatId;
+  renderMessages(true);
+  openChat(p.chatId);
 }
 function _isMineListing(l) {
   const u = window._currentUser || {};
@@ -35784,6 +35891,7 @@ const CHAT_STORE_KEY = 'pkitaap_chats_v1';
 const CHAT_READ_STORE_KEY = 'pkitaap_chat_read_v1';
 const CHAT_HIDDEN_STORE_KEY = 'pkitaap_chat_hidden_v1';
 let _activeChatId = '';
+var _pendingInquiry = null;
 let _activeChatListenId = '';
 let _activeChatUnsub = null;
 let _myChatsListenUid = '';
@@ -36221,6 +36329,7 @@ function _showMessagesPage() {
   document.getElementById('menuBackdrop')?.classList.remove('open');
 }
 function _showMessageListView() {
+  if (_pendingInquiry) _cancelPendingInquiry();
   document.getElementById('messagesShell')?.classList.remove('chat-open');
   _stopActiveChatListener();
 }
@@ -36339,6 +36448,7 @@ function openChat(chatId, skipRemote) {
   const chat = _getLocalChats().find(c => c.id === chatId);
   if (!chat) return;
   _activeChatId = chatId;
+  if (!_pendingInquiry) { var _pp=document.getElementById('inquiryProtected'); if(_pp) _pp.style.display='none'; var _ii=document.getElementById('messageInput'); if(_ii) _ii.style.display=''; }
   const me = _myChatUid();
   const otherUid = chat.sellerUid === me ? chat.buyerUid : chat.sellerUid;
   const otherName = chat.sellerUid === me ? (chat.buyerName || 'Buyer') : (chat.sellerName || 'Seller');
@@ -36386,7 +36496,62 @@ function openChat(chatId, skipRemote) {
     _watchChatMessages(chatId);
   }
 }
+// ---- Integrity guard (safe): backend config + core functions ----
+// Hidden expected copy of the backend config, baked at export. If someone edits
+// the visible PKITAAP_FB_CONFIG (to repoint the backend) without also editing this
+// copy, the values won't match and the app refuses to leave the splash screen.
+const _PK_FB_EXPECT = {"apiKey":"AIzaSyBfddqQmMk0GWChrC-eGFqFCiQA7tEMKUs","authDomain":"auth.paiotorr.com","projectId":"pkitaap","storageBucket":"pkitaap.firebasestorage.app","messagingSenderId":"8439723706","appId":"1:8439723706:web:2c1e96a447bca698b1b483"};
+function _pkIntegrityOk() {
+  try {
+    var cfg = (typeof PKITAAP_FB_CONFIG !== 'undefined') ? PKITAAP_FB_CONFIG : null;
+    var exp = (typeof _PK_FB_EXPECT !== 'undefined') ? _PK_FB_EXPECT : null;
+    if (cfg && exp && typeof cfg === 'object' && typeof exp === 'object') {
+      var keys = ['apiKey','authDomain','projectId','appId','messagingSenderId','storageBucket'];
+      for (var i = 0; i < keys.length; i++) {
+        var a = cfg[keys[i]] == null ? '' : String(cfg[keys[i]]);
+        var b = exp[keys[i]] == null ? '' : String(exp[keys[i]]);
+        if (a !== b) return false;
+      }
+    }
+    if (typeof _acEsc !== 'function') return false;
+    if (typeof _buySelectedFromSeller !== 'function') return false;
+    if (typeof _sendPendingInquiry !== 'function') return false;
+    if (typeof sendChatMessage !== 'function') return false;
+    if (typeof _msgQuotaCheck !== 'function') return false;
+    if (typeof openChat !== 'function') return false;
+    if (typeof _openSellerChat !== 'function') return false;
+    if (typeof _syncChatMessageToFirestore !== 'function') return false;
+    if (typeof requireLogin !== 'function') return false;
+    return true;
+  } catch (e) { return true; } // never lock out real users on an unexpected error
+}
+try { window._pkIntegrityOk = _pkIntegrityOk; Object.freeze(_PK_FB_EXPECT); } catch (e) {}
+// ---- Daily message send cap (device-side, no Firebase cost) ----
+var _MSG_DAILY_LIMIT = 50; // messages a user may send per day; set to 0 to disable
+function _msgQuotaToday() {
+  var d = new Date();
+  var key = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  var raw;
+  try { raw = JSON.parse(localStorage.getItem('pk_msgquota') || '{}'); } catch (e) { raw = {}; }
+  if (!raw || raw.date !== key) raw = { date: key, count: 0 };
+  return raw;
+}
+function _msgQuotaCheck() {
+  if (!_MSG_DAILY_LIMIT || _MSG_DAILY_LIMIT <= 0) return true;
+  if (_msgQuotaToday().count >= _MSG_DAILY_LIMIT) {
+    toast('Daily message limit reached (' + _MSG_DAILY_LIMIT + '/day). Please try again tomorrow.');
+    return false;
+  }
+  return true;
+}
+function _msgQuotaBump() {
+  if (!_MSG_DAILY_LIMIT || _MSG_DAILY_LIMIT <= 0) return;
+  var q = _msgQuotaToday();
+  q.count = (q.count || 0) + 1;
+  try { localStorage.setItem('pk_msgquota', JSON.stringify(q)); } catch (e) {}
+}
 async function sendChatMessage() {
+  if (_pendingInquiry) { _sendPendingInquiry(); return; }
   if (!_activeChatId) { toast('Select a conversation first.'); return; }
   const input = document.getElementById('messageInput');
   const text = (input?.value || '').trim();
@@ -36394,6 +36559,7 @@ async function sendChatMessage() {
   const chats = _getLocalChats();
   const idx = chats.findIndex(c => c.id === _activeChatId);
   if (idx < 0) return;
+  if (!_msgQuotaCheck()) return;
   const msg = {
     id: 'm' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
     senderUid: _myChatUid(),
@@ -36419,6 +36585,7 @@ async function sendChatMessage() {
   chats[idx].updatedAt = msg.createdAt;
   chats[idx].updatedAtMs = msg.createdAtMs;
   _saveLocalChats(chats);
+  _msgQuotaBump();
   input.value = '';
   _autosizeMessageInput();
   renderMessages(true);
@@ -36761,7 +36928,7 @@ function updateSignupSubDistricts() {
   if (!sdSel) return;
   sdSel.innerHTML = '<option value="">— Sub-District —</option>' +
     _getSubDistricts(stateName, district).slice().sort((a,b)=>String(a.subDistrict||'').localeCompare(String(b.subDistrict||''))).map(sd =>
-      '<option value="' + sd.subDistrict + '">' + sd.subDistrict + '</option>'
+      '<option value="' + _acEsc(sd.subDistrict) + '">' + _acEsc(sd.subDistrict) + '</option>'
     ).join('');
   if (pInp) { pInp.value = ''; pInp.disabled = true; pInp.placeholder = 'Select sub-district first'; }
   if (sInp) { sInp.value = ''; sInp.disabled = true; sInp.placeholder = 'Enter place first'; }
@@ -37360,7 +37527,7 @@ function render() {
       const _meds = (typeof getMediumsForState === 'function' ? getMediumsForState(selectedState) : []) || [];
       const _prev = _mediumFilterEl.value || '';
       _mediumFilterEl.innerHTML = '<option value="">Select Medium</option>' +
-        _meds.map(m => '<option value="' + m + '">' + m + '</option>').join('');
+        _meds.map(m => '<option value="' + _acEsc(m) + '">' + _acEsc(m) + '</option>').join('');
       if (_prev && _meds.indexOf(_prev) >= 0) _mediumFilterEl.value = _prev;
       else _mediumFilterEl.value = '';
     }
@@ -37620,8 +37787,8 @@ function bindAdminForms() {
     const nCls=document.getElementById("newClass");
     const nBrd=document.getElementById("newBoard");
     const nStr=document.getElementById("newStream");
-    nCls.innerHTML = [...classes,...(state.settings.general?["General"]:[])].map(c=>'<option>'+c+'</option>').join("");
-    nCls.onchange = () => { const c=nCls.value; nBrd.innerHTML=(getBoardsForState(selectedState)||[]).map(b=>'<option>'+b+'</option>').join(""); };
+    nCls.innerHTML = [...classes,...(state.settings.general?["General"]:[])].map(c=>'<option>'+_acEsc(c)+'</option>').join("");
+    nCls.onchange = () => { const c=nCls.value; nBrd.innerHTML=(getBoardsForState(selectedState)||[]).map(b=>'<option>'+_acEsc(b)+'</option>').join(""); };
     nCls.onchange();
     bookForm.onsubmit = e => { e.preventDefault(); if(state.settings.allowSubjectAdding === false){ toast("Subject adding is turned off by admin"); return; } const cls=nCls.value; const brd=nBrd.value; const str=nStr.value; const title=document.getElementById("newTitle").value.trim(); const price=parseInt(document.getElementById("newPrice").value)||0; const author=document.getElementById("newAuthor").value.trim(); const image=document.getElementById("newImage").value.trim(); if(!title||!price) return; state.books.push({id:"b"+Date.now(),type:cls==="General"?"general":"school",state:cls==="General"?"":selectedState,className:cls,board:brd,stream:str,title,price,author,image}); save(); toast("Subject added!"); e.target.reset(); nCls.onchange(); };
     }
@@ -37632,8 +37799,8 @@ function bindAdminForms() {
     const nPlace=document.getElementById("newPlace");
     // Populate from all districts across all states
     const allDists = state.locations.flatMap(st=>st.districts||[]);
-    nDist.innerHTML = allDists.map(d=>'<option>'+d.district+'</option>').join("");
-    nDist.onchange = () => { const d=allDists.find(x=>x.district===nDist.value); nPlace.innerHTML=(d?.places||[]).map(p=>'<option>'+p.name+'</option>').join(""); };
+    nDist.innerHTML = allDists.map(d=>'<option>'+_acEsc(d.district)+'</option>').join("");
+    nDist.onchange = () => { const d=allDists.find(x=>x.district===nDist.value); nPlace.innerHTML=(d?.places||[]).map(p=>'<option>'+_acEsc(p.name)+'</option>').join(""); };
     nDist.onchange();
     schoolForm.onsubmit = e => { e.preventDefault(); const d=allDists.find(x=>x.district===nDist.value); const p=d?.places.find(x=>x.name===nPlace.value); const sc=document.getElementById("newSchool").value.trim(); if(!p||!sc) return; p.schools.push(sc); save(); toast("School added!"); document.getElementById("newSchool").value=""; };
   }
@@ -37854,7 +38021,7 @@ function _updateMediumsForState(stateVal) {
   if (!sel) return;
   if (!stateVal) { sel.innerHTML = '<option value="">— Select State first —</option>'; return; }
   sel.innerHTML = '<option value="">— Select Medium —</option>' +
-    (meds.length ? meds.map(m=>'<option value="'+m+'">'+m+'</option>').join('') :
+    (meds.length ? meds.map(m=>'<option value="'+_acEsc(m)+'">'+_acEsc(m)+'</option>').join('') :
       '<option value="English Medium">English Medium</option>');
 }
 function _updateSellMediumsForState(stateVal, selectedValue) {
@@ -37863,7 +38030,7 @@ function _updateSellMediumsForState(stateVal, selectedValue) {
   if (!sel) return;
   if (!stateVal) { sel.innerHTML = '<option value="">Select state first</option>'; return; }
   sel.innerHTML = '<option value="">Select Medium</option>' +
-    (meds.length ? meds.map(m=>'<option value="'+m+'">'+m+'</option>').join('') :
+    (meds.length ? meds.map(m=>'<option value="'+_acEsc(m)+'">'+_acEsc(m)+'</option>').join('') :
       '<option value="English Medium">English Medium</option>');
   if (selectedValue) sel.value = selectedValue;
 }
@@ -38567,6 +38734,14 @@ init();
 
   function _doHideSplash() {
     if (_splashDone) return;
+    if (window._pkIntegrityOk && window._pkIntegrityOk() === false) {
+      // Tamper detected (backend config changed or core functions removed):
+      // keep the জয় জুবিন দা splash, cover the whole screen, and never load.
+      var ov0 = document.getElementById('splashOverlay');
+      if (ov0) { ov0.classList.remove('fade-out'); ov0.style.opacity = '1'; ov0.style.pointerEvents = 'auto'; ov0.style.top = '0'; ov0.style.zIndex = '2147483647'; }
+      document.body.classList.add('splash-active');
+      return;
+    }
     _splashDone = true;
     var overlay = document.getElementById('splashOverlay');
     if (!overlay) return;
