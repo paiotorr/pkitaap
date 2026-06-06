@@ -34210,10 +34210,16 @@ function renderBooks() {
     (placeGroups[place] = placeGroups[place] || []).push(l);
   });
   // myPlace already declared above
+  const _ref = _pkRefArea();
+  const _medians = _pkPriceMedians(matches);
+  const _placeScore = {};
+  Object.keys(placeGroups).forEach(pn => { _placeScore[pn] = _pkBestScore(placeGroups[pn], _ref, _medians); });
   const placeNames = Object.keys(placeGroups).sort((a,b) => {
-    const aMine = myPlace && _sameText(a, myPlace);
-    const bMine = myPlace && _sameText(b, myPlace);
-    if (aMine !== bMine) return aMine ? -1 : 1;
+    const aRef = (_ref.place && _sameText(a, _ref.place)) || (myPlace && _sameText(a, myPlace));
+    const bRef = (_ref.place && _sameText(b, _ref.place)) || (myPlace && _sameText(b, myPlace));
+    if (aRef !== bRef) return aRef ? -1 : 1;
+    const ds = (_placeScore[b] || 0) - (_placeScore[a] || 0);
+    if (ds) return ds;
     return a.localeCompare(b);
   });
 
@@ -34226,6 +34232,7 @@ function renderBooks() {
       if (!placeSellers[uid].school && l.school) placeSellers[uid].school = l.school;
     });
     const sellerArr = Object.keys(placeSellers).map(k => placeSellers[k]);
+    sellerArr.sort((x,y) => _pkBestScore(y.listings, _ref, _medians) - _pkBestScore(x.listings, _ref, _medians));
     const heading = '<div class="seller-place-heading"><strong>' + _acEsc(place) + '</strong></div>';
     const cards = '<div class="seller-cards-grid">' + sellerArr.map(sel => {
       return '<div class="seller-card" data-seller-uid="' + _acEsc(sel.uid) + '">' +
@@ -36611,6 +36618,67 @@ function _getPlaces(stateName, districtName, subDistrictName) {
 function _getSchools(stateName, districtName, subDistrictName, placeName) {
   const p = _getPlaces(stateName, districtName, subDistrictName).find(x => x.name === placeName);
   return p?.schools || [];
+}
+// ---- Nearby ranking (area-based: buyer's profile / selected location) ----
+// No GPS, no location permission, nothing stored. Listings are ranked by how
+// closely their area matches the buyer's area (place > sub-district > district >
+// state), then good condition, fair price, and freshness.
+function _pkRefArea() {
+  var u = window._currentUser || {};
+  return { state: u.state || '', district: u.district || '', subDistrict: u.subDistrict || '', place: u.place || '' };
+}
+function _pkCondRank(c) {
+  c = String(c || '').toLowerCase();
+  if (c.indexOf('like new') >= 0 || c.indexOf('excellent') >= 0 || c.indexOf('new') >= 0) return 4;
+  if (c.indexOf('very good') >= 0 || c.indexOf('good') >= 0) return 3;
+  if (c.indexOf('fair') >= 0 || c.indexOf('average') >= 0 || c.indexOf('used') >= 0) return 2;
+  if (c.indexOf('poor') >= 0 || c.indexOf('old') >= 0 || c.indexOf('damag') >= 0) return 1;
+  return 2;
+}
+function _pkFreshMs(l) {
+  var t = Number(l.createdAtMs || 0) || Date.parse(l.createdAt || '') || 0;
+  return isNaN(t) ? 0 : t;
+}
+function _pkProx(l, ref) {
+  if (!ref) return 0;
+  if (ref.place && _sameText(l.place || '', ref.place)) return 100;
+  if (ref.subDistrict && _sameText(l.subDistrict || '', ref.subDistrict)) return 70;
+  if (ref.district && _sameText(l.district || '', ref.district)) return 45;
+  if (ref.state && _sameText(l.state || '', ref.state)) return 20;
+  return 0;
+}
+function _pkPriceMedians(listings) {
+  var byBook = {};
+  (listings || []).forEach(function(l) {
+    var p = Number(l.price || 0) || 0; if (!p) return;
+    var key = String(l.bookId || l.title || l.bookTitle || '').toLowerCase().trim();
+    (byBook[key] = byBook[key] || []).push(p);
+  });
+  var med = {};
+  Object.keys(byBook).forEach(function(k) {
+    var a = byBook[k].slice().sort(function(x, y) { return x - y; });
+    med[k] = a[Math.floor(a.length / 2)];
+  });
+  return med;
+}
+function _pkPriceFair(l, medians) {
+  var key = String(l.bookId || l.title || l.bookTitle || '').toLowerCase().trim();
+  var med = medians && medians[key];
+  var p = Number(l.price || 0) || 0;
+  if (!med || !p) return 0;
+  if (p <= med * 1.1) return 10;
+  if (p <= med * 1.5) return 4;
+  return -6;
+}
+function _pkListingScore(l, ref, medians) {
+  var ageDays = _pkFreshMs(l) ? (Date.now() - _pkFreshMs(l)) / 86400000 : 999;
+  var fresh = Math.max(0, 15 - Math.min(15, ageDays / 2));
+  return _pkProx(l, ref) + (_pkCondRank(l.condition) * 6) + fresh + _pkPriceFair(l, medians);
+}
+function _pkBestScore(listings, ref, medians) {
+  var best = -1000000;
+  (listings || []).forEach(function(l) { var sc = _pkListingScore(l, ref, medians); if (sc > best) best = sc; });
+  return best === -1000000 ? 0 : best;
 }
 function _sameText(a, b) {
   return String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
